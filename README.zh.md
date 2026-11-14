@@ -80,7 +80,9 @@ bundle patch 默认固定使用 `auto`；独立 Provider 也会注册，可以�
 `searchMode` 默认是 **quality**：中文查询同时查知乎 + AnySearch，英文查询同时查
 AnySearch + Tavily，AI 新闻查询用 AIHOT + Tavily；按 URL 去重后重排。
 设为 `fast` 则使用上面的单后端优先顺序。`fetchMode` 默认是 **fast**（直连 HTTP 优先）；
-设为 **clean** 会优先 Tavily/Firecrawl 的干净 Markdown。
+设为 **clean** 会优先 Tavily/Firecrawl 的干净 Markdown。bundle patch 把
+`tool-web.searchSummaryMaxChars` 设为 **4000**（原生默认 800），Provider 的
+`maxSnippetChars` 也设为 4000。
 
 ## 行为细节
 
@@ -161,7 +163,7 @@ AnySearch + Tavily，AI 新闻查询用 AIHOT + Tavily；按 URL 去重后重排
 | `semanticDedupThreshold` | `0.95` | 语义重复的余弦阈值 |
 | `requestTimeoutMs` | `30000` | 单次请求超时 |
 | `maxFetchChars` | `200000` | `web_fetch` 最大字符数 |
-| `maxSnippetChars` | `800` | 每条搜索 summary 最大字符数 |
+| `maxSnippetChars` | `4000` | 每条搜索 summary 最大字符数 |
 | `minDirectHtmlChars` | `2048` | SPA 空壳判定阈值 |
 | `searchCacheTtlMs` | `300000` | 搜索缓存 TTL |
 | `searchCacheMaxEntries` | `200` | 搜索缓存条数上限 |

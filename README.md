@@ -84,7 +84,8 @@ AnySearch; English: AnySearch + Tavily), merges and deduplicates by URL, then re
 SiliconFlow `BAAI/bge-reranker-v2-m3`. AI-news queries use AIHOT + Tavily. Set
 `searchMode: fast` for the single-provider priority order above. `fetchMode` defaults to
 **fast** (direct HTTP first); set it to **clean** to prefer Tavily/Firecrawl Markdown
-extraction.
+extraction. The bundle patch sets `tool-web.searchSummaryMaxChars` to **4000** (the native
+default is 800) and the provider `maxSnippetChars` to 4000.
 
 ## Behavior details
 
@@ -177,7 +178,7 @@ optional; the defaults below match the verified setup.
 | `semanticDedupThreshold` | `0.95` | Cosine similarity threshold for duplicate removal |
 | `requestTimeoutMs` | `30000` | Per-request timeout |
 | `maxFetchChars` | `200000` | Maximum characters returned by `web_fetch` |
-| `maxSnippetChars` | `800` | Maximum characters per search summary |
+| `maxSnippetChars` | `4000` | Maximum characters per search summary |
 | `minDirectHtmlChars` | `2048` | SPA-shell detection threshold |
 | `searchCacheTtlMs` | `300000` | Search cache TTL |
 | `searchCacheMaxEntries` | `200` | Search cache entry cap |
