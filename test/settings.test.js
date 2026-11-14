@@ -71,7 +71,7 @@ test('Config contains every spec field with its default, role, and volatility', 
   );
   for (const spec of SETTINGS_SPEC) {
     const field = Config.dict[spec.key];
-    const fallback = readPath(DEFAULT_SETTINGS, spec.defaultPath);
+    const fallback = readPath(DEFAULT_SETTINGS, spec.path);
     const expected = spec.kind === 'order' ? fallback.join(',') : fallback;
     assert.ok(field, `missing Config field ${spec.key}`);
     assert.deepEqual(field.meta.default, expected, `${spec.key} default`);

@@ -173,10 +173,10 @@ const { DEFAULT_SETTINGS: defaults, SETTINGS_SPEC: settingsSpec } = await import
 const configKeys = settingsSpec.map((field) => field.key);
 if (configKeys.length === 0) errors.push('lib/index.js: no Config fields found');
 
-const defaultByPath = (defaultPath) => defaultPath.split('.').reduce((value, key) => value[key], defaults);
+const defaultByPath = (path) => path.split('.').reduce((value, key) => value[key], defaults);
 const expectedDefaults = Object.fromEntries(
   settingsSpec.map((field) => {
-    const value = defaultByPath(field.defaultPath);
+    const value = defaultByPath(field.path);
     return [field.key, field.kind === 'order' ? value.join(',') : value];
   }),
 );

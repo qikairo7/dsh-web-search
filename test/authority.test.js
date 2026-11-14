@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { authorityBoost, isOfficialDocHost, sortByAuthority } from '../lib/authority.js';
+import { officialDomainsForQuery } from '../lib/officialDocs.js';
 
 test('isOfficialDocHost matches official hosts with and without a leading www', () => {
   assert.equal(isOfficialDocHost('python.org'), true);
@@ -35,4 +36,11 @@ test('sortByAuthority adds the domain prior to the rerank score', () => {
     'https://example.com/blog',
     'https://github.com/repo',
   ]);
+});
+
+test('rust official docs stay consistent across supplement domains, authority boost, and doc-host checks', () => {
+  assert.ok(officialDomainsForQuery('rust').includes('doc.rust-lang.org'));
+  assert.ok(authorityBoost('https://doc.rust-lang.org/book/') > 0);
+  assert.equal(authorityBoost('https://doc.rust-lang.org/book/'), 0.2);
+  assert.equal(isOfficialDocHost('doc.rust-lang.org'), true);
 });

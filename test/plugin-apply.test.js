@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { apply, inject } from '../lib/index.js';
-import { PROVIDER_CATALOG, providersWithCapability } from '../lib/catalog.js';
+import { apply, createProviders, inject } from '../lib/index.js';
+import { PROVIDER_CATALOG, PROVIDER_IDS, providersWithCapability } from '../lib/catalog.js';
+import { resolveSettings } from '../lib/settings.js';
 
 function fakeContext() {
   const search = [];
@@ -39,4 +40,15 @@ test('apply registers every catalog provider and the allowlisted tools', () => {
   ]);
   assert.ok(inject.includes('tools'));
   assert.ok(PROVIDER_CATALOG.length > 0);
+});
+
+test('constructed providers are keyed exactly like the catalog order', () => {
+  const providers = createProviders({
+    settings: () => resolveSettings(),
+    resolveKey: async () => undefined,
+  });
+  assert.deepEqual(Object.keys(providers), [...PROVIDER_IDS]);
+  for (const id of PROVIDER_IDS) {
+    assert.equal(providers[id].id, id, `${id} instance id`);
+  }
 });
