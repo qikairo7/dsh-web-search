@@ -101,8 +101,8 @@ snippet 生成摘要。
   无效 URL 立即返回。直连 HTTP 的 404 是结果，不触发回退。
 - **质量搜索**：`searchMode: quality` 并行查询三家后端，按 URL 去重，用 `BAAI/bge-m3`
   embeddings 去掉近似重复内容，再用 `BAAI/bge-reranker-v2-m3` 重排，并叠加域名权威加权
-  （官方 docs、MDN、GitHub、StackOverflow 优先）；重排或 embedding 不可用时回退到
-  合并后的 Provider 顺序。
+  （官方 docs、MDN、GitHub、StackOverflow 优先）；AnySearch 的正文会压缩成 800–1500 字的
+  查询相关摘要；重排或 embedding 不可用时回退到合并后的 Provider 顺序。
 - **意图路由**：本地规则把查询分成 `technical`、`news`、`chinese-community`、`general`，
   再决定后端组合和 fast 模式顺序。
 - **缓存与熔断**：搜索结果缓存 5 分钟 / 200 条，抓取缓存 10 分钟 / 100 条；某后端
@@ -111,13 +111,15 @@ snippet 生成摘要。
   支持的情况下转成对应过滤参数。
 - **官方文档补充**：技术查询命中已知官方域名（`deepseek-harness.github.io`、
   `api-docs.deepseek.com`、`nodejs.org`、`developer.mozilla.org`、`react.dev`、
-  `docs.python.org`、`go.dev`、`rust-lang.org`）时，quality 模式额外跑一次限定域名的
-  Tavily 搜索，过滤 Node.js `/download/release/` 旧版本文档后合并结果。
+  `docs.python.org`、`go.dev`、`rust-lang.org`，以及 Docker、Kubernetes、AWS、Azure、
+  GitHub、TypeScript、Java、NVIDIA 等 `docs.*` / `developer.*` 域名）时，quality 模式额外
+  跑一次限定域名的 Tavily 搜索，过滤 Node.js `/download/release/` 旧版本文档和旧
+  release blog 后合并结果。
 - **语言路由**：项目只做中文和英文；含汉字为 `zh`，否则为 `en`，把 `language` 传给
   Tavily/AnySearch；显式 `lang:` 优先。
 - **新闻模式**：`news` 意图启用 Tavily `topic: news` + `time_range: week`、Firecrawl
-  新闻源 + `qdr:w`、知乎实时索引；AI 新闻查询用 AIHOT；已知中英文新闻域名获得额外排序加权，错语言的新闻源会被过滤。
-- **正文清洗**：API 抓取结果会去掉常见的导航、登录、页脚和面包屑行，再返回 Markdown。
+  新闻源 + `qdr:w`、知乎实时索引；AI 新闻查询用 AIHOT；已知中英文新闻域名获得额外排序加权，错语言的新闻源会被过滤，AIHOT 条目额外加权。
+- **正文清洗**：API 抓取结果会去掉常见的导航、登录、页脚、面包屑、仓库导航和头像行，再返回 Markdown。
 - **干净抓取**：`fetchMode: clean` 把顺序改为 `tavily → firecrawl → http → anysearch`，
   用 API credits 换更干净的 Markdown。
 - **不限制内网**：直连 HTTP 可以访问 loopback 和私有网段，与官方

@@ -110,7 +110,8 @@ Markdown extraction. The bundle patch sets `tool-web.searchSummaryMaxChars` to *
 - **Quality search**: `searchMode: quality` queries three providers in parallel, merges by
   URL, removes near-duplicates with `BAAI/bge-m3` embeddings, then reranks with
   `BAAI/bge-reranker-v2-m3` and adds a domain-authority prior (official docs, MDN, GitHub,
-  StackOverflow first). If the reranker or embedding service is unavailable, the merged
+  StackOverflow first). AnySearch page bodies are compressed into an 800–1500 character
+  query-aware extract. If the reranker or embedding service is unavailable, the merged
   provider order is returned.
 - **Intent routing**: simple local rules classify a query as `technical`, `news`,
   `chinese-community`, or `general`, then choose the provider pair and fast-mode order.
@@ -121,18 +122,19 @@ Markdown extraction. The bundle patch sets `tool-web.searchSummaryMaxChars` to *
   Tavily, Firecrawl, and Zhihu where their APIs support the corresponding filter.
 - **Official docs supplement**: for technical queries with known official domains
   (`deepseek-harness.github.io`, `api-docs.deepseek.com`, `nodejs.org`, `developer.mozilla.org`,
-  `react.dev`, `docs.python.org`, `go.dev`, `rust-lang.org`), quality mode runs one extra
-  Tavily search restricted to those domains, drops archived Node.js `/download/release/`
-  docs, and merges the results.
+  `react.dev`, `docs.python.org`, `go.dev`, `rust-lang.org`, plus `docs.*` and `developer.*`
+  hosts such as Docker, Kubernetes, AWS, Azure, GitHub, TypeScript, Java and NVIDIA), quality
+  mode runs one extra Tavily search restricted to those domains, drops archived Node.js
+  `/download/release/` docs and old release blogs, and merges the results.
 - **Language routing**: the project scope is Chinese and English only; a query with Han
   characters is `zh`, otherwise `en`, and that value is passed to Tavily/AnySearch as the
   `language` hint. An explicit `lang:` wins.
 - **News mode**: `news` intent enables Tavily `topic: news` + `time_range: week`, Firecrawl
   news sources + `qdr:w`, Zhihu realtime index, and AIHOT for AI-news queries. Known
-  Chinese/English news domains get a small ranking bonus, and news sources in the wrong
-  language are filtered out.
-- **Content cleaning**: API fetch providers strip common navigation, sign-in, footer and
-  breadcrumb lines from Markdown before returning it.
+  Chinese/English news domains get a small ranking bonus, news sources in the wrong
+  language are filtered out, and AIHOT items get an additional provider boost.
+- **Content cleaning**: API fetch providers strip common navigation, sign-in, footer,
+  breadcrumb, repository-navigation and avatar lines from Markdown before returning it.
 - **Clean fetch**: `fetchMode: clean` changes the order to
   `tavily → firecrawl → http → anysearch` for cleaner Markdown at the cost of API credits.
 - **No private-network blocking**: direct HTTP can reach loopback and private-network hosts,

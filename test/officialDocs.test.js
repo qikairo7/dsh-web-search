@@ -9,6 +9,7 @@ test('officialDomainsForQuery returns official docs domains', () => {
     'api-docs.deepseek.com',
   ]);
   assert.deepEqual(officialDomainsForQuery('Node.js fetch timeout'), ['nodejs.org']);
+  assert.deepEqual(officialDomainsForQuery('Docker compose volume'), ['docs.docker.com']);
   assert.deepEqual(officialDomainsForQuery('random weather'), []);
 });
 

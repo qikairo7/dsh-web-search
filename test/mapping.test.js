@@ -30,6 +30,17 @@ test('AnySearch rejects a non-zero business code', () => {
   assert.throws(() => mapAnySearchSearch({ code: 7, message: 'upstream failed' }), /upstream failed/);
 });
 
+test('AnySearch compresses long content into a bounded summary', () => {
+  const content = Array.from({ length: 100 }, (_, index) => `Sentence ${index} about Node.js fetch timeout.`).join(' ');
+  const result = mapAnySearchSearch(
+    { code: 0, data: { results: [{ title: 'A', url: 'https://a.example/', content }] } },
+    4000,
+    'Node.js fetch timeout',
+  );
+  assert.ok(result.sources[0].summary.length <= 1500);
+  assert.ok(result.sources[0].summary.length >= 800);
+});
+
 test('Tavily maps the generated answer into content when enabled', () => {
   const data = {
     answer: 'generated answer',
