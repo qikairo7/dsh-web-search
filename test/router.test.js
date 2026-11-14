@@ -204,6 +204,62 @@ test('AutoSearchProvider enriches top sources from fetched content', async () =>
   assert.equal(sources[1].summary, 'old');
 });
 
+test('AutoSearchProvider keeps a longer summary when fetched content is too short', async () => {
+  const body = `<article><p>${'Short fetched paragraph about fetch timeouts. '.repeat(40)}</p></article>`;
+  const longSummary = 'Existing detailed summary sentence. '.repeat(80);
+  const enrichmentSettings = settings({
+    enrichEnabled: true,
+    enrichTopN: 2,
+    enrichSummaryMinChars: 800,
+    enrichSummaryMaxChars: 1_500,
+  });
+  const router = new AutoSearchProvider({
+    settings: () => enrichmentSettings,
+    providers: {},
+    fetcher: {
+      fetch: async () => ({ body: { kind: 'html', content: body } }),
+    },
+  });
+  const sources = await router.enrichSources(
+    [
+      { url: 'https://example.com/kept', title: 'Example one', summary: longSummary },
+      { url: 'https://example.com/replaced', title: 'Example two', summary: 'old' },
+    ],
+    { query: 'fetch timeout' },
+    enrichmentSettings,
+    undefined,
+  );
+  assert.equal(sources[0].summary, longSummary);
+  assert.ok(sources[1].summary.length > 'old'.length);
+  assert.match(sources[1].summary, /Short fetched paragraph/u);
+});
+
+test('AutoSearchProvider converts HTML fragments when the body kind is html', async () => {
+  const body = `<article><p>${'Fragment paragraph about AbortSignal timeouts. '.repeat(10)}</p></article>`;
+  const enrichmentSettings = settings({
+    enrichEnabled: true,
+    enrichTopN: 1,
+    enrichSummaryMinChars: 100,
+    enrichSummaryMaxChars: 300,
+  });
+  const router = new AutoSearchProvider({
+    settings: () => enrichmentSettings,
+    providers: {},
+    fetcher: {
+      fetch: async () => ({ body: { kind: 'html', content: body } }),
+    },
+  });
+  const sources = await router.enrichSources(
+    [{ url: 'https://example.com/fragment', title: 'Fragment test', summary: 'old' }],
+    { query: 'AbortSignal timeout' },
+    enrichmentSettings,
+    undefined,
+  );
+  assert.ok(sources[0].summary.length >= 100);
+  assert.doesNotMatch(sources[0].summary, /<article|<p>/iu);
+  assert.match(sources[0].summary, /Fragment paragraph/u);
+});
+
 test('AutoSearchProvider skips a provider after repeated failures', async () => {
   const calls = [];
   const bad = {

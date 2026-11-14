@@ -1,16 +1,13 @@
 # Public agent-search benchmarks — 2026-11-14
 
-Plugin version: `0.7.0`
-Mode: `searchMode: quality`
-Sample: FRAMES 50 / WebWalkerQA 50
-Enrichment: top-5, 800–1500 chars
-Generated: 2026-11-14
-
 Baseline: `@qikairo7/dsh-web-search` 0.6.1 (search-only)
 Mode: `searchMode: quality` (three providers + BGE rerank + authority ranking)
+Sample: FRAMES 50 / WebWalkerQA 50
+Generated: 2026-11-14
 
-> This run is search-only. Version 0.7.0 adds evidence-page enrichment; that change is not
-> reflected in the 50-question numbers below.
+> Sections before **0.7.0 evidence-enriched rerun** report the 0.6.1 search-only baseline.
+> Version `0.7.0` adds evidence-page enrichment (top-5, 800–1500 chars); the rerun on the
+> same 50 questions is in that later section and is the current-release result.
 
 ## Benchmarks
 
@@ -64,6 +61,9 @@ Interpretation: on this web-agent benchmark the two systems are close; our evide
 
 ## 0.7.0 evidence-enriched rerun (n = 50)
 
+Plugin version: `0.7.0`
+Enrichment: top-5, 800–1500 chars
+
 The 0.7.0 quality path fetches the top 5 results and regenerates summaries from the fetched
 body. Same 50 cached questions, same scoring; search results can vary slightly between runs.
 
@@ -107,8 +107,13 @@ The remaining gap is answer extraction from fetched pages, not search coverage.
 ## Reproduce
 
 ```sh
-node scripts/public-benchmark.mjs
+pnpm benchmark
 ```
 
-The script reads the public Hugging Face rows API. `SAMPLE_SIZE` controls the number of rows per benchmark.
+`pnpm benchmark` runs `node scripts/public-benchmark.mjs`. The runner loads the committed
+FRAMES/WebWalkerQA fixture (`scripts/fixtures/public-benchmark-sample.json`) first, so the
+50-row local sample runs without network access. It falls back to the public Hugging Face
+rows API only when the fixture has fewer rows than needed. `SAMPLE_SIZE` controls the number
+of rows per benchmark (default 50). Live API runs need `AS_KEY`, `TV_KEY`, `FC_KEY`,
+`ZH_KEY`, `SF_KEY`, and `DS_TOKEN`.
 

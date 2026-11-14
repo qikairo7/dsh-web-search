@@ -24,6 +24,22 @@ test('summarizeTechnicalContent prefers code and API blocks', () => {
     'Unrelated background paragraph. '.repeat(30),
   ].join('\n\n');
   const result = summarizeTechnicalContent(text, 'AbortSignal timeout', 100, 500);
+  assert.ok(result.length >= 100);
   assert.ok(result.length <= 500);
   assert.match(result, /AbortSignal\.timeout|AbortController|Parameters/);
+});
+
+test('summarizeContent normalizes whitespace in short text', () => {
+  const result = summarizeContent('  First line.\r\n\r\n\r\nSecond   line.\t ');
+  assert.equal(result, 'First line.\n\nSecond line.');
+});
+
+test('summarizeTechnicalContent normalizes whitespace in short text', () => {
+  const result = summarizeTechnicalContent('Alpha\r\n\r\nBeta   gamma.\t');
+  assert.equal(result, 'Alpha\n\nBeta gamma.');
+});
+
+test('summarizeContent truncates an oversized single sentence to maxChars', () => {
+  const result = summarizeContent('word '.repeat(500), '', 100, 500);
+  assert.equal(result.length, 500);
 });

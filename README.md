@@ -243,7 +243,8 @@ pnpm benchmark
 
 `pnpm check` runs the guardrail tests; the pre-commit hook runs the same command. `pnpm
 benchmark` loads the committed FRAMES/WebWalkerQA fixture first, then falls back to the
-public rows API. Live API verification requires the credentials above.
+public rows API; `SAMPLE_SIZE` sets the rows per benchmark (default 50). Live API
+verification requires the credentials above.
 
 ## License
 

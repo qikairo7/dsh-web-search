@@ -37,6 +37,34 @@ test('HTTP fetch returns HTML for the tool layer to convert', async () => {
   );
 });
 
+test('HTTP fetch converts GitHub HTML to cleaned text', async () => {
+  const html = [
+    '<!doctype html><html><body>',
+    '<h1>deepseek-ai/dsh-web-search</h1>',
+    '<h2>Releases</h2>',
+    '<p>Latest release notes.</p>',
+    '<ul><li><a href="/login">Login</a></li><li><a href="/features/discussions">Discussions</a></li></ul>',
+    '<h2>About</h2>',
+    '<p>Free-tier-first providers.</p>',
+    '<script>window.__DATA__ = 1;</script>',
+    '</body></html>',
+  ].join('');
+  await withFetch(
+    async () => new Response(html, { status: 200, headers: { 'content-type': 'text/html; charset=utf-8' } }),
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings });
+      const result = await provider.fetch({ url: 'https://github.com/deepseek-ai/dsh-web-search' });
+      assert.equal(result.statusCode, 200);
+      assert.equal(result.body.kind, 'text');
+      assert.doesNotMatch(result.body.content, /<html|<body|<h[1-6]/iu);
+      assert.match(result.body.content, /deepseek-ai\/dsh-web-search/u);
+      assert.match(result.body.content, /Free-tier-first providers\./u);
+      assert.doesNotMatch(result.body.content, /^Releases$/mu);
+      assert.doesNotMatch(result.body.content, /^Login$/mu);
+    },
+  );
+});
+
 test('HTTP fetch rejects PDF responses so the router can fall back', async () => {
   await withFetch(
     async () => new Response('%PDF-1.7', { status: 200, headers: { 'content-type': 'application/pdf' } }),

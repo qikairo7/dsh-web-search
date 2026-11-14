@@ -17,7 +17,7 @@ const keys = {
   SILICONFLOW_API_KEY: process.env.SF_KEY,
 };
 const deepseekToken = process.env.DS_TOKEN;
-const SAMPLE_SIZE = Number(process.env.SAMPLE_SIZE ?? 30);
+const SAMPLE_SIZE = Number(process.env.SAMPLE_SIZE ?? 50);
 
 const settings = {
   searchMode: 'quality',
@@ -136,7 +136,12 @@ function scoreResult(sources, goldUrls, answer) {
 async function loadRows(dataset, config, split, count) {
   // shortcut: fixture pins the 50-row sample; regenerate when the benchmark changes.
   const fixtureUrl = new URL('./fixtures/public-benchmark-sample.json', import.meta.url);
-  const fixture = JSON.parse(await readFile(fixtureUrl, 'utf8'));
+  let fixture = {};
+  try {
+    fixture = JSON.parse(await readFile(fixtureUrl, 'utf8'));
+  } catch {
+    // Fall back to the public rows API.
+  }
   const key = `${dataset}|${config}|${split}`;
   if (Array.isArray(fixture[key]) && fixture[key].length >= count) {
     return fixture[key].slice(0, count);

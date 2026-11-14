@@ -221,8 +221,8 @@ pnpm benchmark
 ```
 
 `pnpm check` 运行 guardrail 测试；pre-commit hook 运行同一命令。`pnpm benchmark`
-优先读已提交的 FRAMES/WebWalkerQA fixture，读取失败才回退到公开 rows API。真实 API
-验收需要上面的凭据。
+优先读已提交的 FRAMES/WebWalkerQA fixture，读取失败才回退到公开 rows API；`SAMPLE_SIZE`
+控制每个基准的行数（默认 50）。真实 API 验收需要上面的凭据。
 
 ## 许可证
 

@@ -1,13 +1,24 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { authorityBoost, sortByAuthority } from '../lib/authority.js';
+import { authorityBoost, isOfficialDocHost, sortByAuthority } from '../lib/authority.js';
+
+test('isOfficialDocHost matches official hosts with and without a leading www', () => {
+  assert.equal(isOfficialDocHost('python.org'), true);
+  assert.equal(isOfficialDocHost('www.python.org'), true);
+  assert.equal(isOfficialDocHost('typescriptlang.org'), true);
+  assert.equal(isOfficialDocHost('www.typescriptlang.org'), true);
+  assert.equal(isOfficialDocHost('docs.docker.com'), true);
+  assert.equal(isOfficialDocHost('www.example.com'), false);
+});
 
 test('authorityBoost ranks official docs and code hosts above generic pages', () => {
   assert.equal(authorityBoost('https://developer.mozilla.org/en-US/docs/Web'), 0.2);
   assert.equal(authorityBoost('https://deepseek-harness.github.io/docs'), 0.2);
   assert.equal(authorityBoost('https://docs.docker.com/engine/'), 0.2);
   assert.equal(authorityBoost('https://developer.chrome.com/docs/'), 0.2);
+  assert.equal(authorityBoost('https://www.python.org/doc/'), 0.2);
+  assert.equal(authorityBoost('https://www.typescriptlang.org/docs/'), 0.2);
   assert.equal(authorityBoost('https://github.com/deepseek-ai/deepseek-harness'), 0.1);
   assert.equal(authorityBoost('https://stackoverflow.com/questions/1'), 0.1);
   assert.equal(authorityBoost('https://example.com/article'), 0);
