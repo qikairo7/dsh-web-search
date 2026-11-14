@@ -129,7 +129,8 @@ Markdown extraction. The bundle patch sets `tool-web.searchSummaryMaxChars` to *
   `language` hint. An explicit `lang:` wins.
 - **News mode**: `news` intent enables Tavily `topic: news` + `time_range: week`, Firecrawl
   news sources + `qdr:w`, Zhihu realtime index, and AIHOT for AI-news queries. Known
-  Chinese/English news domains get a small ranking bonus.
+  Chinese/English news domains get a small ranking bonus, and news sources in the wrong
+  language are filtered out.
 - **Content cleaning**: API fetch providers strip common navigation, sign-in, footer and
   breadcrumb lines from Markdown before returning it.
 - **Clean fetch**: `fetchMode: clean` changes the order to

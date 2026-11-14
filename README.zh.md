@@ -116,7 +116,7 @@ snippet 生成摘要。
 - **语言路由**：项目只做中文和英文；含汉字为 `zh`，否则为 `en`，把 `language` 传给
   Tavily/AnySearch；显式 `lang:` 优先。
 - **新闻模式**：`news` 意图启用 Tavily `topic: news` + `time_range: week`、Firecrawl
-  新闻源 + `qdr:w`、知乎实时索引；AI 新闻查询用 AIHOT；已知中英文新闻域名获得额外排序加权。
+  新闻源 + `qdr:w`、知乎实时索引；AI 新闻查询用 AIHOT；已知中英文新闻域名获得额外排序加权，错语言的新闻源会被过滤。
 - **正文清洗**：API 抓取结果会去掉常见的导航、登录、页脚和面包屑行，再返回 Markdown。
 - **干净抓取**：`fetchMode: clean` 把顺序改为 `tavily → firecrawl → http → anysearch`，
   用 API credits 换更干净的 Markdown。

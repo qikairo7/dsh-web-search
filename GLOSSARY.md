@@ -46,7 +46,7 @@ Detection of the query language (`zh` or `en`) used as a provider `language` hin
 
 ## News mode
 
-The routing rule for `news` queries: Tavily news topic/time range, Firecrawl news sources, Zhihu realtime index, known news-domain ranking, and AIHOT for AI-news queries.
+The routing rule for `news` queries: Tavily news topic/time range, Firecrawl news sources, Zhihu realtime index, language-specific news-domain ranking, wrong-language news filtering, and AIHOT for AI-news queries.
 
 ## AIHOT
 
