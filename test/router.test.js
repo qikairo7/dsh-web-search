@@ -70,6 +70,30 @@ test('AutoSearchProvider uses the default order for non-Chinese queries', async 
   assert.deepEqual(calls, ['anysearch']);
 });
 
+test('search cache key changes when official docs and language routing change', async () => {
+  let calls = 0;
+  const current = settings({
+    searchMode: 'fast',
+    defaultSearchOrder: ['anysearch'],
+    officialDocsEnabled: true,
+    languageRouting: true,
+  });
+  const provider = {
+    id: 'anysearch',
+    available: () => true,
+    ready: async () => true,
+    async search() {
+      calls += 1;
+      return { sources: [{ url: 'https://anysearch.example/' }], truncated: false };
+    },
+  };
+  const router = new AutoSearchProvider({ settings: () => current, providers: { anysearch: provider } });
+  await router.search({ query: 'cache test' });
+  current.officialDocsEnabled = false;
+  await router.search({ query: 'cache test' });
+  assert.equal(calls, 2);
+});
+
 test('AutoSearchProvider reports the last recoverable failure', async () => {
   const providers = {
     zhihu: searchProvider('zhihu', [], { fail: true }),

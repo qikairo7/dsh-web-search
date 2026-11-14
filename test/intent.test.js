@@ -9,7 +9,7 @@ test('classifies technical, news and Chinese community queries', () => {
   assert.equal(classifyIntent('怎么评价 DeepSeek Harness 这个工具'), 'chinese-community');
 });
 
-test('chooses two-provider quality pairs', () => {
+test('chooses three-provider quality pairs', () => {
   assert.deepEqual(qualityPair('DeepSeek Harness 插件开发', 'technical'), [
     'anysearch',
     'zhihu',

@@ -1,6 +1,6 @@
 {
   "name": "@qikairo7/dsh-web-search",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "private": true,
   "description": "Free-tier-first multi-backend web search and fetch providers for DeepSeek Harness",
   "keywords": [
@@ -47,7 +47,8 @@
   "scripts": {
     "test": "node --test",
     "check": "node --check lib/index.js && node --test",
-    "benchmark": "node scripts/public-benchmark.mjs"
+    "benchmark": "node scripts/public-benchmark.mjs",
+    "benchmark:refresh": "node scripts/refresh-benchmark-fixture.mjs"
   },
   "dsh": {
     "bundle": {

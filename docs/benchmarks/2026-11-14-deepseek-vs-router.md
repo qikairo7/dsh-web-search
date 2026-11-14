@@ -1,13 +1,10 @@
 # DeepSeek API vs this plugin — 2026-11-14
 
-This is a local comparison run against the DeepSeek Search/Fetch API using the DSH
-account token. DeepSeek is **not** a backend of this plugin; the results are reference
-data for routing and roadmap decisions.
+Local comparison against the DeepSeek Search/Fetch API using the DSH account token. DeepSeek is not a backend of this plugin; the results are reference data for routing and roadmap decisions.
 
-## Search (top results)
+## Search
 
-DeepSeek called with `count: 5`; the plugin's default quality mode returned 10 results
-after two-provider merge and rerank.
+DeepSeek was called with `count: 5`; the plugin's default quality mode returned 10 results after three-provider merge and rerank.
 
 | Query | DeepSeek Search API | Plugin quality mode |
 |---|---|---|
@@ -27,11 +24,7 @@ after two-provider merge and rerank.
 
 ## Takeaways
 
-- DeepSeek Search is faster and has strong official-index authority, especially for
-  DeepSeek's own documentation and technical queries.
-- The plugin wins on Chinese community coverage (Zhihu), English canonical sources
-  (AnySearch/MDN), and fetch coverage (Tavily/Firecrawl handle PDF and SPA pages that
-  DeepSeek Fetch rejects).
-- Quality mode trades latency for broader source coverage and reranking; fast mode keeps
-  the lower-latency single-provider path.
+- DeepSeek Search is faster and has strong official-index authority, especially for DeepSeek's own documentation and technical queries.
+- The plugin wins on Chinese community coverage (Zhihu), English canonical sources (AnySearch/MDN), and fetch coverage (Tavily/Firecrawl handle PDF and SPA pages that DeepSeek Fetch rejects).
+- Quality mode trades latency for broader source coverage and reranking; fast mode keeps the lower-latency single-provider path.
 - The plugin does not include the DeepSeek Search/Fetch API as a backend by decision.
