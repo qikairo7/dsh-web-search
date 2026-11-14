@@ -1,7 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { cleanMarkdown } from '../lib/clean.js';
+import { cleanMarkdown, htmlToText } from '../lib/clean.js';
+
+test('htmlToText removes scripts and tags', () => {
+  const html = '<html><head><style>body{}</style><script>bad()</script></head><body><h1>Title</h1><p>Body &amp; text.</p></body></html>';
+  assert.equal(htmlToText(html), 'Title\nBody & text.');
+});
 
 test('cleanMarkdown removes common navigation lines and collapses blank lines', () => {
   const input = [
@@ -13,6 +18,9 @@ test('cleanMarkdown removes common navigation lines and collapses blank lines', 
     '[Sign up](/signup?ref_cta=Sign+up)',
     'Appearance settings',
     'Repository navigation',
+    '## Repository navigation',
+    '* [Notifications](/login?return_to=%2Fdeepseek-ai)',
+    '* [Fork 1](/fork)',
     '![avatar](https://avatars.githubusercontent.com/u/1?v=4)',
     '',
     'Body text.',

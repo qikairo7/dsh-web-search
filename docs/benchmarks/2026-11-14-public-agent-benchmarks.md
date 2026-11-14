@@ -3,6 +3,9 @@
 Plugin: `@qikairo7/dsh-web-search` 0.6.1
 Mode: `searchMode: quality` (three providers + BGE rerank + authority ranking)
 
+> This run is search-only. Version 0.7.0 adds evidence-page enrichment; that change is not
+> reflected in the 50-question numbers below.
+
 ## Benchmarks
 
 - [FRAMES](https://huggingface.co/datasets/google/frames-benchmark) — Google multi-hop factual retrieval benchmark. The test split has 824 questions, each with `Answer` and `wiki_links` evidence URLs.

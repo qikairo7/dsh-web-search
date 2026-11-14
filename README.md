@@ -43,9 +43,12 @@ No MCP server and no third-party DSH plugin is required.
 | Direct HTTP | No API cost | Static-page fetch |
 | SiliconFlow | Free allowance | BGE rerank + embeddings |
 
-`quality` mode uses one Tavily credit per query when Tavily is selected, so 1000 credits is
-roughly 33 quality searches/day over a month. `fast` mode normally uses Zhihu/AnySearch
-first and keeps Tavily for harder queries. The 5-minute search cache reduces repeated spend.
+`quality` mode uses one Tavily credit per search query when Tavily is selected, so 1000
+credits is roughly 33 quality searches/day over a month. Evidence-page enrichment uses the
+direct-HTTP path first; only pages that cannot be fetched directly fall back to
+Tavily/Firecrawl and may consume additional credits. `fast` mode normally uses
+Zhihu/AnySearch first and keeps Tavily for harder queries. The 5-minute search cache reduces
+repeated spend.
 
 ## Requirements
 
@@ -140,7 +143,9 @@ Markdown extraction. The bundle patch sets `tool-web.searchSummaryMaxChars` to *
   `BAAI/bge-reranker-v2-m3` and adds a domain-authority prior (official docs, MDN, GitHub,
   StackOverflow first). AnySearch page bodies are compressed into an 800–1500 character
   query-aware extract. If the reranker or embedding service is unavailable, the merged
-  provider order is returned.
+  provider order is returned. In quality mode the top 5 sources are fetched through the
+  direct-HTTP-first path and their summaries are regenerated to 800–1500 characters;
+  technical/official-doc pages prefer API signatures, parameters, examples and code blocks.
 - **Intent routing**: simple local rules classify a query as `technical`, `news`,
   `chinese-community`, or `general`, then choose the provider pair and fast-mode order.
 - **Cache and circuit breaker**: search results are cached for 5 minutes (200 entries),
@@ -175,7 +180,7 @@ optional; the defaults below match the verified setup.
 
 | Field | Default | Meaning |
 |---|---|---|
-| `searchMode` | `quality` | `quality` = two-provider merge + rerank; `fast` = single-provider priority order |
+| `searchMode` | `quality` | `quality` = three-provider merge + rerank + top-5 evidence enrichment; `fast` = single-provider priority order |
 | `fetchMode` | `fast` | `fast` = direct HTTP first; `clean` = Tavily/Firecrawl first |
 | `intentRouting` | `true` | Apply technical/news/Chinese-community routing rules |
 | `languageRouting` | `true` | Detect query language and pass `language` to Tavily/AnySearch |
@@ -211,6 +216,10 @@ optional; the defaults below match the verified setup.
 | `requestTimeoutMs` | `30000` | Per-request timeout |
 | `maxFetchChars` | `200000` | Maximum characters returned by `web_fetch` |
 | `maxSnippetChars` | `4000` | Maximum characters per search summary |
+| `enrichEnabled` | `true` | Fetch top sources and regenerate their summaries |
+| `enrichTopN` | `5` | Number of top sources to enrich |
+| `enrichSummaryMinChars` | `800` | Minimum enriched summary length |
+| `enrichSummaryMaxChars` | `1500` | Maximum enriched summary length |
 | `minDirectHtmlChars` | `2048` | SPA-shell detection threshold |
 | `searchCacheTtlMs` | `300000` | Search cache TTL |
 | `searchCacheMaxEntries` | `200` | Search cache entry cap |

@@ -173,6 +173,36 @@ test('AutoSearchProvider quality mode merges two providers, reranks, and caches'
   assert.deepEqual(calls, ['anysearch', 'zhihu', 'tavily']);
 });
 
+test('AutoSearchProvider enriches top sources from fetched content', async () => {
+  const router = new AutoSearchProvider({
+    settings: () => settings({ enrichSummaryMinChars: 100, enrichSummaryMaxChars: 300 }),
+    providers: {},
+    fetcher: {
+      fetch: async () => ({
+        body: {
+          content: 'Use AbortSignal.timeout(5000) to stop a fetch call. '.repeat(20),
+        },
+      }),
+    },
+  });
+  const sources = await router.enrichSources(
+    [
+      { url: 'https://nodejs.org/api/http.html', title: 'HTTP API', summary: 'old' },
+      { url: 'https://example.com', title: 'Example', summary: 'old' },
+    ],
+    { query: 'Node.js AbortSignal timeout' },
+    settings({
+      enrichEnabled: true,
+      enrichTopN: 1,
+      enrichSummaryMinChars: 100,
+      enrichSummaryMaxChars: 300,
+    }),
+    undefined,
+  );
+  assert.ok(sources[0].summary.length > 100);
+  assert.equal(sources[1].summary, 'old');
+});
+
 test('AutoSearchProvider skips a provider after repeated failures', async () => {
   const calls = [];
   const bad = {

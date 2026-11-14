@@ -26,6 +26,10 @@
         languageRouting: true
         officialDocsEnabled: true
         aihotEnabled: true
+        enrichEnabled: true
+        enrichTopN: 5
+        enrichSummaryMinChars: 800
+        enrichSummaryMaxChars: 1500
         chineseSearchOrder: zhihu,anysearch,tavily,firecrawl
         defaultSearchOrder: anysearch,tavily,zhihu,firecrawl
         fetchOrder: http,tavily,firecrawl,anysearch

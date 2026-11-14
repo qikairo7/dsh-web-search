@@ -48,6 +48,10 @@ Detection of the query language (`zh` or `en`) used as a provider `language` hin
 
 The routing rule for `news` queries: Tavily news topic/time range, Firecrawl news sources, Zhihu realtime index, language-specific news-domain ranking, wrong-language news filtering, and AIHOT for AI-news queries.
 
+## Evidence enrichment
+
+The quality-mode step that fetches the top 5 result pages through the direct-HTTP-first path and regenerates their summaries at 800–1500 characters. Technical and official-doc pages prefer API signatures, parameters, examples and code blocks.
+
 ## AIHOT
 
 An anonymous, read-only AI-news API used as an optional search-only provider for AI-news queries.

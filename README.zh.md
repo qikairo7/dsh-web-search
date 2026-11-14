@@ -40,9 +40,10 @@ DeepSeek Harness（DSH）的自包含多后端网页搜索与抓取 Provider 插
 | 直连 HTTP | 无 API 成本 | 静态页面抓取 |
 | SiliconFlow | 免费额度 | BGE 重排 + embeddings |
 
-`quality` 模式选中 Tavily 时每次查询消耗 1 credit，1000 credits 约等于 33 次/天（按一个月
-计算）。`fast` 模式通常先用知乎/AnySearch，把 Tavily 留给更难查询。5 分钟搜索缓存会
-减少重复消耗。
+`quality` 模式选中 Tavily 时每次搜索查询消耗 1 credit，1000 credits 约等于 33 次/天（按一个月
+计算）。证据页增强优先走直连 HTTP；只有无法直连的页面才回退到 Tavily/Firecrawl，可能
+额外消耗 credit。`fast` 模式通常先用知乎/AnySearch，把 Tavily 留给更难查询。5 分钟搜索
+缓存会减少重复消耗。
 
 ## 环境要求
 
@@ -128,7 +129,9 @@ snippet 生成摘要。
 - **质量搜索**：`searchMode: quality` 并行查询三家后端，按 URL 去重，用 `BAAI/bge-m3`
   embeddings 去掉近似重复内容，再用 `BAAI/bge-reranker-v2-m3` 重排，并叠加域名权威加权
   （官方 docs、MDN、GitHub、StackOverflow 优先）；AnySearch 的正文会压缩成 800–1500 字的
-  查询相关摘要；重排或 embedding 不可用时回退到合并后的 Provider 顺序。
+  查询相关摘要；Top 5 结果会走直连优先的 Fetch 取正文并重新生成 800–1500 字摘要，技术/
+  官方文档优先保留 API、参数、示例和代码块；重排或 embedding 不可用时回退到合并后的
+  Provider 顺序。
 - **意图路由**：本地规则把查询分成 `technical`、`news`、`chinese-community`、`general`，
   再决定后端组合和 fast 模式顺序。
 - **缓存与熔断**：搜索结果缓存 5 分钟 / 200 条，抓取缓存 10 分钟 / 100 条；某后端
@@ -157,7 +160,7 @@ snippet 生成摘要。
 
 | 字段 | 默认值 | 说明 |
 |---|---|---|
-| `searchMode` | `quality` | `quality` = 双源合并 + 重排；`fast` = 单后端优先顺序 |
+| `searchMode` | `quality` | `quality` = 三源合并 + 重排 + Top 5 证据增强；`fast` = 单后端优先顺序 |
 | `fetchMode` | `fast` | `fast` = 直连 HTTP 优先；`clean` = Tavily/Firecrawl 优先 |
 | `intentRouting` | `true` | 启用 technical / news / 中文社区路由规则 |
 | `languageRouting` | `true` | 检测查询语言并把 `language` 传给 Tavily/AnySearch |
@@ -193,6 +196,10 @@ snippet 生成摘要。
 | `requestTimeoutMs` | `30000` | 单次请求超时 |
 | `maxFetchChars` | `200000` | `web_fetch` 最大字符数 |
 | `maxSnippetChars` | `4000` | 每条搜索 summary 最大字符数 |
+| `enrichEnabled` | `true` | 抓取 Top 结果正文并重生成摘要 |
+| `enrichTopN` | `5` | 参与增强的 Top 结果数 |
+| `enrichSummaryMinChars` | `800` | 增强摘要最小字符数 |
+| `enrichSummaryMaxChars` | `1500` | 增强摘要最大字符数 |
 | `minDirectHtmlChars` | `2048` | SPA 空壳判定阈值 |
 | `searchCacheTtlMs` | `300000` | 搜索缓存 TTL |
 | `searchCacheMaxEntries` | `200` | 搜索缓存条数上限 |
