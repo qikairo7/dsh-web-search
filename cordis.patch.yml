@@ -9,6 +9,9 @@
   config:
     search: true
     fetch: true
+    searchSummaryMaxChars: 4000
+    searchTimeoutMs: 60000
+    fetchTimeoutMs: 60000
 
 # The plugin owns the direct-HTTP fetch provider, so the shipped HTTP provider
 # must not register the same `http` id in this profile.
@@ -19,6 +22,10 @@
     - id: web-search-router
       name: '@qikairo7/dsh-web-search'
       config:
+        searchMode: quality
+        fetchMode: fast
+        intentRouting: true
         chineseSearchOrder: zhihu,anysearch,tavily,firecrawl
         defaultSearchOrder: anysearch,tavily,zhihu,firecrawl
         fetchOrder: http,tavily,firecrawl,anysearch
+        cleanFetchOrder: tavily,firecrawl,http,anysearch

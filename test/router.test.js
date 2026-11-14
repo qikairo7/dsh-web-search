@@ -93,3 +93,139 @@ test('AutoFetchProvider falls back from HTTP to Tavily', async () => {
   assert.deepEqual(calls, ['http', 'tavily']);
   assert.equal(result.body.content, 'tavily');
 });
+
+test('AutoSearchProvider quality mode merges two providers, reranks, and caches', async () => {
+  const calls = [];
+  const providers = {
+    anysearch: {
+      id: 'anysearch',
+      available: () => true,
+      ready: async () => true,
+      async search() {
+        calls.push('anysearch');
+        return {
+          sources: [
+            { url: 'https://a.example/', title: 'A' },
+            { url: 'https://shared.example/', title: 'shared' },
+          ],
+          truncated: false,
+        };
+      },
+    },
+    zhihu: {
+      id: 'zhihu',
+      available: () => true,
+      ready: async () => true,
+      async search() {
+        calls.push('zhihu');
+        return {
+          sources: [
+            { url: 'https://b.example/', title: 'B' },
+            { url: 'https://shared.example/', title: 'shared duplicate' },
+          ],
+          truncated: false,
+        };
+      },
+    },
+    tavily: searchProvider('tavily', calls),
+    firecrawl: searchProvider('firecrawl', calls),
+    'zhihu-site': searchProvider('zhihu-site', calls),
+  };
+  const qualitySettings = {
+    searchMode: 'quality',
+    intentRouting: true,
+    chineseSearchOrder: ['zhihu', 'anysearch', 'tavily', 'firecrawl'],
+    defaultSearchOrder: ['anysearch', 'tavily', 'zhihu', 'firecrawl'],
+    fetchOrder: ['http', 'tavily', 'firecrawl', 'anysearch'],
+    cleanFetchOrder: ['tavily', 'firecrawl', 'http', 'anysearch'],
+    zhihu: { enabled: true },
+    anysearch: { enabled: true },
+    tavily: { enabled: true },
+    firecrawl: { enabled: true },
+    http: { enabled: true },
+    searchCacheTtlMs: 10_000,
+    searchCacheMaxEntries: 10,
+    fetchCacheTtlMs: 10_000,
+    fetchCacheMaxEntries: 10,
+    breakerFailureThreshold: 3,
+    breakerCooldownMs: 1_000,
+  };
+  const reranker = {
+    async rerank(_query, sources) {
+      return [...sources].reverse();
+    },
+  };
+  const router = new AutoSearchProvider({
+    settings: () => qualitySettings,
+    providers,
+    reranker,
+  });
+  const first = await router.search({ query: 'DeepSeek 插件开发', maxResults: 2 });
+  assert.deepEqual(first.sources.map((source) => source.url), [
+    'https://shared.example/',
+    'https://b.example/',
+  ]);
+  assert.equal(first.truncated, true);
+  assert.deepEqual(calls, ['anysearch', 'zhihu']);
+
+  const second = await router.search({ query: 'DeepSeek 插件开发', maxResults: 2 });
+  assert.equal(second.sources.length, 2);
+  assert.deepEqual(calls, ['anysearch', 'zhihu']);
+});
+
+test('AutoSearchProvider skips a provider after repeated failures', async () => {
+  const calls = [];
+  const bad = {
+    id: 'bad',
+    available: () => true,
+    ready: async () => true,
+    async search() {
+      calls.push('bad');
+      throw new Error('bad failed');
+    },
+  };
+  const good = searchProvider('good', calls);
+  const breakerSettings = {
+    searchMode: 'fast',
+    intentRouting: false,
+    chineseSearchOrder: ['bad', 'good'],
+    defaultSearchOrder: ['bad', 'good'],
+    searchCacheTtlMs: 1_000,
+    searchCacheMaxEntries: 0,
+    breakerFailureThreshold: 3,
+    breakerCooldownMs: 60_000,
+    bad: { enabled: true },
+    good: { enabled: true },
+  };
+  const router = new AutoSearchProvider({
+    settings: () => breakerSettings,
+    providers: { bad, good },
+  });
+  for (let index = 0; index < 4; index += 1) {
+    await router.search({ query: 'english query' });
+  }
+  assert.deepEqual(calls, ['bad', 'good', 'bad', 'good', 'bad', 'good', 'good']);
+});
+
+test('AutoFetchProvider clean mode prefers Tavily over HTTP', async () => {
+  const calls = [];
+  const providers = {
+    http: fetchProvider('http', calls),
+    tavily: fetchProvider('tavily', calls),
+  };
+  const cleanSettings = {
+    fetchMode: 'clean',
+    fetchOrder: ['http', 'tavily'],
+    cleanFetchOrder: ['tavily', 'http'],
+    http: { enabled: true },
+    tavily: { enabled: true },
+    fetchCacheTtlMs: 1_000,
+    fetchCacheMaxEntries: 0,
+    breakerFailureThreshold: 3,
+    breakerCooldownMs: 60_000,
+  };
+  const router = new AutoFetchProvider({ settings: () => cleanSettings, providers });
+  const result = await router.fetch({ url: 'https://example.com/' });
+  assert.deepEqual(calls, ['tavily']);
+  assert.equal(result.body.content, 'tavily');
+});

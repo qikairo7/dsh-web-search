@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "网页搜索路由器",
-    "description": "把内置的 web_search 和 web_fetch 工具路由到 AnySearch、Tavily、Firecrawl 与知乎。API Key 从 DSH 凭据读取；后端顺序与限制可在“插件 > 内置插件设置 > 网页搜索与抓取”中配置。"
+    "description": "把内置的 web_search 和 web_fetch 工具路由到 AnySearch、Tavily、Firecrawl 与知乎。质量模式会合并两家结果并用 BGE 重排；API Key 从 DSH 凭据读取，顺序与限制可在“插件 > 内置插件设置 > 网页搜索与抓取”中配置。"
   }
 }

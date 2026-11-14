@@ -44,6 +44,7 @@ ANYSEARCH_API_KEY: "as_..."
 TAVILY_API_KEY: "tvly-..."
 FIRECRAWL_API_KEY: "fc-..."
 ZHIHU_API_KEY: "..."
+SILICONFLOW_API_KEY: "sk-..."
 ```
 
 AnySearch 可以匿名使用；注册 Key 后额度更高。知乎需要开放平台的 Access Secret。
@@ -75,6 +76,11 @@ Tavily 和 Firecrawl 没有 Key 时会报告未就绪，自动路由会跳过它
 bundle patch 默认固定使用 `auto`；独立 Provider 也会注册，可以在“网页搜索与抓取”
 设置页里单独选择。
 
+`searchMode` 默认是 **quality**：中文查询同时查知乎 + AnySearch，英文查询同时查
+AnySearch + Tavily，按 URL 去重后用 SiliconFlow `BAAI/bge-reranker-v2-m3` 重排。
+设为 `fast` 则使用上面的单后端优先顺序。`fetchMode` 默认是 **fast**（直连 HTTP 优先）；
+设为 **clean** 会优先 Tavily/Firecrawl 的干净 Markdown。
+
 ## 行为细节
 
 - **中文判定**：查询中出现任意汉字就使用中文顺序。
@@ -89,6 +95,16 @@ bundle patch 默认固定使用 `auto`；独立 Provider 也会注册，可以�
   API 抓取。小型 SPA 空壳由 `minDirectHtmlChars`（默认 2048）识别并触发回退。
 - **回退边界**：只对可恢复错误回退：网络错误、超时、429、5xx、缺少凭据。用户取消和
   无效 URL 立即返回。直连 HTTP 的 404 是结果，不触发回退。
+- **质量搜索**：`searchMode: quality` 并行查询两家后端，按 URL 去重，再用 SiliconFlow
+  的 `BAAI/bge-reranker-v2-m3` 重排；重排不可用时回退到合并后的 Provider 顺序。
+- **意图路由**：本地规则把查询分成 `technical`、`news`、`chinese-community`、`general`，
+  再决定后端组合和 fast 模式顺序。
+- **缓存与熔断**：搜索结果缓存 5 分钟 / 200 条，抓取缓存 10 分钟 / 100 条；某后端
+  连续 3 次可恢复失败后冷却 5 分钟。
+- **查询语法**：解析 `site:`、`lang:`、`after:`、`before:`，在 Tavily、Firecrawl、知乎
+  支持的情况下转成对应过滤参数。
+- **干净抓取**：`fetchMode: clean` 把顺序改为 `tavily → firecrawl → http → anysearch`，
+  用 API credits 换更干净的 Markdown。
 - **不限制内网**：直连 HTTP 可以访问 loopback 和私有网段，与官方
   `dsh-web-fetch-http` 行为一致。
 
@@ -98,9 +114,13 @@ bundle patch 默认固定使用 `auto`；独立 Provider 也会注册，可以�
 
 | 字段 | 默认值 | 说明 |
 |---|---|---|
-| `chineseSearchOrder` | `zhihu,anysearch,tavily,firecrawl` | 含汉字查询的搜索顺序 |
-| `defaultSearchOrder` | `anysearch,tavily,zhihu,firecrawl` | 其他查询的搜索顺序 |
-| `fetchOrder` | `http,tavily,firecrawl,anysearch` | 抓取回退顺序 |
+| `searchMode` | `quality` | `quality` = 双源合并 + 重排；`fast` = 单后端优先顺序 |
+| `fetchMode` | `fast` | `fast` = 直连 HTTP 优先；`clean` = Tavily/Firecrawl 优先 |
+| `intentRouting` | `true` | 启用 technical / news / 中文社区路由规则 |
+| `chineseSearchOrder` | `zhihu,anysearch,tavily,firecrawl` | fast 模式下含汉字查询的搜索顺序 |
+| `defaultSearchOrder` | `anysearch,tavily,zhihu,firecrawl` | fast 模式下其他查询的搜索顺序 |
+| `fetchOrder` | `http,tavily,firecrawl,anysearch` | fast 抓取回退顺序 |
+| `cleanFetchOrder` | `tavily,firecrawl,http,anysearch` | clean 抓取顺序 |
 | `anysearchEnabled` | `true` | 启用 AnySearch |
 | `anysearchApiKeyEnv` | `ANYSEARCH_API_KEY` | AnySearch 凭据引用 |
 | `anysearchBaseURL` | `https://api.anysearch.com` | AnySearch API 地址 |
@@ -116,10 +136,20 @@ bundle patch 默认固定使用 `auto`；独立 Provider 也会注册，可以�
 | `zhihuBaseURL` | `https://developer.zhihu.com` | 知乎 API 地址 |
 | `zhihuIncludeMetadata` | `true` | 知乎 summary 加入作者/赞同/评论 |
 | `httpEnabled` | `true` | 启用直连 HTTP 抓取 |
+| `siliconflowEnabled` | `true` | 启用 SiliconFlow 重排 |
+| `siliconflowApiKeyEnv` | `SILICONFLOW_API_KEY` | SiliconFlow 凭据引用 |
+| `siliconflowBaseURL` | `https://api.siliconflow.cn/v1` | SiliconFlow API 地址 |
+| `siliconflowRerankModel` | `BAAI/bge-reranker-v2-m3` | 重排模型 |
 | `requestTimeoutMs` | `60000` | 单次请求超时 |
 | `maxFetchChars` | `200000` | `web_fetch` 最大字符数 |
-| `maxSnippetChars` | `800` | 每条搜索 summary 最大字符数 |
+| `maxSnippetChars` | `4000` | 每条搜索 summary 最大字符数 |
 | `minDirectHtmlChars` | `2048` | SPA 空壳判定阈值 |
+| `searchCacheTtlMs` | `300000` | 搜索缓存 TTL |
+| `searchCacheMaxEntries` | `200` | 搜索缓存条数上限 |
+| `fetchCacheTtlMs` | `600000` | 抓取缓存 TTL |
+| `fetchCacheMaxEntries` | `100` | 抓取缓存条数上限 |
+| `breakerFailureThreshold` | `3` | 连续失败多少次后冷却 |
+| `breakerCooldownMs` | `300000` | 后端冷却时长 |
 
 高级部署可以在 profile patch 里覆盖 `anysearchBaseURL`、`tavilyBaseURL`、
 `firecrawlBaseURL`，这些地址不放进常规设置页。

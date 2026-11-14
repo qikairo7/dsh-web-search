@@ -14,7 +14,23 @@ The first-party `dsh-tool-web` package that defines the `web_search` and `web_fe
 
 ## Auto router
 
-A provider that tries the enabled backends in a configured order and falls back when a recoverable error occurs.
+A provider that runs the configured search or fetch strategy and falls back when a recoverable error occurs.
+
+## Fast mode
+
+`searchMode: fast` or `fetchMode: fast`. Uses one search provider in priority order, or direct HTTP first for fetch. This is the low-latency, free-first mode.
+
+## Quality mode
+
+`searchMode: quality`. Queries two search providers in parallel, merges by URL, and reranks with SiliconFlow `BAAI/bge-reranker-v2-m3`. This is the default search mode.
+
+## Rerank
+
+The quality-mode step that sends candidate titles, summaries, and URLs to a cross-encoder model and returns the candidates in relevance order.
+
+## Intent routing
+
+Local query classification (`technical`, `news`, `chinese-community`, `general`) used to choose the provider pair and fast-mode order.
 
 ## Chinese query
 
@@ -26,7 +42,11 @@ The Zhihu provider's behavior of calling `zhihu_search` after `global_search` wh
 
 ## Direct HTTP fetch
 
-A fetch strategy that requests the target URL from the DSH host and returns the response body to the tool layer for HTML-to-markdown conversion.
+A fetch strategy that requests the target URL from the DSH host and returns the response body to the tool layer for HTML-to-markdown conversion. `fetchMode: fast` uses this first; `fetchMode: clean` uses Tavily/Firecrawl first.
+
+## Query syntax
+
+The provider-neutral `site:`, `lang:`, `after:`, and `before:` operators parsed from a search query and forwarded to providers that support the corresponding filters.
 
 ## Credentials reference
 

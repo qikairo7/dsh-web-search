@@ -45,6 +45,7 @@ ANYSEARCH_API_KEY: "as_..."
 TAVILY_API_KEY: "tvly-..."
 FIRECRAWL_API_KEY: "fc-..."
 ZHIHU_API_KEY: "..."
+SILICONFLOW_API_KEY: "sk-..."
 ```
 
 AnySearch works without a key in anonymous mode; a registered key raises the daily quota.
@@ -77,6 +78,12 @@ Default orders:
 The default `auto` provider is pinned by the bundle patch. Individual providers are also
 registered so they can be selected directly in the Web search and fetch settings page.
 
+`searchMode` defaults to **quality**: the router queries two providers (Chinese: Zhihu +
+AnySearch; English: AnySearch + Tavily), merges and deduplicates by URL, then reranks with
+SiliconFlow `BAAI/bge-reranker-v2-m3`. Set `searchMode: fast` for the single-provider
+priority order above. `fetchMode` defaults to **fast** (direct HTTP first); set it to
+**clean** to prefer Tavily/Firecrawl Markdown extraction.
+
 ## Behavior details
 
 - **Chinese detection**: any Han script character in the query selects the Chinese order.
@@ -96,6 +103,18 @@ registered so they can be selected directly in the Web search and fetch settings
 - **Fallback**: only recoverable failures trigger the next provider: network errors,
   timeouts, 429, 5xx, and missing credentials. Caller cancellation and invalid URLs return
   immediately. A 404 from direct HTTP is returned as a result, not a fallback trigger.
+- **Quality search**: `searchMode: quality` queries two providers in parallel, merges by
+  URL, and reranks candidates with `BAAI/bge-reranker-v2-m3` from SiliconFlow. If the
+  reranker is unavailable, the merged provider order is returned.
+- **Intent routing**: simple local rules classify a query as `technical`, `news`,
+  `chinese-community`, or `general`, then choose the provider pair and fast-mode order.
+- **Cache and circuit breaker**: search results are cached for 5 minutes (200 entries),
+  fetch results for 10 minutes (100 entries). A provider with 3 consecutive recoverable
+  failures is skipped for 5 minutes.
+- **Query syntax**: `site:`, `lang:`, `after:`, and `before:` are parsed and forwarded to
+  Tavily, Firecrawl, and Zhihu where their APIs support the corresponding filter.
+- **Clean fetch**: `fetchMode: clean` changes the order to
+  `tavily → firecrawl → http → anysearch` for cleaner Markdown at the cost of API credits.
 - **No private-network blocking**: direct HTTP can reach loopback and private-network hosts,
   matching the shipped `dsh-web-fetch-http` behavior.
 
@@ -106,9 +125,13 @@ optional; the defaults below match the verified setup.
 
 | Field | Default | Meaning |
 |---|---|---|
-| `chineseSearchOrder` | `zhihu,anysearch,tavily,firecrawl` | Search order for queries with Han characters |
-| `defaultSearchOrder` | `anysearch,tavily,zhihu,firecrawl` | Search order for other queries |
-| `fetchOrder` | `http,tavily,firecrawl,anysearch` | Fetch fallback order |
+| `searchMode` | `quality` | `quality` = two-provider merge + rerank; `fast` = single-provider priority order |
+| `fetchMode` | `fast` | `fast` = direct HTTP first; `clean` = Tavily/Firecrawl first |
+| `intentRouting` | `true` | Apply technical/news/Chinese-community routing rules |
+| `chineseSearchOrder` | `zhihu,anysearch,tavily,firecrawl` | Fast-mode search order for queries with Han characters |
+| `defaultSearchOrder` | `anysearch,tavily,zhihu,firecrawl` | Fast-mode search order for other queries |
+| `fetchOrder` | `http,tavily,firecrawl,anysearch` | Fast fetch fallback order |
+| `cleanFetchOrder` | `tavily,firecrawl,http,anysearch` | Clean fetch order |
 | `anysearchEnabled` | `true` | Enable AnySearch |
 | `anysearchApiKeyEnv` | `ANYSEARCH_API_KEY` | AnySearch credential reference |
 | `anysearchBaseURL` | `https://api.anysearch.com` | AnySearch API base |
@@ -124,10 +147,20 @@ optional; the defaults below match the verified setup.
 | `zhihuBaseURL` | `https://developer.zhihu.com` | Zhihu API base |
 | `zhihuIncludeMetadata` | `true` | Add author/vote/comment to Zhihu summaries |
 | `httpEnabled` | `true` | Enable the direct HTTP fetch provider |
+| `siliconflowEnabled` | `true` | Enable SiliconFlow reranking |
+| `siliconflowApiKeyEnv` | `SILICONFLOW_API_KEY` | SiliconFlow credential reference |
+| `siliconflowBaseURL` | `https://api.siliconflow.cn/v1` | SiliconFlow API base |
+| `siliconflowRerankModel` | `BAAI/bge-reranker-v2-m3` | Rerank model |
 | `requestTimeoutMs` | `60000` | Per-request timeout |
 | `maxFetchChars` | `200000` | Maximum characters returned by `web_fetch` |
-| `maxSnippetChars` | `800` | Maximum characters per search summary |
+| `maxSnippetChars` | `4000` | Maximum characters per search summary |
 | `minDirectHtmlChars` | `2048` | SPA-shell detection threshold |
+| `searchCacheTtlMs` | `300000` | Search cache TTL |
+| `searchCacheMaxEntries` | `200` | Search cache entry cap |
+| `fetchCacheTtlMs` | `600000` | Fetch cache TTL |
+| `fetchCacheMaxEntries` | `100` | Fetch cache entry cap |
+| `breakerFailureThreshold` | `3` | Consecutive failures before cooldown |
+| `breakerCooldownMs` | `300000` | Provider cooldown |
 
 Advanced deployments can also override `anysearchBaseURL`, `tavilyBaseURL`, and
 `firecrawlBaseURL` in the profile patch; they are intentionally not part of the normal
