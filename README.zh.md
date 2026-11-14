@@ -61,6 +61,7 @@ Tavily 和 Firecrawl 没有 Key 时会报告未就绪，自动路由会跳过它
 | `firecrawl` | 是 | 是 | 搜索最后选择；SPA/PDF 抓取最强 |
 | `zhihu` | 是 | 否 | 中文搜索首选；全网 + 站内补充 |
 | `zhihu-site` | 是 | 否 | 单独选择时只搜知乎站内 |
+| `aihot` | 是 | 否 | AI 新闻查询的精选源；匿名 |
 | `http` | 否 | 是 | 抓取首选：直连 HTTP |
 | `auto` | 是 | 是 | 默认自动路由 |
 
@@ -77,7 +78,7 @@ bundle patch 默认固定使用 `auto`；独立 Provider 也会注册，可以�
 设置页里单独选择。
 
 `searchMode` 默认是 **quality**：中文查询同时查知乎 + AnySearch，英文查询同时查
-AnySearch + Tavily，按 URL 去重后用 SiliconFlow `BAAI/bge-reranker-v2-m3` 重排。
+AnySearch + Tavily，AI 新闻查询用 AIHOT + Tavily；按 URL 去重后重排。
 设为 `fast` 则使用上面的单后端优先顺序。`fetchMode` 默认是 **fast**（直连 HTTP 优先）；
 设为 **clean** 会优先 Tavily/Firecrawl 的干净 Markdown。
 
@@ -105,6 +106,15 @@ AnySearch + Tavily，按 URL 去重后用 SiliconFlow `BAAI/bge-reranker-v2-m3` 
   连续 3 次可恢复失败后冷却 5 分钟。
 - **查询语法**：解析 `site:`、`lang:`、`after:`、`before:`，在 Tavily、Firecrawl、知乎
   支持的情况下转成对应过滤参数。
+- **官方文档补充**：技术查询命中已知官方域名（`deepseek-harness.github.io`、
+  `api-docs.deepseek.com`、`nodejs.org`、`developer.mozilla.org`、`react.dev`、
+  `docs.python.org`、`go.dev`、`rust-lang.org`）时，quality 模式额外跑一次限定域名的
+  Tavily 搜索并合并结果。
+- **语言路由**：检测 `zh`、`ja`、`ko`、`es`、`fr`、`de`、`en`，把 `language` 传给
+  Tavily/AnySearch；显式 `lang:` 优先。
+- **新闻模式**：`news` 意图启用 Tavily `topic: news` + `time_range: week`、Firecrawl
+  新闻源 + `qdr:w`、知乎实时索引；AI 新闻查询用 AIHOT。
+- **正文清洗**：API 抓取结果会去掉常见的导航/登录行，再返回 Markdown。
 - **干净抓取**：`fetchMode: clean` 把顺序改为 `tavily → firecrawl → http → anysearch`，
   用 API credits 换更干净的 Markdown。
 - **不限制内网**：直连 HTTP 可以访问 loopback 和私有网段，与官方
@@ -119,6 +129,10 @@ AnySearch + Tavily，按 URL 去重后用 SiliconFlow `BAAI/bge-reranker-v2-m3` 
 | `searchMode` | `quality` | `quality` = 双源合并 + 重排；`fast` = 单后端优先顺序 |
 | `fetchMode` | `fast` | `fast` = 直连 HTTP 优先；`clean` = Tavily/Firecrawl 优先 |
 | `intentRouting` | `true` | 启用 technical / news / 中文社区路由规则 |
+| `languageRouting` | `true` | 检测查询语言并把 `language` 传给 Tavily/AnySearch |
+| `officialDocsEnabled` | `true` | 对已知官方文档域名额外跑一次受限 Tavily 搜索 |
+| `aihotEnabled` | `true` | 启用 AIHOT AI 新闻源 |
+| `aihotBaseURL` | `https://aihot.news` | AIHOT API 地址 |
 | `chineseSearchOrder` | `zhihu,anysearch,tavily,firecrawl` | fast 模式下含汉字查询的搜索顺序 |
 | `defaultSearchOrder` | `anysearch,tavily,zhihu,firecrawl` | fast 模式下其他查询的搜索顺序 |
 | `fetchOrder` | `http,tavily,firecrawl,anysearch` | fast 抓取回退顺序 |

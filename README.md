@@ -63,6 +63,7 @@ The exact reference names are configurable with the `*ApiKeyEnv` fields.
 | `firecrawl` | yes | yes | Last search choice; strong Scrape for SPA/PDF |
 | `zhihu` | yes | no | Chinese search first; global search + site supplement |
 | `zhihu-site` | yes | no | Zhihu site-only search when selected explicitly |
+| `aihot` | yes | no | Curated AI news for AI-news queries; anonymous |
 | `http` | no | yes | Direct HTTP fetch first |
 | `auto` | yes | yes | Default router for both capabilities |
 
@@ -80,9 +81,10 @@ registered so they can be selected directly in the Web search and fetch settings
 
 `searchMode` defaults to **quality**: the router queries two providers (Chinese: Zhihu +
 AnySearch; English: AnySearch + Tavily), merges and deduplicates by URL, then reranks with
-SiliconFlow `BAAI/bge-reranker-v2-m3`. Set `searchMode: fast` for the single-provider
-priority order above. `fetchMode` defaults to **fast** (direct HTTP first); set it to
-**clean** to prefer Tavily/Firecrawl Markdown extraction.
+SiliconFlow `BAAI/bge-reranker-v2-m3`. AI-news queries use AIHOT + Tavily. Set
+`searchMode: fast` for the single-provider priority order above. `fetchMode` defaults to
+**fast** (direct HTTP first); set it to **clean** to prefer Tavily/Firecrawl Markdown
+extraction.
 
 ## Behavior details
 
@@ -115,6 +117,16 @@ priority order above. `fetchMode` defaults to **fast** (direct HTTP first); set 
   failures is skipped for 5 minutes.
 - **Query syntax**: `site:`, `lang:`, `after:`, and `before:` are parsed and forwarded to
   Tavily, Firecrawl, and Zhihu where their APIs support the corresponding filter.
+- **Official docs supplement**: for technical queries with known official domains
+  (`deepseek-harness.github.io`, `api-docs.deepseek.com`, `nodejs.org`, `developer.mozilla.org`,
+  `react.dev`, `docs.python.org`, `go.dev`, `rust-lang.org`), quality mode runs one extra
+  Tavily search restricted to those domains and merges the results.
+- **Language routing**: query language is detected (`zh`, `ja`, `ko`, `es`, `fr`, `de`, `en`)
+  and passed to Tavily/AnySearch as the `language` hint; an explicit `lang:` wins.
+- **News mode**: `news` intent enables Tavily `topic: news` + `time_range: week`, Firecrawl
+  news sources + `qdr:w`, Zhihu realtime index, and AIHOT for AI-news queries.
+- **Content cleaning**: API fetch providers strip common navigation/sign-in lines from
+  Markdown before returning it.
 - **Clean fetch**: `fetchMode: clean` changes the order to
   `tavily → firecrawl → http → anysearch` for cleaner Markdown at the cost of API credits.
 - **No private-network blocking**: direct HTTP can reach loopback and private-network hosts,
@@ -130,6 +142,10 @@ optional; the defaults below match the verified setup.
 | `searchMode` | `quality` | `quality` = two-provider merge + rerank; `fast` = single-provider priority order |
 | `fetchMode` | `fast` | `fast` = direct HTTP first; `clean` = Tavily/Firecrawl first |
 | `intentRouting` | `true` | Apply technical/news/Chinese-community routing rules |
+| `languageRouting` | `true` | Detect query language and pass `language` to Tavily/AnySearch |
+| `officialDocsEnabled` | `true` | Add a domain-restricted Tavily search for known official docs |
+| `aihotEnabled` | `true` | Enable the AIHOT AI-news provider |
+| `aihotBaseURL` | `https://aihot.news` | AIHOT API base |
 | `chineseSearchOrder` | `zhihu,anysearch,tavily,firecrawl` | Fast-mode search order for queries with Han characters |
 | `defaultSearchOrder` | `anysearch,tavily,zhihu,firecrawl` | Fast-mode search order for other queries |
 | `fetchOrder` | `http,tavily,firecrawl,anysearch` | Fast fetch fallback order |

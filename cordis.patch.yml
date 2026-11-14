@@ -22,6 +22,9 @@
         searchMode: quality
         fetchMode: fast
         intentRouting: true
+        languageRouting: true
+        officialDocsEnabled: true
+        aihotEnabled: true
         chineseSearchOrder: zhihu,anysearch,tavily,firecrawl
         defaultSearchOrder: anysearch,tavily,zhihu,firecrawl
         fetchOrder: http,tavily,firecrawl,anysearch

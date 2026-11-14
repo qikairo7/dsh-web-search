@@ -11,9 +11,10 @@ test('classifies technical, news and Chinese community queries', () => {
 
 test('chooses two-provider quality pairs', () => {
   assert.deepEqual(qualityPair('DeepSeek Harness 插件开发', 'technical'), ['anysearch', 'zhihu']);
-  assert.deepEqual(qualityPair('2026年11月 AI 行业新闻', 'news'), ['zhihu', 'tavily']);
+  assert.deepEqual(qualityPair('2026年11月 AI 行业新闻', 'news'), ['aihot', 'tavily']);
+  assert.deepEqual(qualityPair('2026年11月 行业新闻', 'news'), ['zhihu', 'tavily']);
   assert.deepEqual(qualityPair('Node.js fetch timeout', 'technical'), ['anysearch', 'tavily']);
-  assert.deepEqual(qualityPair('latest AI news', 'news'), ['tavily', 'anysearch']);
+  assert.deepEqual(qualityPair('latest AI news', 'news'), ['aihot', 'tavily']);
 });
 
 test('fast order applies intent routing only when enabled', () => {
@@ -23,6 +24,13 @@ test('fast order applies intent routing only when enabled', () => {
     defaultSearchOrder: ['anysearch', 'tavily', 'zhihu', 'firecrawl'],
   };
   assert.deepEqual(fastOrder('2026年11月 AI 行业新闻', settings, 'news'), [
+    'aihot',
+    'zhihu',
+    'tavily',
+    'anysearch',
+    'firecrawl',
+  ]);
+  assert.deepEqual(fastOrder('2026年11月 行业新闻', settings, 'news'), [
     'zhihu',
     'tavily',
     'anysearch',

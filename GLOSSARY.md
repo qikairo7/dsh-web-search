@@ -36,6 +36,23 @@ The quality-mode step that embeds candidate titles and summaries with `BAAI/bge-
 
 A small domain prior added to a reranker score so official docs, MDN, GitHub, StackOverflow, and academic/government pages rank above generic pages when relevance is close.
 
+## Official docs supplement
+
+An extra Tavily search restricted to known official-document domains for technical queries, merged into quality-mode results so the official source is not missed by the general index.
+
+## Language routing
+
+Detection of the query language (`zh`, `ja`, `ko`, `es`, `fr`, `de`, `en`) used as a provider `language` hint; an explicit `lang:` operator wins.
+
+## News mode
+
+The routing rule for `news` queries: Tavily news topic/time range, Firecrawl news sources, Zhihu realtime index, and AIHOT for AI-news queries.
+
+## AIHOT
+
+An anonymous, read-only AI-news API used as an optional search-only provider for AI-news queries.
+
+
 ## Intent routing
 
 Local query classification (`technical`, `news`, `chinese-community`, `general`) used to choose the provider pair and fast-mode order.
