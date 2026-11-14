@@ -31,6 +31,7 @@ pnpm check
 | `pnpm benchmark:preflight` | 先验证凭据与各后端连通性 |
 | `pnpm benchmark` | live 基准；自动加载 gitignored `.env`，需要 `AS_KEY`、`TV_KEY`、`FC_KEY`、`ZH_KEY`、`SF_KEY`、`DS_TOKEN` |
 | `pnpm benchmark:refresh` | 刷新基准 fixture |
+| `pnpm quality:probe` | 免费后端 14 条日常质量探针；结果写 `.research/quality-probe.json` |
 | `dsh plugin --profile desktop add "<仓库路径>"` | 安装到本机 DSH，安装后重启 DSH |
 
 `pnpm benchmark` 优先读 `scripts/fixtures/public-benchmark-sample.json`；`SAMPLE_SIZE` 控制每个基准的行数，默认 50；默认 search-only，`BENCHMARK_ENRICH=1` 才启用 evidence enrichment；结果写 `.research/public-benchmark.json`（gitignored），不提交。真实 API 验收需要 `.env` 中的凭据；`pnpm benchmark:preflight` 会先检查全部后端。

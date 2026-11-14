@@ -48,3 +48,16 @@ test('package does not depend on an MCP server', async () => {
   const deps = { ...pkg.dependencies, ...pkg.devDependencies, ...pkg.peerDependencies };
   assert.equal(Object.keys(deps).some((name) => name.startsWith('@modelcontextprotocol/')), false);
 });
+
+test('only allowlisted lib modules call fetch directly', async () => {
+  const allowed = new Set(['lib/http.js', 'lib/providers/http.js', 'lib/providers/anysearchClient.js']);
+  for (const file of await jsFiles('lib')) {
+    const normalized = file.replaceAll('\\', '/');
+    if (allowed.has(normalized)) continue;
+    const text = await readFile(file, 'utf8');
+    const direct = text
+      .split(/\r?\n/u)
+      .some((line) => /(?<![\w.])fetch\s*\(/u.test(line) && !/\basync fetch\s*\(/u.test(line));
+    assert.equal(direct, false, normalized + ' calls fetch directly');
+  }
+});

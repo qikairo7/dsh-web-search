@@ -26,6 +26,14 @@ test('AnySearch maps citeable results and drops invalid URLs', () => {
   assert.equal(result.truncated, false);
 });
 
+test('AnySearch preserves optional date fields', () => {
+  const result = mapAnySearchSearch({
+    code: 0,
+    data: { results: [{ title: 'Dated', url: 'https://dated.example/', snippet: 's', date: '2026-11-11' }] },
+  });
+  assert.equal(result.sources[0].publishedAt, '2026-11-11');
+});
+
 test('AnySearch rejects a non-zero business code', () => {
   assert.throws(() => mapAnySearchSearch({ code: 7, message: 'upstream failed' }), /upstream failed/);
 });

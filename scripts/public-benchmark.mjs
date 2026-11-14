@@ -1,5 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { AnySearchProvider } from '../lib/providers/anysearch.js';
+import { KeenableProvider } from '../lib/providers/keenable.js';
+import { ExaProvider } from '../lib/providers/exa.js';
 import { TavilyProvider } from '../lib/providers/tavily.js';
 import { FirecrawlProvider } from '../lib/providers/firecrawl.js';
 import { ZhihuProvider, ZhihuSiteProvider } from '../lib/providers/zhihu.js';
@@ -17,6 +19,8 @@ const keys = {
   FIRECRAWL_API_KEY: process.env.FC_KEY,
   ZHIHU_API_KEY: process.env.ZH_KEY,
   SILICONFLOW_API_KEY: process.env.SF_KEY,
+  KEENABLE_API_KEY: process.env.KN_KEY ?? process.env.KEENABLE_API_KEY,
+  EXA_API_KEY: process.env.EXA_KEY ?? process.env.EXA_API_KEY,
 };
 const deepseekToken = process.env.DS_TOKEN;
 const SAMPLE_SIZE = Number(process.env.SAMPLE_SIZE ?? 50);
@@ -39,6 +43,8 @@ const settings = {
 const resolveKey = async (reference) => keys[reference];
 const providers = {
   anysearch: new AnySearchProvider({ settings: () => settings, resolveKey }),
+  keenable: new KeenableProvider({ settings: () => settings, resolveKey }),
+  exa: new ExaProvider({ settings: () => settings, resolveKey }),
   tavily: new TavilyProvider({ settings: () => settings, resolveKey }),
   firecrawl: new FirecrawlProvider({ settings: () => settings, resolveKey }),
   zhihu: new ZhihuProvider({ settings: () => settings, resolveKey }),

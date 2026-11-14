@@ -12,5 +12,7 @@
   "docs/defensive-patterns.md": 2600,
   "CONTRIBUTING.md": 1800,
   "BENCHMARK.md": 1500,
-  ".agents/notes/README.md": 2000
+  ".agents/notes/README.md": 2000,
+  "docs/configuration.md": 12000,
+  "docs/dsh-host-contract.md": 6000
 }

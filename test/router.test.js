@@ -188,14 +188,14 @@ test('AutoSearchProvider quality mode merges two providers, reranks, and caches'
   const first = await router.search({ query: 'DeepSeek 插件开发', maxResults: 2 });
   assert.deepEqual(first.sources.map((source) => source.url), [
     'https://shared.example/',
-    'https://tavily.example/',
+    'https://a.example/',
   ]);
   assert.equal(first.truncated, true);
-  assert.deepEqual(calls, ['anysearch', 'zhihu', 'tavily']);
+  assert.deepEqual(calls, ['zhihu', 'anysearch']);
 
   const second = await router.search({ query: 'DeepSeek 插件开发', maxResults: 2 });
   assert.equal(second.sources.length, 2);
-  assert.deepEqual(calls, ['anysearch', 'zhihu', 'tavily']);
+  assert.deepEqual(calls, ['zhihu', 'anysearch']);
 });
 
 test('enrichSources replaces the summary from fetched content', async () => {
@@ -353,4 +353,40 @@ test('AutoFetchProvider does not fall back for an invalid URL', async () => {
     (error) => error.code === 'WEB_INVALID_URL',
   );
   assert.deepEqual(calls, ['http']);
+});
+
+test('AutoSearchProvider continues with the fast order when quality returns empty sources', async () => {
+  const calls = [];
+  const empty = (name) => ({
+    id: name,
+    available: () => true,
+    ready: async () => true,
+    async search() {
+      calls.push(name);
+      return { sources: [], truncated: false };
+    },
+  });
+  const providers = {
+    zhihu: empty('zhihu'),
+    keenable: empty('keenable'),
+    anysearch: empty('anysearch'),
+    tavily: searchProvider('tavily', calls),
+  };
+  const qualitySettings = {
+    searchMode: 'quality',
+    intentRouting: false,
+    chineseSearchOrder: ['tavily'],
+    defaultSearchOrder: ['tavily'],
+    officialDocsEnabled: false,
+    enrichEnabled: false,
+    tavily: { enabled: true },
+    searchCacheTtlMs: 10_000,
+    searchCacheMaxEntries: 10,
+    breakerFailureThreshold: 3,
+    breakerCooldownMs: 1_000,
+  };
+  const router = new AutoSearchProvider({ settings: () => qualitySettings, providers });
+  const result = await router.search({ query: '插件开发' });
+  assert.deepEqual(calls, ['zhihu', 'keenable', 'anysearch', 'tavily']);
+  assert.equal(result.sources[0].url, 'https://tavily.example/');
 });

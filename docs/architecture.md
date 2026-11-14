@@ -5,26 +5,26 @@
 ## 组成
 
 ```text
-dsh-tool-web (web_search / web_fetch)
-        │ ctx.web
-        ▼
-web-search-router (lib/index.js)
+dsh-tool-web (web_search / web_fetch)      anysearch_* tools (optional)
+        │ ctx.web                                  │ ctx.tools
+        ▼                                          ▼
+web-search-router (lib/index.js) ────────────────┘
         │
         ├── AutoSearchProvider (searchMode: quality | fast)
         └── AutoFetchProvider  (fetchMode: fast | clean)
                 │
                 ▼
-anysearch / tavily / firecrawl / zhihu / zhihu-site / aihot / http
+keenable / anysearch / exa / tavily / firecrawl / zhihu / zhihu-site / aihot / http
                 │
                 ▼
         external search / fetch services
 ```
 
-插件只在 `ctx.web` 注册 Provider，不注册模型面向工具。`dsh-tool-web` 负责工具 schema、展示，以及 `web_search` / `web_fetch` 的入参与结果形状。bundle patch 固定 `auto` 为默认 Provider、启用 `dsh-tool-web`、禁用自带的 `web-fetch-http`。
+插件默认只在 `ctx.web` 注册 Provider；异常是 `lib/tools/` 下的 AnySearch 高级工具、Tavily 高级工具（`tavily_search`、`tavily_extract`）与 AIHOT 免费资讯工具（`aihot_latest`、`aihot_hot`）。`dsh-tool-web` 仍负责 `web_search` / `web_fetch` 的 schema、展示和结果形状。
 
 ## 入口与注册
 
-`lib/index.js` 导出 `name`、`inject`、`Config` 和 `apply()`。`apply()` 创建各 Provider 与 SiliconFlow 客户端，注册 search / fetch Provider，并注册 `auto` 搜索与抓取路由。
+`lib/index.js` 导出 `name`、`inject`、`Config` 和 `apply()`。`apply()` 创建各 Provider 与 SiliconFlow 客户端，注册 search / fetch Provider，注册 `auto` 搜索与抓取路由，并在 `ctx.tools` 可用时注册 AnySearch / Tavily / AIHOT 高级工具。
 
 Provider 的能力矩阵与默认顺序由 [README 的 Providers 段](../README.md#providers) 拥有；代码中的注册列表在 `lib/index.js`。
 
@@ -34,12 +34,14 @@ Provider 的能力矩阵与默认顺序由 [README 的 Providers 段](../README.
 |---|---|
 | `lib/index.js` | 插件入口；由 `SETTINGS_SPEC` 生成 `Config`，按 catalog 注册 Provider 与 auto 路由 |
 | `lib/providers/*.js` | 各后端适配器、`mapXxxSearch()` 纯映射、Provider 类 |
+| `lib/providers/anysearchClient.js` | AnySearch HTTP 客户端（移植自 `anysearch-dsh`） |
 | `lib/providers/shared.js` | 适配器共用的 header、计数夹取、文本结果与凭据检查 |
 | `lib/providers/router.js` | `AutoSearchProvider` / `AutoFetchProvider`：模式分流、缓存与回退调用 |
 | `lib/providerRunner.js` | 搜索/抓取共用的资格判定、熔断、attempt 与有序回退 |
 | `lib/quality.js` | Quality mode pipeline：合并、新闻过滤、语义去重、重排、权威排序、证据增强编排 |
 | `lib/enrich.js` | Evidence enrichment：抓取、HTML 清洗、技术/普通摘要 |
 | `lib/cache.js` | search / fetch 结果的 TTL + LRU 缓存 |
+| `lib/realtime.js` | 天气/汇率实时 |
 | `lib/cacheKey.js` | 由 resolved settings 指纹生成 search / fetch 缓存键 |
 | `lib/catalog.js` | Provider 元数据：能力、settings section、注册顺序 |
 | `lib/settings.js` | `DEFAULT_SETTINGS`、`SETTINGS_SPEC`、`resolveSettings()`、配置校验 |
@@ -58,20 +60,30 @@ Provider 的能力矩阵与默认顺序由 [README 的 Providers 段](../README.
 | `lib/summarize.js` | 查询相关摘要与证据摘要 |
 | `lib/clean.js` | Markdown 正文清洗与 HTML 转文本 |
 | `lib/text.js` | 汉字等小型文本判断 |
+| `lib/tools/index.js` | 注册可选高级工具 |
+| `lib/tools/anysearch-capabilities.js` | `anysearch_capabilities` |
+| `lib/tools/anysearch-search.js` | `anysearch_search` |
+| `lib/tools/anysearch-batch.js` | `anysearch_batch_search` |
+| `lib/tools/anysearch-format.js` | 共用 formatter |
+| `lib/tools/anysearchLimits.js` | 高级工具超时 |
+| `lib/tools/tavily-search.js` | `tavily_search` |
+| `lib/tools/tavily-extract.js` | `tavily_extract` |
+| `lib/tools/aihot.js` | `aihot_latest` / `aihot_hot` |
 | `test/*.test.js` | 按 lib 模块对应的 `node:test` 单测，不访问网络 |
 
 ## 搜索流程
 
 1. `web_search` 进入 `AutoSearchProvider.search()`；先检查取消、读取 `settings()`，再按 `searchMode` 分流。
 2. 缓存命中直接返回；key 由 `cacheKey.js` 从 resolved settings 指纹与请求生成，新增影响结果的设置自动进入键。
-3. `quality`：`quality.js` 的 `qualitySearch()` 用 `qualityPair()` 给出三个 Provider，经 `ProviderRunner.attempt()` 并行调用后按 URL 轮询合并、规范化去重，再走 embedding 去重、BGE 重排、域名权威加权和 `enrich.js` 的前 5 条证据增强。
-4. `fast`：`ProviderRunner.run()` 按 `fastOrder()` 顺序逐个尝试；只有 `isRecoverable(error)` 为真才进入下一个 Provider。
-5. 所有 Provider 都失败时返回最后一个可恢复错误；空结果不写缓存。
+3. 天气/汇率查询先由 `realtime.js` 调用 Open-Meteo 或 ExchangeRate-API/Frankfurter，返回带日期的实时结果；失败则继续正常搜索。
+4. `quality`：`quality.js` 的 `qualitySearch()` 用 `qualityPair()` 给出免费 Provider（中文知乎 + Keenable + AnySearch；AI 新闻 AIHOT + Keenable + AnySearch + 知乎），经 `ProviderRunner.attempt()` 并行调用后按 URL 轮询合并、规范化去重，再走 embedding 去重、BGE 重排、域名权威加权和 `enrich.js` 的前 5 条证据增强。Tavily 官方文档补充只在免费结果没有命中官方域时触发。
+5. `fast`：`ProviderRunner.run()` 按 `fastOrder()` 顺序逐个尝试；只有 `isRecoverable(error)` 为真才进入下一个 Provider。
+6. 所有 Provider 都失败时返回最后一个可恢复错误；空结果不写缓存。
 
 ## 抓取流程
 
 1. `web_fetch` 进入 `AutoFetchProvider.fetch()`；读取 `fetchMode` 与对应顺序，缓存键由 `cacheKey.js` 生成。
-2. `ProviderRunner.run({ capability: 'fetch' })` 执行回退；`fast` 默认 `http → tavily → firecrawl → anysearch`，`clean` 默认 `tavily → firecrawl → http → anysearch`。
+2. `ProviderRunner.run({ capability: 'fetch' })` 执行回退；`fast` 默认 `keenable → http → anysearch → exa → tavily → firecrawl`，`clean` 默认 `keenable → anysearch → exa → http → tavily → firecrawl`。Tavily 和 Firecrawl 只在前面的免费路径失败后使用。
 3. 直连 HTTP 自己实现最多 5 跳重定向、5 MB 上限、HTML/text/JSON/XML 类型判断和 SPA 空壳回退。
 4. 成功结果写缓存；只有可恢复失败按顺序回退并计入熔断，取消和非法 URL 由 `isRecoverable()` 判定为终止并立即返回。
 

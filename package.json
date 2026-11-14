@@ -1,6 +1,6 @@
 {
   "name": "@qikairo7/dsh-web-search",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "private": true,
   "description": "Free-tier-first multi-backend web search and fetch providers for DeepSeek Harness",
   "keywords": [
@@ -39,7 +39,8 @@
     "icon.svg",
     "README.md",
     "README.zh.md",
-    "LICENSE"
+    "LICENSE",
+    "NOTICE"
   ],
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
@@ -51,7 +52,8 @@
     "benchmark": "node --env-file-if-exists=.env scripts/public-benchmark.mjs",
     "benchmark:refresh": "node scripts/refresh-benchmark-fixture.mjs",
     "benchmark:preflight": "node --env-file-if-exists=.env scripts/public-benchmark.mjs --preflight",
-    "check:syntax": "node scripts/check-syntax.mjs"
+    "check:syntax": "node scripts/check-syntax.mjs",
+    "quality:probe": "node --env-file-if-exists=.env scripts/quality-probe.mjs"
   },
   "dsh": {
     "bundle": {
@@ -61,6 +63,7 @@
   "peerDependencies": {
     "@deepseek-ai/cordis": ">=4.0.5-alpha.1 <5",
     "@deepseek-ai/dsh-credentials": "*",
+    "@deepseek-ai/dsh-tools": "*",
     "@deepseek-ai/dsh-web": "*"
   },
   "dependencies": {
@@ -69,6 +72,7 @@
   "devDependencies": {
     "@deepseek-ai/cordis": "~4.1.0",
     "@deepseek-ai/dsh-credentials": "0.2.2-rc.3",
+    "@deepseek-ai/dsh-tools": "0.2.2-rc.3",
     "@deepseek-ai/dsh-web": "0.2.2-rc.3"
   }
 }

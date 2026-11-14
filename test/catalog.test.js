@@ -12,11 +12,13 @@ import { providerSettings, resolveSettings } from '../lib/settings.js';
 test('catalog lists every standard provider in registration order', () => {
   assert.deepEqual(PROVIDER_IDS, [
     'anysearch',
+    'keenable',
     'tavily',
     'firecrawl',
     'zhihu',
     'zhihu-site',
     'aihot',
+    'exa',
     'http',
   ]);
   for (const entry of PROVIDER_CATALOG) {
@@ -30,16 +32,20 @@ test('catalog lists every standard provider in registration order', () => {
 test('catalog exposes the search and fetch capability lists', () => {
   assert.deepEqual(providersWithCapability('search'), [
     'anysearch',
+    'keenable',
     'tavily',
     'firecrawl',
     'zhihu',
     'zhihu-site',
     'aihot',
+    'exa',
   ]);
   assert.deepEqual(providersWithCapability('fetch'), [
     'anysearch',
+    'keenable',
     'tavily',
     'firecrawl',
+    'exa',
     'http',
   ]);
 });

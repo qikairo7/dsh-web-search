@@ -52,9 +52,9 @@ test('qualitySearch merges provider results, dedupes by URL and applies the rera
   });
   assert.deepEqual(
     outcome.sources.map((source) => source.url),
-    ['https://a.example/', 'https://b.example/', 'https://c.example/', 'https://shared.example/'],
+    ['https://a.example/', 'https://b.example/', 'https://shared.example/'],
   );
-  assert.equal(outcome.content, 'generated answer');
+  assert.equal(outcome.content, undefined);
   assert.equal(outcome.truncated, false);
 });
 
@@ -66,6 +66,26 @@ test('qualitySearch returns undefined when every provider fails', async () => {
     intent: 'general',
     providers,
     runner: { attempt: async (name) => { throw new Error(`${name} failed`); } },
+    reranker: undefined,
+    embeddings: undefined,
+    fetcher: undefined,
+  });
+  assert.equal(outcome, undefined);
+});
+
+test('qualitySearch returns undefined when all free providers succeed with empty results', async () => {
+  const emptyProviders = {
+    keenable: { search: async () => ({ sources: [], truncated: false }) },
+    anysearch: { search: async () => ({ sources: [], truncated: false }) },
+    zhihu: { search: async () => ({ sources: [], truncated: false }) },
+  };
+  const outcome = await qualitySearch({
+    request: { query: 'plain query' },
+    signal: undefined,
+    settings: settings(),
+    intent: 'general',
+    providers: emptyProviders,
+    runner: { attempt: async (name) => emptyProviders[name].search() },
     reranker: undefined,
     embeddings: undefined,
     fetcher: undefined,

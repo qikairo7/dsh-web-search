@@ -1,6 +1,6 @@
 # @qikairo7/dsh-web-search
 
-Self-contained multi-backend web search and fetch providers for DeepSeek Harness (DSH). The bundle replaces the paid official web providers while keeping the first-party `dsh-tool-web` tool layer. The model still calls `web_search` and `web_fetch`; only the backends change. The plugin does not call the DeepSeek Search or Fetch APIs.
+Self-contained multi-backend web search and fetch providers for DeepSeek Harness (DSH). The bundle replaces the paid official web providers while keeping the first-party `dsh-tool-web` tool layer. The model still calls `web_search` and `web_fetch`; only the backends change, with optional AnySearch / Tavily / AIHOT advanced tools. The plugin does not call the DeepSeek Search or Fetch APIs.
 
 Non-goals: the paid DeepSeek Search/Fetch APIs, an MCP server, and third-party DSH plugins.
 
@@ -10,15 +10,17 @@ The legacy `deepseek-official` search runs a full model turn for every search. T
 
 | Backend | Free allowance | Used by |
 |---|---|---|
+| Keenable | 100,000/month (key); 1,000/hour anonymous | Default search + Markdown fetch |
 | AnySearch | 1000 searches/day with a registered key; anonymous access also works | Search |
+| Exa | Balance-based | Semantic search + Contents fetch |
 | Zhihu | 5000 global + 5000 site searches/day | Chinese search |
-| Tavily | 1000 credits/month | Search, official-docs supplement, clean fetch |
-| Firecrawl | 1000 credits/month | Hard-page fetch fallback |
-| AIHOT | Anonymous read-only | AI-news search |
+| Tavily | 1000 credits/month | Fallback only: empty free search, missing official docs, fetch failure chain |
+| Firecrawl | 1000 credits/month | Last-resort fetch for hard JS/PDF pages |
+| AIHOT | Anonymous read-only | AI-news search/curation (free) |
 | Direct HTTP | No API cost | Static-page fetch |
 | SiliconFlow | Free allowance | BGE rerank + embeddings |
 
-`quality` mode uses one Tavily credit per search query when Tavily is selected, so 1000 credits is roughly 33 quality searches/day over a month. Evidence enrichment can fetch up to the top 5 pages per query. It tries direct HTTP first; each page that cannot be fetched directly falls back to Tavily or Firecrawl and may consume another credit. At worst, one quality query can use 5 extra fetch credits. `fast` mode normally uses Zhihu/AnySearch first and keeps Tavily for harder queries. The 5-minute search cache reduces repeated spend.
+`quality` mode queries free sources by default (Keenable, AnySearch, Zhihu, AIHOT); Exa is a paid supplement; Tavily only handles empty results or missing official docs. Evidence enrichment prefers Keenable/HTTP/AnySearch, then Exa/Tavily/Firecrawl. `fast` uses the free order first.
 
 ## Requirements
 
@@ -42,21 +44,25 @@ The plugin reads API keys through the DSH credentials service. Put them in `~/.d
 
 ```yaml
 ANYSEARCH_API_KEY: "as_..."
+KEENABLE_API_KEY: "keen_..."
+EXA_API_KEY: "..."
 TAVILY_API_KEY: "tvly-..."
 FIRECRAWL_API_KEY: "fc-..."
 ZHIHU_API_KEY: "..."
 SILICONFLOW_API_KEY: "sk-..."
 ```
 
-AnySearch works without a key in anonymous mode; a registered key raises the daily quota. Zhihu requires an Access Secret from the Zhihu Open Platform. Tavily and Firecrawl report themselves not ready when their key is missing, so the router skips them. The exact reference names are configurable with the `*ApiKeyEnv` fields.
+AnySearch works without a key in anonymous mode; a registered key raises the daily quota. Keenable works anonymously too. Exa requires a key. Zhihu requires an Access Secret from the Zhihu Open Platform. Tavily and Firecrawl report themselves not ready when their key is missing, so the router skips them. The exact reference names are configurable with the `*ApiKeyEnv` fields.
 
 ## Providers
 
 | Provider id | Search | Fetch | Default role |
 |---|---|---|---|
-| `anysearch` | yes | yes | English/default search first; broad coverage |
-| `tavily` | yes | yes | Second search choice; optional generated answer; PDF Extract |
-| `firecrawl` | yes | yes | Last search choice; strong Scrape for SPA/PDF |
+| `anysearch` | yes | yes | English/default search supplement; broad coverage |
+| `keenable` | yes | yes | Free-quota first; search + clean Markdown fetch |
+| `exa` | yes | yes | Semantic search + Contents fetch; balance-based supplement |
+| `tavily` | yes | yes | Search fallback; optional generated answer; PDF Extract |
+| `firecrawl` | yes | yes | Fetch last-resort only; strong Scrape for SPA/PDF |
 | `zhihu` | yes | no | Chinese search first; global search + site supplement |
 | `zhihu-site` | yes | no | Zhihu site-only search when selected explicitly |
 | `aihot` | yes | no | Curated AI news for AI-news queries; anonymous |
@@ -65,13 +71,27 @@ AnySearch works without a key in anonymous mode; a registered key raises the dai
 
 Default orders:
 
-- Chinese query (at least one Han character): `zhihu → anysearch → tavily → firecrawl`
-- Other query: `anysearch → tavily → zhihu → firecrawl`
-- Fetch: `http → tavily → firecrawl → anysearch`
+- Chinese query (at least one Han character): `zhihu → keenable → anysearch → exa → tavily → firecrawl`
+- Other query: `keenable → anysearch → zhihu → exa → tavily → firecrawl`
+- Fetch: `keenable → http → anysearch → exa → tavily → firecrawl`
 
 The default `auto` provider is pinned by the bundle patch. Individual providers are also registered and can be selected in the Web search and fetch settings page.
 
-`searchMode` defaults to **quality**: the router queries three providers (Chinese: Zhihu + AnySearch + Tavily; English: AnySearch + Tavily + Zhihu; AI news: AIHOT + Tavily + AnySearch), merges and deduplicates by URL, then reranks with SiliconFlow `BAAI/bge-reranker-v2-m3`. Set `searchMode: fast` for the single-provider priority order above. `fetchMode` defaults to **fast** (direct HTTP first); set it to **clean** to prefer Tavily/Firecrawl Markdown extraction. The bundle patch sets `tool-web.searchSummaryMaxChars` to **4000** (the native default is 800); the provider's `maxSnippetChars` default is also 4000. Tavily search uses `include_raw_content` so summaries can use the page body instead of a short snippet.
+`searchMode` defaults to **quality**: the router queries free providers (Chinese: Zhihu + Keenable + AnySearch; English: Keenable + AnySearch + Zhihu; AI news: AIHOT + Keenable + AnySearch + Zhihu), merges and deduplicates by URL, then reranks with SiliconFlow `BAAI/bge-reranker-v2-m3`. Exa is paid and not in default quality; Tavily and Firecrawl are fallback-only. `fetchMode` defaults to **fast**; `clean` uses `keenable → anysearch → exa → http → tavily → firecrawl`, preferring free extraction and keeping Tavily/Firecrawl as fallback. The `tool-web` summary cap comes from the agent preset (standard 800; a bundle patch cannot override it); provider `maxSnippetChars` is 4000 but `web_search` truncates to that cap. Tavily search uses `include_raw_content`; the optional `tavily_search` tool supports `include_published_date`.
+
+### Advanced tools
+
+| Tool | Purpose |
+|---|---|
+| `anysearch_capabilities` | Discover current AnySearch domains, vertical tags, and parameter definitions |
+| `anysearch_search` | Run a vertical or structured search with `tag` / `params` / `zone` |
+| `anysearch_batch_search` | Run one to five independent searches concurrently |
+| `tavily_search` | Tavily advanced search with depth/topic/time-range/domain filters and optional answer |
+| `tavily_extract` | Batch-extract one to twenty URLs through Tavily |
+| `aihot_latest` | AIHOT today/week curated AI news, anonymous and free |
+| `aihot_hot` | AIHOT current hot topics, anonymous and free |
+
+`anysearchMaxRenderedContentChars` caps how much result content `anysearch_search` / `anysearch_batch_search` render to the model per call; default 12000 characters.
 
 ## Behavior
 
@@ -86,9 +106,10 @@ The default `auto` provider is pinned by the bundle patch. Individual providers 
 
 ### Quality pipeline
 
-- **Quality search**: `searchMode: quality` queries three providers in parallel, merges by URL, removes near-duplicates with `BAAI/bge-m3` embeddings, then reranks with `BAAI/bge-reranker-v2-m3` and adds a domain-authority prior (official docs, MDN, GitHub, StackOverflow first). AnySearch page bodies are compressed into an 800–1500 character query-aware extract. If the reranker or embedding service is unavailable, the merged provider order is returned.
-- **Evidence enrichment**: the top 5 sources are fetched through the direct-HTTP-first path and their summaries are regenerated at 800–1500 characters. Technical and official-doc pages prefer API signatures, parameters, examples, and code blocks.
-- **Official docs supplement**: for technical queries with known official domains (`deepseek-harness.github.io`, `api-docs.deepseek.com`, `nodejs.org`, `developer.mozilla.org`, `react.dev`, `docs.python.org`, `go.dev`, `rust-lang.org`, plus known vendor domains for Docker, Kubernetes, AWS, Azure, GitHub, TypeScript, Java, and NVIDIA), quality mode runs one extra Tavily search restricted to those domains, drops archived Node.js `/download/release/` docs and old release blogs, and merges the results.
+- **Quality search**: `searchMode: quality` queries free providers in parallel (Chinese: Zhihu + Keenable + AnySearch; English: Keenable + AnySearch + Zhihu; AI news: AIHOT + Keenable + AnySearch + Zhihu), merges by URL, removes near-duplicates with `BAAI/bge-m3` embeddings, then reranks with `BAAI/bge-reranker-v2-m3` and adds a domain-authority prior (official docs, MDN, GitHub, StackOverflow first). AnySearch page bodies are compressed into an 800–1500 character query-aware extract. If the reranker or embedding service is unavailable, the merged provider order is returned.
+- **Live weather/FX**: queries classified as weather or currency-rate use Open-Meteo (weather) or ExchangeRate-API/Frankfurter (FX) first and return one dated source with live values; if those APIs fail, normal search takes over. No API key is needed.
+- **Evidence enrichment**: the top 5 sources are fetched through the default fetch path and their summaries are regenerated at 800–1500 characters. Technical and official-doc pages prefer API signatures, parameters, examples, and code blocks.
+- **Official docs supplement**: for technical queries with known official domains (`deepseek-harness.github.io`, `api-docs.deepseek.com`, `nodejs.org`, `developer.mozilla.org`, `react.dev`, `docs.python.org`, `go.dev`, `rust-lang.org`, plus known vendor domains for Docker, Kubernetes, AWS, Azure, GitHub, TypeScript, Java, and NVIDIA), quality mode runs one extra Tavily search restricted to those domains only when free results miss every official domain, drops archived Node.js `/download/release/` docs and old release blogs, and merges the results.
 - **Tavily answer**: when `tavilyIncludeAnswer` is on (default), Tavily's generated answer becomes the optional `web_search` `content`. Turn it off to return sources only.
 - **Zhihu metadata**: when `zhihuIncludeMetadata` is on (default), each summary starts with `作者：…；赞同 …；评论 …`, giving the model a quality signal without extending the provider-neutral source shape.
 
@@ -96,7 +117,7 @@ The default `auto` provider is pinned by the bundle patch. Individual providers 
 
 - **Direct HTTP**: anonymous; up to 5 redirects (cross-origin allowed), 5 MB response cap, HTML/text/JSON/XML only. PDFs and other binary content throw `WEB_UNSUPPORTED_CONTENT_TYPE` so the router falls back to an API provider. Small client-rendered app shells are detected by `minDirectHtmlChars` (default 2048) and also trigger a fallback.
 - **Fallback**: only recoverable failures trigger the next provider: network errors, timeouts, 429, 5xx, and missing credentials. Caller cancellation and invalid URLs return immediately. A 404 from direct HTTP is returned as a result, not a fallback trigger.
-- **Clean fetch**: `fetchMode: clean` changes the order to `tavily → firecrawl → http → anysearch` for cleaner Markdown at the cost of API credits.
+- **Clean fetch**: `fetchMode: clean` changes the order to `keenable → anysearch → exa → http → tavily → firecrawl`, preferring free extraction and keeping Tavily/Firecrawl as fallback.
 - **Content cleaning**: API fetch providers strip common navigation, sign-in, footer, breadcrumb, repository-navigation, and avatar lines from Markdown before returning it.
 - **No private-network blocking**: direct HTTP can reach loopback and private-network hosts, matching the shipped `dsh-web-fetch-http` behavior.
 
@@ -106,71 +127,7 @@ Search results are cached for 5 minutes (200 entries); fetch results for 10 minu
 
 ## Configuration
 
-The settings page is generated from the plugin's `Config` schema. All fields are optional; the defaults below match the verified setup.
-
-### Mode and routing
-
-| Field | Default | Meaning |
-|---|---|---|
-| `searchMode` | `quality` | `quality` = three-provider merge + rerank + top-5 evidence enrichment; `fast` = single-provider priority order |
-| `fetchMode` | `fast` | `fast` = direct HTTP first; `clean` = Tavily/Firecrawl first |
-| `intentRouting` | `true` | Apply technical/news/Chinese-community routing rules |
-| `languageRouting` | `true` | Detect query language and pass `language` to Tavily/AnySearch |
-| `officialDocsEnabled` | `true` | Add a domain-restricted Tavily search for known official docs |
-| `aihotEnabled` | `true` | Enable the AIHOT AI-news provider |
-| `chineseSearchOrder` | `zhihu,anysearch,tavily,firecrawl` | Fast-mode search order for queries with Han characters |
-| `defaultSearchOrder` | `anysearch,tavily,zhihu,firecrawl` | Fast-mode search order for other queries |
-| `fetchOrder` | `http,tavily,firecrawl,anysearch` | Fast fetch fallback order |
-| `cleanFetchOrder` | `tavily,firecrawl,http,anysearch` | Clean fetch order |
-| `tavilyIncludeAnswer` | `true` | Map Tavily's answer to `web_search.content` |
-| `zhihuIncludeMetadata` | `true` | Add author/vote/comment to Zhihu summaries |
-
-### Backends and credentials
-
-| Field | Default | Meaning |
-|---|---|---|
-| `anysearchEnabled` | `true` | Enable AnySearch |
-| `anysearchApiKeyEnv` | `ANYSEARCH_API_KEY` | AnySearch credential reference |
-| `anysearchBaseURL` | `https://api.anysearch.com` | AnySearch API base |
-| `tavilyEnabled` | `true` | Enable Tavily |
-| `tavilyApiKeyEnv` | `TAVILY_API_KEY` | Tavily credential reference |
-| `tavilyBaseURL` | `https://api.tavily.com` | Tavily API base |
-| `firecrawlEnabled` | `true` | Enable Firecrawl |
-| `firecrawlApiKeyEnv` | `FIRECRAWL_API_KEY` | Firecrawl credential reference |
-| `firecrawlBaseURL` | `https://api.firecrawl.dev` | Firecrawl API base |
-| `zhihuEnabled` | `true` | Enable Zhihu providers |
-| `zhihuApiKeyEnv` | `ZHIHU_API_KEY` | Zhihu Access Secret reference |
-| `zhihuBaseURL` | `https://developer.zhihu.com` | Zhihu API base |
-| `aihotBaseURL` | `https://aihot.news` | AIHOT API base |
-| `httpEnabled` | `true` | Enable the direct HTTP fetch provider |
-| `siliconflowEnabled` | `true` | Enable SiliconFlow reranking |
-| `siliconflowApiKeyEnv` | `SILICONFLOW_API_KEY` | SiliconFlow credential reference |
-| `siliconflowBaseURL` | `https://api.siliconflow.cn/v1` | SiliconFlow API base |
-| `siliconflowRerankModel` | `BAAI/bge-reranker-v2-m3` | Rerank model |
-| `siliconflowEmbeddingsEnabled` | `true` | Enable semantic duplicate removal |
-| `siliconflowEmbeddingModel` | `BAAI/bge-m3` | Embedding model |
-
-### Quality, limits, and cache
-
-| Field | Default | Meaning |
-|---|---|---|
-| `semanticDedupThreshold` | `0.95` | Cosine similarity threshold for duplicate removal |
-| `requestTimeoutMs` | `30000` | Per-request timeout |
-| `maxFetchChars` | `200000` | Maximum characters returned by `web_fetch` |
-| `maxSnippetChars` | `4000` | Maximum characters per search summary |
-| `enrichEnabled` | `true` | Fetch top sources and regenerate their summaries |
-| `enrichTopN` | `5` | Number of top sources to enrich |
-| `enrichSummaryMinChars` | `800` | Minimum enriched summary length |
-| `enrichSummaryMaxChars` | `1500` | Maximum enriched summary length |
-| `minDirectHtmlChars` | `2048` | SPA-shell detection threshold |
-| `searchCacheTtlMs` | `300000` | Search cache TTL |
-| `searchCacheMaxEntries` | `200` | Search cache entry cap |
-| `fetchCacheTtlMs` | `600000` | Fetch cache TTL |
-| `fetchCacheMaxEntries` | `100` | Fetch cache entry cap |
-| `breakerFailureThreshold` | `3` | Consecutive failures before cooldown |
-| `breakerCooldownMs` | `300000` | Provider cooldown |
-
-Advanced deployments can also override `anysearchBaseURL`, `tavilyBaseURL`, and `firecrawlBaseURL` in the profile patch; they are intentionally not part of the normal settings flow.
+See [Configuration](docs/configuration.md) for every field, default, and meaning.
 
 ## Development
 

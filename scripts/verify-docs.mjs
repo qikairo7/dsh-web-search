@@ -16,6 +16,8 @@ const required = [
   'BENCHMARK.md',
   'docs/AGENTS.md',
   'docs/architecture.md',
+  'docs/configuration.md',
+  'docs/dsh-host-contract.md',
   'docs/development.md',
   'docs/testing.md',
   'docs/cookbook/adding-a-provider.md',
@@ -179,7 +181,7 @@ const expectedDefaults = Object.fromEntries(
   }),
 );
 
-for (const file of ['README.md', 'README.zh.md']) {
+for (const file of ['docs/configuration.md']) {
   const text = await readFile(path.join(root, file), 'utf8');
   for (const key of configKeys) {
     if (!text.includes('`' + key + '`')) errors.push(`${file}: missing Config field ${key}`);

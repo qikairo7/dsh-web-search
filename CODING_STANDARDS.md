@@ -1,6 +1,6 @@
 # CODING_STANDARDS
 
-实现与 Review 的唯一标准。开始写代码前读完本文件；当前行为、配置默认值和配额以 `README.md` / `README.zh.md` 的 Behavior details、Configuration 为准，本文不复制默认值表。
+实现与 Review 的唯一标准。开始写代码前读完本文件；当前行为以 `README.md` / `README.zh.md` 的 Behavior details 为准，配置字段、默认值和配额以 `docs/configuration.md` 为准，本文不复制默认值表。
 
 ## 1. 仓库结构与发布
 
@@ -23,14 +23,14 @@
 ### 契约
 
 - 每个 provider 实现 `id`、`title`、`description`、`available()`、`ready()`，并按能力实现 `search()` 或 `fetch()`。
-- 只实现 `ctx.web` provider，不注册模型面向的工具；`web_search` / `web_fetch` 的入参与结果形状不变，设置页仍由 `Config` 生成。
+- 默认只实现 `ctx.web` provider；例外是 `lib/tools/` 下的 AnySearch / Tavily / AIHOT 高级工具（由 ADR-0004/0005/0006 授权），通用 `web_search` / `web_fetch` 仍由 `dsh-tool-web` 提供、入参与结果形状不变。
 - 后端 provider 固定三段式：`XXX_PROVIDER_ID` 常量、`mapXxxSearch()` 纯映射、`XxxProvider` 类。映射函数只做数据转换和 envelope 校验，类只做 IO。
 - 后端 Provider 构造函数接收 `{ settings, resolveKey }`（不需要凭据的只收 `{ settings }`）；`settings()` 是 thunk，每次操作开头读一次，不要把配置缓存到实例字段。
 - Provider 的 `description` 返回 `{ en, zh }` 双语；用户可见文案保持中英对应。
 
 ### 实现
 
-- HTTP 统一走 `lib/http.js` 的 `joinURL` / `requestJSON`（超时、取消、JSON 解析、错误码）。只有 `lib/providers/http.js` 直接调用 `fetch`，因为它要实现重定向和内容类型策略。
+- HTTP 统一走 `lib/http.js` 的 `joinURL` / `requestJSON` / `requestText`（超时、取消、解析、错误码）。只有 `lib/http.js`、`lib/providers/http.js`（重定向与内容类型策略）和独立客户端 `lib/providers/anysearchClient.js` 可以直接调用 `fetch`。
 - 外部 API 响应在对应 mapper 入口校验并归一化一次（HTTP 抓取在 `providers/http.js` 内一次）：坏条目丢弃；只有业务 envelope 错误才 throw。内部函数直接使用已校验的值。
 - Provider 边界统一用 `toWebError(error, 'Provider', 'search'|'fetch')` 转换错误，或用 `webError(message, 'WEB_*')` 抛错；新错误码保持 `WEB_` 前缀；不让裸 `Error` 穿出 provider 边界。
 - 不在 provider 里直接读 `process.env` 或 `ctx.config`；用 `resolveKey` 和 `settings()`。
@@ -47,7 +47,7 @@
 - 每个配置字段在 `lib/settings.js` 的 `SETTINGS_SPEC` 声明一次：`key`、`path`、`kind`、约束（`min` / `max` / `step`）与 `defaultPath`；`DEFAULT_SETTINGS` 提供默认值，`Config` 与 `resolveSettings` 都由 spec 生成。
 - `*ApiKeyEnv` 字段在 spec 里标 `role: 'credential-ref'`。
 - 每个字段由 `resolveSettings` 校验并有默认值；代码里不藏开关常量。
-- 当前默认值和配额不在本文件复述：`README.md` / `README.zh.md` 的 Configuration 是用户可见事实，`lib/settings.js` 的 `DEFAULT_SETTINGS` 是代码事实；改默认值或配额时，两份 README 与 `DEFAULT_SETTINGS` 同步（ADR-0003）。
+- 当前默认值和配额不在本文件复述：`docs/configuration.md` 是用户可见配置事实，`lib/settings.js` 的 `DEFAULT_SETTINGS` 是代码事实；改默认值或配额时，`docs/configuration.md`、两份 README 的配额说明与 `DEFAULT_SETTINGS` 同步（ADR-0003）。
 
 ## 5. 测试
 
@@ -64,8 +64,8 @@
 - `pnpm check` 退出码为 0；DSH 沙箱按 `AGENTS.md` 的等价命令验证，并在汇报中注明沙箱限制。
 - 测试满足 §5；纯文档或格式改动确认无需新增测试。
 - 涉及后端协议、凭据解析、路由顺序或 DSH 注册的改动：有凭据时跑 `pnpm benchmark`，或安装并重启 DSH 后用 `web_search`（中英文各一次）和 `web_fetch` 各验证一次；纯逻辑改动以单测为准。
-- 新配置字段满足 §4；新 Provider 同时完成：provider 文件、`lib/index.js` 注册（按 search/fetch 能力）、配置与默认值、`README.md` / `README.zh.md` 的 Provider 与配置表、映射测试、路由顺序与回退测试。
-- 默认值或配额变化时，更新两份 README 的配置表和免费额度说明（ADR-0003 要求）；随包默认行为变化时同步 `cordis.patch.yml`。
+- 新配置字段满足 §4；新 Provider 同时完成：provider 文件、`lib/index.js` 注册（按 search/fetch 能力）、配置与默认值、`docs/configuration.md` 配置表、两份 README 的 Provider 表、映射测试、路由顺序与回退测试。
+- 默认值或配额变化时，更新 `docs/configuration.md` 的配置表和两份 README 的免费额度说明（ADR-0003 要求）；随包默认行为变化时同步 `cordis.patch.yml`。
 
 ## 7. 文档
 
@@ -84,9 +84,9 @@
 
 1. **契约**：provider 实现 `id`、`title`、`description`、`available()`、`ready()`、`search()` / `fetch()`；`web_search` / `web_fetch` 的入参与结果形状不变；设置页仍由 `Config` 生成。
 2. **回退语义**：只有可恢复错误（网络、超时、429、5xx、凭据缺失）触发下一个 provider；取消和非法 URL 立即返回；直连 HTTP 的 404 作为结果返回；熔断只统计可恢复失败。
-3. **配额与延迟**：数清每次查询新增的外部调用；正常路径下 quality 模式不超过 3 个搜索 provider + 1 次 official-docs 搜索 + 1 次 embedding + 1 次 rerank + 最多 5 次补全抓取；缓存 key 覆盖所有影响结果的设置；循环有界。
+3. **配额与延迟**：数清每次查询新增的外部调用；正常路径下 quality 模式不超过 4 个免费搜索 provider（AI 新闻组合）+ 1 次 official-docs 搜索（仅免费结果缺官方域时）+ 1 次 embedding + 1 次 rerank + 最多 5 次补全抓取；缓存 key 覆盖所有影响结果的设置；循环有界。
 4. **输入健壮性**：入口对空响应、字段类型错误、超大响应、非 HTML/JSON 内容类型做一次校验或归一化；内部层不重复判型，不因单条坏数据丢掉整批结果。
 5. **配置**：每个字段经 `resolveSettings` 校验并有默认值；没有藏在代码里的开关常量。
-6. **测试与文档**：新行为在映射层和路由层都有覆盖；测试测真实实现、不复制实现逻辑；去掉实现后测试会失败；两份 README、配置表、默认值、配额说明一致；契约变化有 ADR。
+6. **测试与文档**：新行为在映射层和路由层都有覆盖；测试测真实实现、不复制实现逻辑；去掉实现后测试会失败；两份 README、`docs/configuration.md` 的配置表、默认值、配额说明一致；契约变化有 ADR。
 7. **边界与依赖**：`AGENTS.md` 的硬边界全部满足，无未说明的新依赖；`lib/index.js` → `lib/providers/*` → `lib/*` 的依赖方向不被反转。
 8. **实现克制**：除会被测试直接复用的 `mapXxxSearch()` 外，一次性逻辑没有被抽成函数；`try/catch` 只出现在错误边界；没有为未经确认的推测性复杂度增加代码。
