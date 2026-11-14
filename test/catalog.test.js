@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   PROVIDER_CATALOG,
   PROVIDER_IDS,
+  paidSearchFallback,
   providersWithCapability,
   settingsKeyForProvider,
 } from '../lib/catalog.js';
@@ -24,7 +25,7 @@ test('catalog lists every standard provider in registration order', () => {
   for (const entry of PROVIDER_CATALOG) {
     assert.ok(entry.capabilities.length > 0, `${entry.id} has a capability`);
     for (const capability of entry.capabilities) {
-      assert.ok(['search', 'fetch'].includes(capability), `${entry.id} capability`);
+      assert.ok(['search', 'fetch', 'domainSearch'].includes(capability), `${entry.id} capability`);
     }
   }
 });
@@ -60,9 +61,39 @@ test('every provider maps to a resolved settings section', () => {
   }
 });
 
-test('catalog declares the official-docs and news-boost capabilities', () => {
-  assert.equal(PROVIDER_CATALOG.find((entry) => entry.id === 'tavily').officialDocs, true);
+test('catalog declares the domain-search capability and news boost', () => {
+  const domainSearch = PROVIDER_CATALOG.filter((entry) =>
+    entry.capabilities.includes('domainSearch'),
+  );
+  assert.deepEqual(domainSearch.map((entry) => entry.id), ['tavily']);
   assert.equal(PROVIDER_CATALOG.find((entry) => entry.id === 'aihot').newsBoost, 0.5);
+});
+
+test('catalog declares a tier and operator set for every provider', () => {
+  assert.deepEqual(
+    PROVIDER_CATALOG.filter((entry) => entry.tier === 'paid').map((entry) => entry.id).sort(),
+    ['exa', 'firecrawl', 'tavily'],
+  );
+  for (const entry of PROVIDER_CATALOG) {
+    assert.ok(['free', 'paid'].includes(entry.tier), `${entry.id} tier`);
+    assert.ok(Array.isArray(entry.operators), `${entry.id} operators`);
+    for (const operator of entry.operators) {
+      assert.ok(
+        ['site', 'lang', 'date', 'language', 'news'].includes(operator),
+        `${entry.id} operator ${operator}`,
+      );
+    }
+  }
+});
+
+test('paidSearchFallback lists paid search providers in the declared order', () => {
+  const fallback = paidSearchFallback();
+  assert.deepEqual(fallback, ['exa', 'tavily', 'firecrawl']);
+  for (const id of fallback) {
+    const entry = PROVIDER_CATALOG.find((provider) => provider.id === id);
+    assert.equal(entry.tier, 'paid', `${id} tier`);
+    assert.ok(entry.capabilities.includes('search'), `${id} search capability`);
+  }
 });
 
 test('zhihu-site shares the zhihu settings section', () => {

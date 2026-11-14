@@ -20,11 +20,11 @@ keenable / anysearch / exa / tavily / firecrawl / zhihu / zhihu-site / aihot / h
         external search / fetch services
 ```
 
-插件默认只在 `ctx.web` 注册 Provider；异常是 `lib/tools/` 下的 AnySearch 高级工具、Tavily 高级工具（`tavily_search`、`tavily_extract`）与 AIHOT 免费资讯工具（`aihot_latest`、`aihot_hot`）。`dsh-tool-web` 仍负责 `web_search` / `web_fetch` 的 schema、展示和结果形状。
+插件默认只在 `ctx.web` 注册 Provider；异常是 `lib/tools/` 下的 AnySearch、Tavily 与 AIHOT 高级工具。`dsh-tool-web` 仍负责 `web_search` / `web_fetch` 的 schema、展示和结果形状。
 
 ## 入口与注册
 
-`lib/index.js` 导出 `name`、`inject`、`Config` 和 `apply()`。`apply()` 创建各 Provider 与 SiliconFlow 客户端，注册 search / fetch Provider，注册 `auto` 搜索与抓取路由，并在 `ctx.tools` 可用时注册 AnySearch / Tavily / AIHOT 高级工具。
+`lib/index.js` 导出 `name`、`inject`、`Config` 和 `apply()`。`apply()` 创建各 Provider 与 SiliconFlow 客户端，注册 search / fetch Provider、`auto` 路由与可选高级工具。
 
 Provider 的能力矩阵与默认顺序由 [README 的 Providers 段](../README.md#providers) 拥有；代码中的注册列表在 `lib/index.js`。
 
@@ -33,29 +33,29 @@ Provider 的能力矩阵与默认顺序由 [README 的 Providers 段](../README.
 | 模块 | 职责 |
 |---|---|
 | `lib/index.js` | 插件入口；由 `SETTINGS_SPEC` 生成 `Config`，按 catalog 注册 Provider 与 auto 路由 |
-| `lib/providers/*.js` | 各后端适配器、`mapXxxSearch()` 纯映射、Provider 类 |
+| `lib/providers/*.js` | 各后端适配器、`mapXxxSearch()` 纯映射、Provider 类；消费 `request.routing` 注记，缺省时自推导 |
 | `lib/providers/anysearchClient.js` | AnySearch HTTP 客户端（移植自 `anysearch-dsh`） |
 | `lib/providers/shared.js` | 适配器共用的 header、计数夹取、文本结果与凭据检查 |
-| `lib/providers/router.js` | `AutoSearchProvider` / `AutoFetchProvider`：模式分流、缓存与回退调用 |
+| `lib/providers/router.js` | `AutoSearchProvider` / `AutoFetchProvider`：routing 注解、模式分流、缓存回退；fetch 支持显式 order |
 | `lib/providerRunner.js` | 搜索/抓取共用的资格判定、熔断、attempt 与有序回退 |
-| `lib/quality.js` | Quality mode pipeline：合并、新闻过滤、语义去重、重排、权威排序、证据增强编排 |
+| `lib/quality.js` | `QualityEngine`：`search(request, signal)` 单入口编排合并、去重、重排降级、权威排序、证据增强与官方文档补充 |
 | `lib/enrich.js` | Evidence enrichment：抓取、HTML 清洗、技术/普通摘要 |
 | `lib/cache.js` | search / fetch 结果的 TTL + LRU 缓存 |
 | `lib/realtime.js` | 天气/汇率实时 |
-| `lib/cacheKey.js` | 由 resolved settings 指纹生成 search / fetch 缓存键 |
-| `lib/catalog.js` | Provider 元数据：能力、settings section、注册顺序 |
+| `lib/cacheKey.js` | 由 settings 指纹、请求与 fetch 有效顺序生成缓存键 |
+| `lib/catalog.js` | Provider 元数据：能力（含 `domainSearch`）、tier（free/paid）、算子支持、付费回退顺序、settingsKey、注册顺序 |
 | `lib/settings.js` | `DEFAULT_SETTINGS`、`SETTINGS_SPEC`、`resolveSettings()`、配置校验 |
 | `lib/credentials.js` | 通过 DSH credentials 与启动环境解析 API Key |
 | `lib/http.js` | `joinURL`、`requestJSON`、超时、取消与 HTTP 错误 |
 | `lib/errors.js` | `WebError` 适配与 `WEB_*` 错误码 |
-| `lib/intent.js` | `technical`、`news`、`chinese-community`、`general` 路由分类 |
+| `lib/intent.js` | intent 路由分类；fastOrder 付费尾从 catalog tier 派生 |
 | `lib/technical.js` | 技术文本与查询词启发式 |
 | `lib/language.js` | 中英文检测 |
 | `lib/query.js` | `site:`、`lang:`、`after:`、`before:` 解析 |
 | `lib/officialDocs.js` | 官方文档域名规则与旧文档过滤 |
 | `lib/news.js` | 新闻域名、语言过滤与排序加权 |
 | `lib/authority.js` | 域名权威加权与排序 |
-| `lib/rerank.js` | SiliconFlow 重排 |
+| `lib/rerank.js` | SiliconFlow 重排：`rerankScored` 单方法，失败降级 |
 | `lib/embeddings.js` | SiliconFlow 语义去重 |
 | `lib/summarize.js` | 查询相关摘要与证据摘要 |
 | `lib/clean.js` | Markdown 正文清洗与 HTML 转文本 |
@@ -73,17 +73,17 @@ Provider 的能力矩阵与默认顺序由 [README 的 Providers 段](../README.
 
 ## 搜索流程
 
-1. `web_search` 进入 `AutoSearchProvider.search()`；先检查取消、读取 `settings()`，再按 `searchMode` 分流。
-2. 缓存命中直接返回；key 由 `cacheKey.js` 从 resolved settings 指纹与请求生成，新增影响结果的设置自动进入键。
-3. 天气/汇率查询先由 `realtime.js` 调用 Open-Meteo 或 ExchangeRate-API/Frankfurter，返回带日期的实时结果；失败则继续正常搜索。
-4. `quality`：`quality.js` 的 `qualitySearch()` 用 `qualityPair()` 给出免费 Provider（中文知乎 + Keenable + AnySearch；AI 新闻 AIHOT + Keenable + AnySearch + 知乎），经 `ProviderRunner.attempt()` 并行调用后按 URL 轮询合并、规范化去重，再走 embedding 去重、BGE 重排、域名权威加权和 `enrich.js` 的前 5 条证据增强。Tavily 官方文档补充只在免费结果没有命中官方域时触发。
-5. `fast`：`ProviderRunner.run()` 按 `fastOrder()` 顺序逐个尝试；只有 `isRecoverable(error)` 为真才进入下一个 Provider。
+1. `web_search` 进入 `AutoSearchProvider.search()`；先检查取消、读取 `settings()`，解析 routing 注解一次下发，再按 `searchMode` 分流。
+2. 缓存命中直接返回；key 由 resolved settings 指纹与请求生成。
+3. 天气/汇率查询先由 `realtime.js`（Open-Meteo、ExchangeRate-API/Frankfurter）应答；失败则继续正常搜索。
+4. `quality`：`QualityEngine.search()` 用 `qualityPair()` 给出免费 Provider（组合见 README），经 `ProviderRunner.attempt()` 并行调用，合并去重后走 BGE 重排（一次尝试，失败降级为提供方优先序）、域名权威加权与证据增强。官方文档补充只由 catalog 声明 `domainSearch` 的 Provider 承担：免费结果缺官方域且无 `site:` 时触发一次，失败不计熔断。
+5. `fast`：`ProviderRunner.run()` 按 `fastOrder()` 顺序逐个尝试（付费尾由 catalog tier 派生）；只有 `isRecoverable(error)` 为真才进入下一个 Provider。
 6. 所有 Provider 都失败时返回最后一个可恢复错误；空结果不写缓存。
 
 ## 抓取流程
 
-1. `web_fetch` 进入 `AutoFetchProvider.fetch()`；读取 `fetchMode` 与对应顺序，缓存键由 `cacheKey.js` 生成。
-2. `ProviderRunner.run({ capability: 'fetch' })` 执行回退；`fast` 默认 `keenable → http → anysearch → exa → tavily → firecrawl`，`clean` 默认 `keenable → anysearch → exa → http → tavily → firecrawl`。Tavily 和 Firecrawl 只在前面的免费路径失败后使用。
+1. `web_fetch` 进入 `AutoFetchProvider.fetch()`；读取 `fetchMode` 与对应顺序，显式 order 计入缓存键。
+2. `ProviderRunner.run({ capability: 'fetch' })` 执行回退；`fast` 默认 `keenable → http → anysearch → exa → tavily → firecrawl`，`clean` 默认 `keenable → anysearch → exa → http → tavily → firecrawl`。Tavily 和 Firecrawl 只在前面的免费路径失败后使用。证据增强经显式 `order: fetchOrder` 复用同一实例的缓存与熔断。
 3. 直连 HTTP 自己实现最多 5 跳重定向、5 MB 上限、HTML/text/JSON/XML 类型判断和 SPA 空壳回退。
 4. 成功结果写缓存；只有可恢复失败按顺序回退并计入熔断，取消和非法 URL 由 `isRecoverable()` 判定为终止并立即返回。
 
@@ -108,7 +108,7 @@ settings() thunk ──→ Provider / Router
 
 | 目标 | 做法 |
 |---|---|
-| 新增后端 | 新增 provider 文件与 ID 常量，在 `lib/catalog.js` 声明能力与 settingsKey，在 `lib/settings.js` 的 `SETTINGS_SPEC` 补配置，补 README、映射测试、路由顺序与回退测试；涉及新 id 或契约先写 ADR |
+| 新增后端 | 新增 provider 文件与 ID 常量，在 `lib/catalog.js` 声明能力、settingsKey、tier 与算子支持，在 `lib/settings.js` 补 `SETTINGS_SPEC`，补 README 与映射/路由测试；新 id 或契约先写 ADR |
 | 新增配置字段 | 同时修改 `Config`、`DEFAULT_SETTINGS`、`resolveSettings`，并更新两份 README |
 | 修改路由或回退 | 改 `lib/providers/router.js`，补路由测试，更新 README 的 Behavior 与配额说明 |
 | 修改文档 | 先读 [docs/AGENTS.md](AGENTS.md)，按事实归属改唯一一份，再跑 `pnpm docs:check` |

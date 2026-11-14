@@ -23,38 +23,50 @@ function sources() {
   ];
 }
 
-test('SiliconFlow reranker reorders sources by returned index', async () => {
+test('SiliconFlow reranker maps returned scores and ranks back to their sources', async () => {
   const original = globalThis.fetch;
   globalThis.fetch = async () =>
-    new Response(JSON.stringify({ results: [{ index: 2 }, { index: 0 }, { index: 1 }] }), {
-      status: 200,
-      headers: { 'content-type': 'application/json' },
-    });
+    new Response(
+      JSON.stringify({
+        results: [
+          { index: 2, relevance_score: 0.9 },
+          { index: 0, relevance_score: 0.5 },
+          { index: 1, relevance_score: 0.7 },
+        ],
+      }),
+      {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      },
+    );
   try {
     const reranker = new SiliconFlowReranker({
       settings: rerankSettings,
       resolveKey: async () => 'key',
     });
-    const scored = await reranker.rerankScored('query', sources());
-    assert.deepEqual(scored.map((entry) => entry.score), [0, 0, 0]);
-
-    const result = await reranker.rerank('query', sources(), 3);
-    assert.deepEqual(result.map((source) => source.url), [
-      'https://c.example/',
-      'https://a.example/',
-      'https://b.example/',
-    ]);
+    const scored = await reranker.rerankScored('query', sources(), undefined);
+    for (const entry of scored) {
+      assert.deepEqual(Object.keys(entry).sort(), ['index', 'rank', 'score', 'source']);
+    }
+    const byScore = [...scored].sort((left, right) => right.score - left.score);
+    assert.deepEqual(
+      byScore.map((entry) => entry.source.url),
+      ['https://c.example/', 'https://b.example/', 'https://a.example/'],
+    );
+    const byRank = [...scored].sort((left, right) => left.rank - right.rank);
+    assert.deepEqual(
+      byRank.map((entry) => entry.source.url),
+      ['https://c.example/', 'https://a.example/', 'https://b.example/'],
+    );
   } finally {
     globalThis.fetch = original;
   }
 });
 
-test('SiliconFlow reranker returns the original order without a key', async () => {
+test('SiliconFlow reranker returns undefined without a key', async () => {
   const reranker = new SiliconFlowReranker({
     settings: rerankSettings,
     resolveKey: async () => undefined,
   });
-  const original = sources();
-  const result = await reranker.rerank('query', original, 3);
-  assert.deepEqual(result, original);
+  assert.equal(await reranker.rerankScored('query', sources(), undefined), undefined);
 });

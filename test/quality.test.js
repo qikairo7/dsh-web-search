@@ -1,55 +1,73 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { qualitySearch } from '../lib/quality.js';
+import { QualityEngine } from '../lib/quality.js';
+import { ProviderRunner } from '../lib/providerRunner.js';
 
 function settings(overrides = {}) {
   return {
     officialDocsEnabled: false,
     enrichEnabled: false,
     semanticDedupThreshold: 0.95,
+    keenable: { enabled: true },
+    anysearch: { enabled: true },
+    zhihu: { enabled: true },
+    tavily: { enabled: true },
     ...overrides,
   };
 }
 
-const providers = {
-  zhihu: { search: async () => ({}) },
-  anysearch: { search: async () => ({}) },
-  tavily: { search: async () => ({}) },
-};
+/** Build the engine the way the router does: one settings thunk, real runner. */
+function makeEngine({ providers, overrides = {}, reranker, embeddings, fetcher }) {
+  const settingsThunk = () => settings(overrides);
+  return new QualityEngine({
+    settings: settingsThunk,
+    providers,
+    runner: new ProviderRunner({ settings: settingsThunk, providers }),
+    reranker,
+    embeddings,
+    fetcher,
+  });
+}
 
-test('qualitySearch merges provider results, dedupes by URL and applies the reranker', async () => {
-  const results = {
-    zhihu: {
+function fakeProvider(result) {
+  return {
+    available: () => true,
+    ready: async () => true,
+    search: async () => result,
+  };
+}
+
+test('QualityEngine merges provider results, dedupes by URL and applies the reranker', async () => {
+  const providers = {
+    zhihu: fakeProvider({
       sources: [
         { url: 'https://a.example/', title: 'A' },
         { url: 'https://shared.example/', title: 'shared' },
       ],
       truncated: false,
-    },
-    anysearch: {
+    }),
+    anysearch: fakeProvider({
       sources: [
         { url: 'https://b.example/', title: 'B' },
         { url: 'https://shared.example/', title: 'shared duplicate' },
       ],
       truncated: false,
-    },
-    tavily: { content: 'generated answer', sources: [{ url: 'https://c.example/', title: 'C' }], truncated: false },
+    }),
+    tavily: fakeProvider({
+      content: 'generated answer',
+      sources: [{ url: 'https://c.example/', title: 'C' }],
+      truncated: false,
+    }),
   };
-  const outcome = await qualitySearch({
-    request: { query: 'DeepSeek 插件开发', maxResults: 10 },
-    signal: undefined,
-    settings: settings(),
-    intent: 'general',
+  const quality = makeEngine({
     providers,
-    runner: { attempt: async (name) => results[name] },
     reranker: {
       rerankScored: async (_query, sources) =>
         sources.map((source, index) => ({ source, score: 10 - index, rank: index, index })),
     },
-    embeddings: undefined,
-    fetcher: undefined,
   });
+  const outcome = await quality.search({ query: 'DeepSeek 插件开发', maxResults: 10 }, undefined);
   assert.deepEqual(
     outcome.sources.map((source) => source.url),
     ['https://a.example/', 'https://b.example/', 'https://shared.example/'],
@@ -58,37 +76,115 @@ test('qualitySearch merges provider results, dedupes by URL and applies the rera
   assert.equal(outcome.truncated, false);
 });
 
-test('qualitySearch returns undefined when every provider fails', async () => {
-  const outcome = await qualitySearch({
-    request: { query: '普通查询' },
-    signal: undefined,
-    settings: settings(),
-    intent: 'general',
-    providers,
-    runner: { attempt: async (name) => { throw new Error(`${name} failed`); } },
-    reranker: undefined,
-    embeddings: undefined,
-    fetcher: undefined,
-  });
+test('QualityEngine returns undefined when every provider fails', async () => {
+  const failing = {
+    available: () => true,
+    ready: async () => true,
+    search: async () => {
+      throw new Error('search failed');
+    },
+  };
+  const quality = makeEngine({ providers: { zhihu: failing, anysearch: failing } });
+  const outcome = await quality.search({ query: '普通查询' }, undefined);
   assert.equal(outcome, undefined);
 });
 
-test('qualitySearch returns undefined when all free providers succeed with empty results', async () => {
-  const emptyProviders = {
-    keenable: { search: async () => ({ sources: [], truncated: false }) },
-    anysearch: { search: async () => ({ sources: [], truncated: false }) },
-    zhihu: { search: async () => ({ sources: [], truncated: false }) },
-  };
-  const outcome = await qualitySearch({
-    request: { query: 'plain query' },
-    signal: undefined,
-    settings: settings(),
-    intent: 'general',
-    providers: emptyProviders,
-    runner: { attempt: async (name) => emptyProviders[name].search() },
-    reranker: undefined,
-    embeddings: undefined,
-    fetcher: undefined,
+test('QualityEngine returns undefined when all free providers succeed with empty results', async () => {
+  const empty = () => fakeProvider({ sources: [], truncated: false });
+  const quality = makeEngine({
+    providers: { keenable: empty(), anysearch: empty(), zhihu: empty() },
   });
+  const outcome = await quality.search({ query: 'plain query' }, undefined);
   assert.equal(outcome, undefined);
+});
+
+test('QualityEngine calls rerankScored exactly once when reranking degrades', async () => {
+  const calls = [];
+  const reranker = {
+    rerankScored: async (query) => {
+      calls.push(query);
+      return undefined;
+    },
+    // Mirrors the retired rerank() wrapper, which called rerankScored again:
+    // kept so the count assertion below fails against the old two-attempt ladder.
+    rerank: async (query, sources) => {
+      await reranker.rerankScored(query, sources, undefined);
+      return sources;
+    },
+  };
+  const quality = makeEngine({
+    providers: {
+      keenable: fakeProvider({
+        sources: [
+          { url: 'https://k1.example/', title: 'K1' },
+          { url: 'https://k2.example/', title: 'K2' },
+        ],
+        truncated: false,
+      }),
+      anysearch: fakeProvider({
+        sources: [{ url: 'https://a1.example/', title: 'A1' }],
+        truncated: false,
+      }),
+    },
+    reranker,
+  });
+  const outcome = await quality.search({ query: 'quality search fallback' }, undefined);
+  assert.equal(calls.length, 1);
+  assert.deepEqual(
+    outcome.sources.map((source) => source.url),
+    ['https://k1.example/', 'https://a1.example/', 'https://k2.example/'],
+  );
+});
+
+function officialDocsSetup(freeSources) {
+  const supplementCalls = [];
+  const providers = {
+    keenable: fakeProvider({ sources: freeSources, truncated: false }),
+    tavily: {
+      available: () => true,
+      ready: async () => true,
+      searchWithDomains: async (request, domains) => {
+        supplementCalls.push({ query: request.query, domains });
+        return {
+          sources: [{ url: 'https://nodejs.org/api/fs.html', title: 'Node.js fs promises API' }],
+          truncated: false,
+        };
+      },
+    },
+  };
+  return {
+    supplementCalls,
+    quality: makeEngine({ providers, overrides: { officialDocsEnabled: true } }),
+  };
+}
+
+test('official-docs supplement runs when free results lack the official domain', async () => {
+  const { supplementCalls, quality } = officialDocsSetup([
+    { url: 'https://stackoverflow.com/questions/8752138', title: 'fs.promises usage' },
+  ]);
+  const outcome = await quality.search({ query: 'node.js fs promises', maxResults: 10 }, undefined);
+  assert.equal(supplementCalls.length, 1);
+  assert.deepEqual(supplementCalls[0].domains, ['nodejs.org']);
+  assert.ok(outcome.sources.some((source) => source.url === 'https://nodejs.org/api/fs.html'));
+});
+
+test('official-docs supplement is skipped when free results cite the official domain', async () => {
+  const { supplementCalls, quality } = officialDocsSetup([
+    { url: 'https://nodejs.org/api/fs.html', title: 'File system | Node.js' },
+  ]);
+  const outcome = await quality.search({ query: 'node.js fs promises', maxResults: 10 }, undefined);
+  assert.equal(supplementCalls.length, 0);
+  assert.ok(outcome.sources.some((source) => source.url === 'https://nodejs.org/api/fs.html'));
+});
+
+test('official-docs supplement is skipped for site: queries', async () => {
+  const { supplementCalls, quality } = officialDocsSetup([
+    { url: 'https://example.com/nodejs-fs', title: 'nodejs fs notes' },
+  ]);
+  const outcome = await quality.search(
+    { query: 'node.js fs promises site:example.com', maxResults: 10 },
+    undefined,
+  );
+  assert.equal(supplementCalls.length, 0);
+  assert.ok(outcome.sources.some((source) => source.url === 'https://example.com/nodejs-fs'));
 });
