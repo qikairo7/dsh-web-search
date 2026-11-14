@@ -156,9 +156,9 @@ optional; the defaults below match the verified setup.
 | `siliconflowEmbeddingsEnabled` | `true` | Enable semantic duplicate removal |
 | `siliconflowEmbeddingModel` | `BAAI/bge-m3` | Embedding model |
 | `semanticDedupThreshold` | `0.95` | Cosine similarity threshold for duplicate removal |
-| `requestTimeoutMs` | `60000` | Per-request timeout |
+| `requestTimeoutMs` | `30000` | Per-request timeout |
 | `maxFetchChars` | `200000` | Maximum characters returned by `web_fetch` |
-| `maxSnippetChars` | `4000` | Maximum characters per search summary |
+| `maxSnippetChars` | `800` | Maximum characters per search summary |
 | `minDirectHtmlChars` | `2048` | SPA-shell detection threshold |
 | `searchCacheTtlMs` | `300000` | Search cache TTL |
 | `searchCacheMaxEntries` | `200` | Search cache entry cap |

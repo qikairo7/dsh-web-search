@@ -11,7 +11,7 @@ after two-provider merge and rerank.
 
 | Query | DeepSeek Search API | Plugin quality mode |
 |---|---|---|
-| `DeepSeek Harness 插件开发` | 469ms; first result is the official cookbook; average summary 2128 chars; 5/5 with body content | 2221ms; 10 results; first result is a Zhihu article; summaries around 4000 chars |
+| `DeepSeek Harness 插件开发` | 469ms; first result is the official cookbook; average summary 2128 chars; 5/5 with body content | 2221ms; 10 results; first result is a Zhihu article; summary cap 800 chars, matching the native tool default |
 | `Node.js fetch AbortSignal timeout` | 309ms; first result is a StackOverflow feed; average summary 1209 chars | 2888ms; 10 results; first result is a Node.js timeout blog; MDN and StackOverflow are also present |
 | `2026年11月 AI 行业新闻` | 259ms; first result is a Sohu AI weekly; average summary 1559 chars | 1787ms; 10 results; first result is a Sohu AI daily |
 

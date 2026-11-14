@@ -145,9 +145,9 @@ AnySearch + Tavily，按 URL 去重后用 SiliconFlow `BAAI/bge-reranker-v2-m3` 
 | `siliconflowEmbeddingsEnabled` | `true` | 启用语义去重 |
 | `siliconflowEmbeddingModel` | `BAAI/bge-m3` | Embedding 模型 |
 | `semanticDedupThreshold` | `0.95` | 语义重复的余弦阈值 |
-| `requestTimeoutMs` | `60000` | 单次请求超时 |
+| `requestTimeoutMs` | `30000` | 单次请求超时 |
 | `maxFetchChars` | `200000` | `web_fetch` 最大字符数 |
-| `maxSnippetChars` | `4000` | 每条搜索 summary 最大字符数 |
+| `maxSnippetChars` | `800` | 每条搜索 summary 最大字符数 |
 | `minDirectHtmlChars` | `2048` | SPA 空壳判定阈值 |
 | `searchCacheTtlMs` | `300000` | 搜索缓存 TTL |
 | `searchCacheMaxEntries` | `200` | 搜索缓存条数上限 |

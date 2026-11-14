@@ -9,9 +9,6 @@
   config:
     search: true
     fetch: true
-    searchSummaryMaxChars: 4000
-    searchTimeoutMs: 60000
-    fetchTimeoutMs: 60000
 
 # The plugin owns the direct-HTTP fetch provider, so the shipped HTTP provider
 # must not register the same `http` id in this profile.
