@@ -5,7 +5,7 @@ import { FirecrawlProvider } from '../lib/providers/firecrawl.js';
 import { ZhihuProvider, ZhihuSiteProvider } from '../lib/providers/zhihu.js';
 import { AihotProvider } from '../lib/providers/aihot.js';
 import { HttpFetchProvider } from '../lib/providers/http.js';
-import { AutoSearchProvider } from '../lib/providers/router.js';
+import { AutoFetchProvider, AutoSearchProvider } from '../lib/providers/router.js';
 import { SiliconFlowReranker } from '../lib/rerank.js';
 import { SiliconFlowEmbeddings } from '../lib/embeddings.js';
 
@@ -68,7 +68,17 @@ const providers = {
 };
 const reranker = new SiliconFlowReranker({ settings: () => settings, resolveKey });
 const embeddings = new SiliconFlowEmbeddings({ settings: () => settings, resolveKey });
-const autoSearch = new AutoSearchProvider({ settings: () => settings, providers, reranker, embeddings });
+const enrichmentFetch = new AutoFetchProvider({
+  settings: () => ({ ...settings, fetchMode: 'fast' }),
+  providers,
+});
+const autoSearch = new AutoSearchProvider({
+  settings: () => settings,
+  providers,
+  reranker,
+  embeddings,
+  fetcher: enrichmentFetch,
+});
 
 function clipQuery(question) {
   return Array.from(String(question)).slice(0, 128).join('');

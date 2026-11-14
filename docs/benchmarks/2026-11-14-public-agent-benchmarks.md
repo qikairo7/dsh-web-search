@@ -56,12 +56,47 @@ Cross-tab:
 
 Interpretation: on this web-agent benchmark the two systems are close; our evidence coverage is slightly higher, DeepSeek's top-1 precision is slightly higher.
 
+## 0.7.0 evidence-enriched rerun (n = 50)
+
+The 0.7.0 quality path fetches the top 5 results and regenerates summaries from the fetched
+body. Same 50 cached questions, same scoring; search results can vary slightly between runs.
+
+| Benchmark | Metric | 0.6.1 search-only | 0.7.0 enriched | DeepSeek (0.7.0 run) |
+|---|---|---:|---:|---:|
+| FRAMES | Evidence Recall@10 | 0.34 | 0.36 | 0.04 |
+| FRAMES | Answer Hit@10 | 0.26 | **0.30** | 0.44 |
+| FRAMES | MRR | 0.182 | 0.182 | 0.007 |
+| WebWalkerQA | Evidence Recall@10 | 0.42 | 0.44 | 0.36 |
+| WebWalkerQA | Answer Hit@10 | 0.20 | 0.18 | 0.14 |
+| WebWalkerQA | All-Evidence Recall@10 | 0.18 | 0.14 | 0.14 |
+
+FRAMES answer cross-tab after enrichment:
+
+- Both answered: 12/50
+- Ours only: 3/50
+- DeepSeek only: 10/50
+- Neither: 25/50
+- Ours retrieved evidence but the answer was not in the summary: 14/50
+
+WebWalkerQA answer cross-tab after enrichment:
+
+- Both answered: 3/50
+- Ours only: 6/50
+- DeepSeek only: 4/50
+- Neither: 37/50
+- Ours retrieved evidence but the answer was not in the summary: 20/50
+
+Interpretation: evidence enrichment raises FRAMES Answer Hit by 0.04 (0.26 → 0.30) and
+narrows the gap to DeepSeek, but WebWalkerQA is flat within sample noise (0.20 → 0.18).
+The remaining gap is answer extraction from fetched pages, not search coverage.
+
 ## Main conclusion
 
-- Our quality mode is better at **finding the evidence page**: FRAMES Evidence Recall is 0.34 vs 0.04.
-- DeepSeek is better at **putting the answer in the snippet**: FRAMES Answer Hit is 0.48 vs 0.26.
+- Our quality mode is better at **finding the evidence page**: FRAMES Evidence Recall is 0.36 vs 0.04 after enrichment.
+- DeepSeek is still better at **putting the answer in the summary** on FRAMES: 0.44 vs 0.30; the gap narrowed from 0.22 to 0.14 after enrichment.
 - Neither system solves **all-evidence multi-hop retrieval**: FRAMES All-Evidence Recall is 0.00 for both.
-- The gap suggests the next quality improvement should be **answer-enriched summaries for evidence pages**, not more provider coverage.
+- Evidence enrichment is useful but not sufficient: 14/50 FRAMES questions retrieve evidence without the answer in the 800–1500-character summary.
+- The next quality improvement should be **answer extraction from fetched pages** (or a longer evidence summary for answer-bearing sections), not more provider coverage.
 
 ## Reproduce
 
