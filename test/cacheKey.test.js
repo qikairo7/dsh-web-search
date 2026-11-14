@@ -33,3 +33,15 @@ test('fetch cache key changes with fetch settings and request', () => {
   assert.notEqual(fetchCacheKey(base, { url: 'https://a.example' }), fetchCacheKey(settings({ maxFetchChars: 1 }), { url: 'https://a.example' }));
   assert.notEqual(fetchCacheKey(base, { url: 'https://a.example' }), fetchCacheKey(base, { url: 'https://b.example' }));
 });
+
+test('fetch cache key changes with the effective provider order', () => {
+  const base = settings();
+  assert.notEqual(
+    fetchCacheKey(base, { url: 'https://a.example' }, ['http', 'tavily']),
+    fetchCacheKey(base, { url: 'https://a.example' }, ['tavily', 'http']),
+  );
+  assert.equal(
+    fetchCacheKey(base, { url: 'https://a.example' }, ['http', 'tavily']),
+    fetchCacheKey(base, { url: 'https://a.example' }, ['http', 'tavily']),
+  );
+});

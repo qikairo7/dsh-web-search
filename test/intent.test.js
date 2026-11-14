@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { classifyIntent, fastOrder, qualityPair } from '../lib/intent.js';
+import { PROVIDER_CATALOG, paidSearchFallback } from '../lib/catalog.js';
 
 test('classifies technical, news and Chinese community queries', () => {
   assert.equal(classifyIntent('DeepSeek Harness 插件开发'), 'technical');
@@ -44,4 +45,45 @@ test('fast order applies intent routing only when enabled', () => {
     fastOrder('DeepSeek 插件开发', { ...settings, intentRouting: false }, 'technical'),
     settings.chineseSearchOrder,
   );
+});
+
+test('fast orders end with the paid fallback and quality pairs stay free', () => {
+  const paidTail = paidSearchFallback();
+  const settings = {
+    intentRouting: true,
+    chineseSearchOrder: ['zhihu', 'keenable', 'anysearch', ...paidTail],
+    defaultSearchOrder: ['keenable', 'anysearch', 'zhihu', ...paidTail],
+  };
+  const queries = [
+    '2026年11月 AI 行业新闻',
+    '2026年11月 行业新闻',
+    'DeepSeek 插件开发',
+    '红烧肉做法',
+    'latest AI news',
+    'latest industry news',
+    'Node.js fetch timeout',
+    'best hiking trails',
+  ];
+  for (const query of queries) {
+    const intent = classifyIntent(query);
+    for (const routing of [settings, { ...settings, intentRouting: false }]) {
+      const order = fastOrder(query, routing, intent);
+      assert.deepEqual(order.slice(-paidTail.length), paidTail, `${query} paid tail`);
+      for (const id of order.slice(0, -paidTail.length)) {
+        assert.equal(
+          PROVIDER_CATALOG.find((provider) => provider.id === id).tier,
+          'free',
+          `${query} keeps ${id} before the paid tail`,
+        );
+      }
+    }
+    const pair = qualityPair(query, intent);
+    for (const id of pair) {
+      assert.equal(
+        PROVIDER_CATALOG.find((provider) => provider.id === id).tier,
+        'free',
+        `${query} quality pair keeps ${id} free`,
+      );
+    }
+  }
 });

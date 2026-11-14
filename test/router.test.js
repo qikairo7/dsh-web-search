@@ -176,8 +176,8 @@ test('AutoSearchProvider quality mode merges two providers, reranks, and caches'
     breakerCooldownMs: 1_000,
   };
   const reranker = {
-    async rerank(_query, sources) {
-      return [...sources].reverse();
+    async rerankScored(_query, sources) {
+      return sources.map((source, index) => ({ source, score: 1, rank: sources.length - 1 - index, index }));
     },
   };
   const router = new AutoSearchProvider({
@@ -389,4 +389,57 @@ test('AutoSearchProvider continues with the fast order when quality returns empt
   const result = await router.search({ query: '插件开发' });
   assert.deepEqual(calls, ['zhihu', 'keenable', 'anysearch', 'tavily']);
   assert.equal(result.sources[0].url, 'https://tavily.example/');
+});
+
+test('AutoSearchProvider annotates the request with routing facts once', async () => {
+  const seen = [];
+  const providers = {
+    anysearch: {
+      id: 'anysearch',
+      available: () => true,
+      ready: async () => true,
+      async search(request) {
+        seen.push(request);
+        return { sources: [{ url: 'https://anysearch.example/' }], truncated: false };
+      },
+    },
+  };
+  const router = new AutoSearchProvider({
+    settings: () => settings({ searchMode: 'fast', defaultSearchOrder: ['anysearch'] }),
+    providers,
+  });
+  await router.search({ query: '2026年11月 AI 最新新闻' });
+  assert.equal(seen.length, 1);
+  assert.equal(seen[0].routing.intent, 'news');
+  assert.equal(seen[0].routing.language, 'zh');
+  assert.equal(typeof seen[0].routing.syntax, 'object');
+});
+
+test('AutoFetchProvider honors an explicit order and keys the cache by it', async () => {
+  const calls = [];
+  const providers = {
+    http: fetchProvider('http', calls),
+    tavily: fetchProvider('tavily', calls),
+  };
+  const cleanSettings = {
+    fetchMode: 'clean',
+    fetchOrder: ['http', 'tavily'],
+    cleanFetchOrder: ['tavily', 'http'],
+    http: { enabled: true },
+    tavily: { enabled: true },
+    fetchCacheTtlMs: 1_000,
+    fetchCacheMaxEntries: 10,
+    breakerFailureThreshold: 3,
+    breakerCooldownMs: 60_000,
+  };
+  const router = new AutoFetchProvider({ settings: () => cleanSettings, providers });
+  const forced = await router.fetch({ url: 'https://example.com/' }, undefined, { order: ['http', 'tavily'] });
+  assert.deepEqual(calls, ['http']);
+  assert.equal(forced.body.content, 'http');
+  // The same forced order hits the cache; the mode-derived order is a different key.
+  await router.fetch({ url: 'https://example.com/' }, undefined, { order: ['http', 'tavily'] });
+  assert.deepEqual(calls, ['http']);
+  const viaMode = await router.fetch({ url: 'https://example.com/' });
+  assert.deepEqual(calls, ['http', 'tavily']);
+  assert.equal(viaMode.body.content, 'tavily');
 });
