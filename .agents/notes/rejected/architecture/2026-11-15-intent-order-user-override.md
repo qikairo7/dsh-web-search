@@ -1,6 +1,6 @@
 # Agent Note: Intent-routed orders should honor user-configured search orders
 
-Status: proposed
+Status: rejected — intent 派生顺序就是 ADR-0009 的配额保护层；`intentRouting: false` 已提供「全部尊重自定义顺序」的逃生口，改行为只增加付费配额风险而不新增能力（2026-11-15 决策，含 configuration.md 措辞修正）
 
 ## Problem
 
