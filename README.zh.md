@@ -5,6 +5,16 @@ DeepSeek Harness（DSH）的自包含多后端网页搜索与抓取 Provider 插
 它替换官方收费的网页 Provider，但保留第一方的 `dsh-tool-web` 工具层。模型仍然调用
 `web_search` 和 `web_fetch`，只是后端换了。
 
+## 项目初衷
+
+1. **代替收费的官方接口**：插件不调用 DeepSeek Search / Fetch API，而是用免费额度后端
+   提供 `web_search` / `web_fetch` 能力。
+2. **给开发者开发项目使用**：面向需要获取最新信息、做多源搜索和可靠网页提取的开发者。
+3. **免费额度够日常使用**：AnySearch、知乎、Tavily、Firecrawl、AIHOT、直连 HTTP 和
+   SiliconFlow 免费额度覆盖正常开发使用。
+
+非目标：不接入官方收费 Search/Fetch API，不依赖 MCP，不安装额外第三方 DSH 插件。
+
 ## 为什么做
 
 - 旧的 `deepseek-official` 搜索每次都要跑一整轮模型，慢且贵。
@@ -17,6 +27,22 @@ DeepSeek Harness（DSH）的自包含多后端网页搜索与抓取 Provider 插
   - **直连 HTTP**：静态页面零 API 成本。
 
 不需要 MCP，也不需要额外安装第三方 DSH 插件。
+
+### 免费额度预算
+
+| 后端 | 免费额度 | 用途 |
+|---|---|---|
+| AnySearch | 注册后 1000 次搜索/天；匿名也可用 | 搜索 |
+| 知乎 | 全网 5000 次/天 + 站内 5000 次/天 | 中文搜索 |
+| Tavily | 1000 credits/月 | 搜索、官方文档补充、clean 抓取 |
+| Firecrawl | 1000 credits/月 | 难抓页面回退 |
+| AIHOT | 匿名只读 | AI 新闻搜索 |
+| 直连 HTTP | 无 API 成本 | 静态页面抓取 |
+| SiliconFlow | 免费额度 | BGE 重排 + embeddings |
+
+`quality` 模式选中 Tavily 时每次查询消耗 1 credit，1000 credits 约等于 33 次/天（按一个月
+计算）。`fast` 模式通常先用知乎/AnySearch，把 Tavily 留给更难查询。5 分钟搜索缓存会
+减少重复消耗。
 
 ## 环境要求
 

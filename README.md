@@ -6,6 +6,18 @@ This bundle replaces the paid official web providers while keeping the first-par
 `dsh-tool-web` tool layer. The model still calls `web_search` and `web_fetch`; only the
 backends change.
 
+## Project intent
+
+1. **Replace paid official APIs.** The plugin does not call DeepSeek Search or Fetch APIs.
+   It supplies the `web_search` / `web_fetch` capabilities through free-tier backends.
+2. **Serve developers who need fresh information.** It is a developer-facing DSH plugin for
+   current web results, multi-source search, and reliable page extraction.
+3. **Stay within free quotas for daily use.** AnySearch, Zhihu, Tavily, Firecrawl, AIHOT,
+   direct HTTP, and the SiliconFlow free allowance cover normal development use.
+
+Non-goals: no official paid Search/Fetch API backend, no MCP server, and no third-party DSH
+plugin.
+
 ## Why
 
 - The legacy `deepseek-official` search runs a full model turn for every search.
@@ -18,6 +30,22 @@ backends change.
   - **Direct HTTP** — no API cost for static pages.
 
 No MCP server and no third-party DSH plugin is required.
+
+### Free-quota budget
+
+| Backend | Free allowance | Used by |
+|---|---|---|
+| AnySearch | 1000 searches/day with a key; anonymous also works | Search |
+| Zhihu | 5000 global + 5000 site searches/day | Chinese search |
+| Tavily | 1000 credits/month | Search, official-docs supplement, clean fetch |
+| Firecrawl | 1000 credits/month | Hard-page fetch fallback |
+| AIHOT | Anonymous read-only | AI-news search |
+| Direct HTTP | No API cost | Static-page fetch |
+| SiliconFlow | Free allowance | BGE rerank + embeddings |
+
+`quality` mode uses one Tavily credit per query when Tavily is selected, so 1000 credits is
+roughly 33 quality searches/day over a month. `fast` mode normally uses Zhihu/AnySearch
+first and keeps Tavily for harder queries. The 5-minute search cache reduces repeated spend.
 
 ## Requirements
 
