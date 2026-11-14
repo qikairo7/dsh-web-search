@@ -180,7 +180,7 @@ test('AutoSearchProvider enriches top sources from fetched content', async () =>
     fetcher: {
       fetch: async () => ({
         body: {
-          content: 'Use AbortSignal.timeout(5000) to stop a fetch call. '.repeat(20),
+          content: `<html><head><script>bad()</script></head><body><h1>HTTP API</h1><p>${'Use AbortSignal.timeout(5000) to stop a fetch call. '.repeat(20)}</p></body></html>`,
         },
       }),
     },
@@ -200,6 +200,7 @@ test('AutoSearchProvider enriches top sources from fetched content', async () =>
     undefined,
   );
   assert.ok(sources[0].summary.length > 100);
+  assert.doesNotMatch(sources[0].summary, /<html|<script|<link/iu);
   assert.equal(sources[1].summary, 'old');
 });
 

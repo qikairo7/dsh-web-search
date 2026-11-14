@@ -1,4 +1,4 @@
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { AnySearchProvider } from '../lib/providers/anysearch.js';
 import { TavilyProvider } from '../lib/providers/tavily.js';
 import { FirecrawlProvider } from '../lib/providers/firecrawl.js';
@@ -134,13 +134,33 @@ function scoreResult(sources, goldUrls, answer) {
 }
 
 async function loadRows(dataset, config, split, count) {
+  // shortcut: fixture pins the 50-row sample; regenerate when the benchmark changes.
+  const fixtureUrl = new URL('./fixtures/public-benchmark-sample.json', import.meta.url);
+  const fixture = JSON.parse(await readFile(fixtureUrl, 'utf8'));
+  const key = `${dataset}|${config}|${split}`;
+  if (Array.isArray(fixture[key]) && fixture[key].length >= count) {
+    return fixture[key].slice(0, count);
+  }
   const rows = [];
   for (let offset = 0; offset < count; offset += 100) {
     const url = `https://datasets-server.huggingface.co/rows?dataset=${encodeURIComponent(dataset)}&config=${encodeURIComponent(config)}&split=${encodeURIComponent(split)}&offset=${offset}&length=${Math.min(100, count - offset)}`;
-    const response = await fetch(url, { signal: AbortSignal.timeout(60_000) });
-    const data = await response.json();
-    if (!Array.isArray(data.rows)) throw new Error(`Dataset ${dataset} returned no rows: ${JSON.stringify(data).slice(0, 200)}`);
-    rows.push(...data.rows.map((entry) => entry.row));
+    let lastError;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        const response = await fetch(url, { signal: AbortSignal.timeout(60_000) });
+        const text = await response.text();
+        if (!response.ok) throw new Error(`HTTP ${response.status}: ${text.slice(0, 160)}`);
+        const data = JSON.parse(text);
+        if (!Array.isArray(data.rows)) throw new Error(`no rows: ${text.slice(0, 160)}`);
+        rows.push(...data.rows.map((entry) => entry.row));
+        lastError = undefined;
+        break;
+      } catch (error) {
+        lastError = error;
+        if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** attempt));
+      }
+    }
+    if (lastError !== undefined) throw lastError;
   }
   return rows;
 }

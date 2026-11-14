@@ -236,12 +236,14 @@ settings flow.
 
 ```sh
 pnpm install
-node --test
-node --check lib/index.js
+git config core.hooksPath .githooks
+pnpm check
+pnpm benchmark
 ```
 
-The unit tests cover response mapping, the Chinese Zhihu supplement, the auto router, and
-direct HTTP behavior. Live API verification requires the four credentials above.
+`pnpm check` runs the guardrail tests; the pre-commit hook runs the same command. `pnpm
+benchmark` loads the committed FRAMES/WebWalkerQA fixture first, then falls back to the
+public rows API. Live API verification requires the credentials above.
 
 ## License
 

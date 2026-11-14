@@ -11,3 +11,7 @@ Issues and specs for this repo live in GitHub Issues. See `docs/agents/issue-tra
 ### Domain docs
 
 Single-context layout: `GLOSSARY.md` at the repo root and `docs/adr/`. See `docs/agents/domain.md`.
+
+### Benchmarks
+
+Public-benchmark runner: `scripts/public-benchmark.mjs`; reports: `docs/benchmarks/`.

@@ -215,12 +215,14 @@ snippet 生成摘要。
 
 ```sh
 pnpm install
-node --test
-node --check lib/index.js
+git config core.hooksPath .githooks
+pnpm check
+pnpm benchmark
 ```
 
-单元测试覆盖响应映射、知乎中文补充、auto 路由和直连 HTTP 行为。真实 API 验收需要
-上面四个凭据。
+`pnpm check` 运行 guardrail 测试；pre-commit hook 运行同一命令。`pnpm benchmark`
+优先读已提交的 FRAMES/WebWalkerQA fixture，读取失败才回退到公开 rows API。真实 API
+验收需要上面的凭据。
 
 ## 许可证
 

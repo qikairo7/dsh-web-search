@@ -1,6 +1,12 @@
 # Public agent-search benchmarks — 2026-11-14
 
-Plugin: `@qikairo7/dsh-web-search` 0.6.1
+Plugin version: `0.7.0`
+Mode: `searchMode: quality`
+Sample: FRAMES 50 / WebWalkerQA 50
+Enrichment: top-5, 800–1500 chars
+Generated: 2026-11-14
+
+Baseline: `@qikairo7/dsh-web-search` 0.6.1 (search-only)
 Mode: `searchMode: quality` (three providers + BGE rerank + authority ranking)
 
 > This run is search-only. Version 0.7.0 adds evidence-page enrichment; that change is not

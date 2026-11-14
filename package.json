@@ -46,7 +46,8 @@
   },
   "scripts": {
     "test": "node --test",
-    "check": "node --check lib/index.js && node --test"
+    "check": "node --check lib/index.js && node --test",
+    "benchmark": "node scripts/public-benchmark.mjs"
   },
   "dsh": {
     "bundle": {
