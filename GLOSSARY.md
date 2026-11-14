@@ -22,7 +22,7 @@ A provider that runs the configured search or fetch strategy and falls back when
 
 ## Quality mode
 
-`searchMode: quality`. Queries two search providers in parallel, merges by URL, and reranks with SiliconFlow `BAAI/bge-reranker-v2-m3`. This is the default search mode.
+`searchMode: quality`. Queries three search providers in parallel, merges by URL, and reranks with SiliconFlow `BAAI/bge-reranker-v2-m3`. This is the default search mode.
 
 ## Rerank
 

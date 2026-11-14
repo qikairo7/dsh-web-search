@@ -1,6 +1,6 @@
 {
   "name": "@qikairo7/dsh-web-search",
-  "version": "0.4.2",
+  "version": "0.5.1",
   "private": true,
   "description": "Self-contained multi-backend web search and fetch providers for DeepSeek Harness",
   "keywords": [

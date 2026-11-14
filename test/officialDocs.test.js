@@ -14,6 +14,8 @@ test('officialDomainsForQuery returns official docs domains', () => {
 
 test('filters archived Node.js release docs', () => {
   assert.equal(isDeprecatedDocUrl('https://nodejs.org/download/release/v18.16.0/docs/api/globals.html'), true);
+  assert.equal(isDeprecatedDocUrl('https://nodejs.org/en/blog/release/v18.13.0'), true);
+  assert.equal(isDeprecatedDocUrl('https://nodejs.org/docs/v18.16.0/api/globals.html'), true);
   assert.equal(isDeprecatedDocUrl('https://nodejs.org/api/globals.html'), false);
   assert.deepEqual(
     filterOfficialDocs([

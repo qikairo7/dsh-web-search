@@ -79,13 +79,14 @@ Default orders:
 The default `auto` provider is pinned by the bundle patch. Individual providers are also
 registered so they can be selected directly in the Web search and fetch settings page.
 
-`searchMode` defaults to **quality**: the router queries two providers (Chinese: Zhihu +
-AnySearch; English: AnySearch + Tavily), merges and deduplicates by URL, then reranks with
-SiliconFlow `BAAI/bge-reranker-v2-m3`. AI-news queries use AIHOT + Tavily. Set
-`searchMode: fast` for the single-provider priority order above. `fetchMode` defaults to
-**fast** (direct HTTP first); set it to **clean** to prefer Tavily/Firecrawl Markdown
-extraction. The bundle patch sets `tool-web.searchSummaryMaxChars` to **4000** (the native
-default is 800) and the provider `maxSnippetChars` to 4000.
+`searchMode` defaults to **quality**: the router queries three providers (Chinese: Zhihu +
+AnySearch + Tavily; English: AnySearch + Tavily + Zhihu), merges and deduplicates by URL,
+then reranks with SiliconFlow `BAAI/bge-reranker-v2-m3`. AI-news queries use AIHOT + Tavily +
+AnySearch. Set `searchMode: fast` for the single-provider priority order above. `fetchMode`
+defaults to **fast** (direct HTTP first); set it to **clean** to prefer Tavily/Firecrawl
+Markdown extraction. The bundle patch sets `tool-web.searchSummaryMaxChars` to **4000**
+(the native default is 800) and the provider `maxSnippetChars` to 4000; Tavily search uses
+`include_raw_content` so summaries can use the page body instead of a short snippet.
 
 ## Behavior details
 
@@ -106,7 +107,7 @@ default is 800) and the provider `maxSnippetChars` to 4000.
 - **Fallback**: only recoverable failures trigger the next provider: network errors,
   timeouts, 429, 5xx, and missing credentials. Caller cancellation and invalid URLs return
   immediately. A 404 from direct HTTP is returned as a result, not a fallback trigger.
-- **Quality search**: `searchMode: quality` queries two providers in parallel, merges by
+- **Quality search**: `searchMode: quality` queries three providers in parallel, merges by
   URL, removes near-duplicates with `BAAI/bge-m3` embeddings, then reranks with
   `BAAI/bge-reranker-v2-m3` and adds a domain-authority prior (official docs, MDN, GitHub,
   StackOverflow first). If the reranker or embedding service is unavailable, the merged

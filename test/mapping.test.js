@@ -33,12 +33,14 @@ test('AnySearch rejects a non-zero business code', () => {
 test('Tavily maps the generated answer into content when enabled', () => {
   const data = {
     answer: 'generated answer',
-    results: [{ title: 'T', url: 'https://t.example/', content: 'long content' }],
+    results: [
+      { title: 'T', url: 'https://t.example/', content: 'short content', raw_content: 'long raw content' },
+    ],
   };
   const withAnswer = mapTavilySearch(data, 100, true);
   assert.equal(withAnswer.content, 'generated answer');
-  assert.equal(withAnswer.sources[0].snippet, 'long content');
-  assert.equal(withAnswer.sources[0].summary, 'long content');
+  assert.equal(withAnswer.sources[0].snippet, 'long raw content');
+  assert.equal(withAnswer.sources[0].summary, 'long raw content');
 
   const withoutAnswer = mapTavilySearch(data, 100, false);
   assert.equal(withoutAnswer.content, undefined);

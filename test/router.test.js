@@ -163,14 +163,14 @@ test('AutoSearchProvider quality mode merges two providers, reranks, and caches'
   const first = await router.search({ query: 'DeepSeek 插件开发', maxResults: 2 });
   assert.deepEqual(first.sources.map((source) => source.url), [
     'https://shared.example/',
-    'https://b.example/',
+    'https://tavily.example/',
   ]);
   assert.equal(first.truncated, true);
-  assert.deepEqual(calls, ['anysearch', 'zhihu']);
+  assert.deepEqual(calls, ['anysearch', 'zhihu', 'tavily']);
 
   const second = await router.search({ query: 'DeepSeek 插件开发', maxResults: 2 });
   assert.equal(second.sources.length, 2);
-  assert.deepEqual(calls, ['anysearch', 'zhihu']);
+  assert.deepEqual(calls, ['anysearch', 'zhihu', 'tavily']);
 });
 
 test('AutoSearchProvider skips a provider after repeated failures', async () => {

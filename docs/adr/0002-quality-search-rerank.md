@@ -18,7 +18,7 @@ the user explicitly values quality.
 ## Decision
 
 - Make `searchMode: quality` the default.
-- Choose the pair by intent:
+- Choose the provider set by intent (currently three providers per query):
   - Chinese: Zhihu + AnySearch.
   - English: AnySearch + Tavily.
   - News: Zhihu + Tavily (Chinese) or Tavily + AnySearch (English).

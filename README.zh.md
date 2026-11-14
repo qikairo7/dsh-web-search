@@ -77,12 +77,13 @@ Tavily 和 Firecrawl 没有 Key 时会报告未就绪，自动路由会跳过它
 bundle patch 默认固定使用 `auto`；独立 Provider 也会注册，可以在“网页搜索与抓取”
 设置页里单独选择。
 
-`searchMode` 默认是 **quality**：中文查询同时查知乎 + AnySearch，英文查询同时查
-AnySearch + Tavily，AI 新闻查询用 AIHOT + Tavily；按 URL 去重后重排。
+`searchMode` 默认是 **quality**：中文查询同时查知乎 + AnySearch + Tavily，英文查询同时查
+AnySearch + Tavily + 知乎，AI 新闻查询用 AIHOT + Tavily + AnySearch；按 URL 去重后重排。
 设为 `fast` 则使用上面的单后端优先顺序。`fetchMode` 默认是 **fast**（直连 HTTP 优先）；
 设为 **clean** 会优先 Tavily/Firecrawl 的干净 Markdown。bundle patch 把
 `tool-web.searchSummaryMaxChars` 设为 **4000**（原生默认 800），Provider 的
-`maxSnippetChars` 也设为 4000。
+`maxSnippetChars` 也设为 4000；Tavily 搜索启用 `include_raw_content`，用正文而不是短
+snippet 生成摘要。
 
 ## 行为细节
 
@@ -98,7 +99,7 @@ AnySearch + Tavily，AI 新闻查询用 AIHOT + Tavily；按 URL 去重后重排
   API 抓取。小型 SPA 空壳由 `minDirectHtmlChars`（默认 2048）识别并触发回退。
 - **回退边界**：只对可恢复错误回退：网络错误、超时、429、5xx、缺少凭据。用户取消和
   无效 URL 立即返回。直连 HTTP 的 404 是结果，不触发回退。
-- **质量搜索**：`searchMode: quality` 并行查询两家后端，按 URL 去重，用 `BAAI/bge-m3`
+- **质量搜索**：`searchMode: quality` 并行查询三家后端，按 URL 去重，用 `BAAI/bge-m3`
   embeddings 去掉近似重复内容，再用 `BAAI/bge-reranker-v2-m3` 重排，并叠加域名权威加权
   （官方 docs、MDN、GitHub、StackOverflow 优先）；重排或 embedding 不可用时回退到
   合并后的 Provider 顺序。
