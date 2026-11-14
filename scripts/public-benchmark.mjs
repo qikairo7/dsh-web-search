@@ -54,16 +54,15 @@ const providers = {
 };
 const reranker = new SiliconFlowReranker({ settings: () => settings, resolveKey });
 const embeddings = new SiliconFlowEmbeddings({ settings: () => settings, resolveKey });
-const enrichmentFetch = new AutoFetchProvider({
-  settings: () => ({ ...settings, fetchMode: 'fast' }),
-  providers,
-});
+const autoFetch = new AutoFetchProvider({ settings: () => settings, providers });
 const autoSearch = new AutoSearchProvider({
   settings: () => settings,
   providers,
   reranker,
   embeddings,
-  fetcher: enrichmentFetch,
+  fetcher: {
+    fetch: (request, signal) => autoFetch.fetch(request, signal, { order: settings.fetchOrder }),
+  },
 });
 
 function clipQuery(question) {

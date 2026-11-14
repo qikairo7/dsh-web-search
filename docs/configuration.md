@@ -12,12 +12,12 @@ The settings page is generated from the plugin's `Config` schema. All fields are
 |---|---|---|
 | `searchMode` | `quality` | `quality` = free-source merge + rerank + top-5 evidence enrichment; `fast` = single-provider priority order |
 | `fetchMode` | `fast` | `fast` = Keenable/direct HTTP first; `clean` = Keenable/AnySearch first, Exa/Tavily/Firecrawl fallback |
-| `intentRouting` | `true` | Apply technical/news/Chinese-community routing rules |
+| `intentRouting` | `true` | Route technical/news/Chinese-community queries with free-first catalog orders; routed queries ignore the configured orders (`false` always uses the configured orders) |
 | `languageRouting` | `true` | Detect query language and pass `language` to Tavily/AnySearch |
 | `officialDocsEnabled` | `true` | Add a domain-restricted Tavily search only when free results miss known official docs |
 | `aihotEnabled` | `true` | Enable the AIHOT AI-news provider |
-| `chineseSearchOrder` | `zhihu,keenable,anysearch,exa,tavily,firecrawl` | Fast-mode search order for queries with Han characters |
-| `defaultSearchOrder` | `keenable,anysearch,zhihu,exa,tavily,firecrawl` | Fast-mode search order for other queries |
+| `chineseSearchOrder` | `zhihu,keenable,anysearch,exa,tavily,firecrawl` | Fast-mode search order for Han queries not caught by intent routing |
+| `defaultSearchOrder` | `keenable,anysearch,zhihu,exa,tavily,firecrawl` | Fast-mode search order for other queries not caught by intent routing |
 | `fetchOrder` | `keenable,http,anysearch,exa,tavily,firecrawl` | Fast fetch fallback order |
 | `cleanFetchOrder` | `keenable,anysearch,exa,http,tavily,firecrawl` | Clean fetch order |
 | `tavilyIncludeAnswer` | `true` | Map Tavily's answer to `web_search.content` |
@@ -87,12 +87,12 @@ All `*BaseURL` fields, including `anysearchBaseURL`, `tavilyBaseURL`, and `firec
 |---|---|---|
 | `searchMode` | `quality` | `quality` = 免费源合并 + 重排 + 前 5 条证据增强；`fast` = 单后端优先顺序 |
 | `fetchMode` | `fast` | `fast` = Keenable/直连 HTTP 优先；`clean` = Keenable/AnySearch 优先，Exa/Tavily/Firecrawl 兜底 |
-| `intentRouting` | `true` | 启用 technical / news / 中文社区路由规则 |
+| `intentRouting` | `true` | 命中 technical / news / 中文社区路由的查询使用 catalog 派生的免费优先顺序，忽略自定义顺序；`false` 时全部使用自定义顺序 |
 | `languageRouting` | `true` | 检测查询语言并把 `language` 传给 Tavily/AnySearch |
 | `officialDocsEnabled` | `true` | 免费结果未命中已知官方域时，额外跑一次受限 Tavily 搜索 |
 | `aihotEnabled` | `true` | 启用 AIHOT AI 新闻源 |
-| `chineseSearchOrder` | `zhihu,keenable,anysearch,exa,tavily,firecrawl` | fast 模式下含汉字查询的搜索顺序 |
-| `defaultSearchOrder` | `keenable,anysearch,zhihu,exa,tavily,firecrawl` | fast 模式下其他查询的搜索顺序 |
+| `chineseSearchOrder` | `zhihu,keenable,anysearch,exa,tavily,firecrawl` | fast 模式下未命中 intent 路由的含汉字查询的搜索顺序 |
+| `defaultSearchOrder` | `keenable,anysearch,zhihu,exa,tavily,firecrawl` | fast 模式下未命中 intent 路由的其他查询的搜索顺序 |
 | `fetchOrder` | `keenable,http,anysearch,exa,tavily,firecrawl` | fast 抓取回退顺序 |
 | `cleanFetchOrder` | `keenable,anysearch,exa,http,tavily,firecrawl` | clean 抓取顺序 |
 | `tavilyIncludeAnswer` | `true` | 把 Tavily 答案映射到 `web_search.content` |
