@@ -1,23 +1,44 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mapAnySearchSearch } from '../lib/providers/anysearch.js';
-import { mapTavilySearch } from '../lib/providers/tavily.js';
-import { mapFirecrawlSearch } from '../lib/providers/firecrawl.js';
-import { mapZhihuSearch } from '../lib/providers/zhihu.js';
+import { AnySearchProvider, mapAnySearchSource } from '../lib/providers/anysearch.js';
+import { AnySearchClient, AnySearchClientError } from '../lib/providers/anysearchClient.js';
+import { mapTavilySearch, toDateBoundary } from '../lib/providers/tavily.js';
+import { mapFirecrawlSearch, toMonthDayYear } from '../lib/providers/firecrawl.js';
+import { mapZhihuSearch, toEpochBoundary } from '../lib/providers/zhihu.js';
+import { withFetch } from './helpers/withFetch.js';
 
-test('AnySearch maps citeable results and drops invalid URLs', () => {
-  const result = mapAnySearchSearch(
+function anysearchProvider() {
+  return new AnySearchProvider({
+    settings: () => ({
+      requestTimeoutMs: 5_000,
+      maxSnippetChars: 100,
+      anysearch: {
+        enabled: true,
+        apiKeyEnv: 'ANYSEARCH_API_KEY',
+        baseURL: 'https://api.anysearch.com',
+      },
+    }),
+    resolveKey: async () => undefined,
+  });
+}
+
+test('AnySearch search maps citeable results and drops invalid URLs', async () => {
+  const result = await withFetch(
     {
-      code: 0,
-      data: {
-        results: [
-          { title: 'A', url: 'https://a.example/', snippet: 'short', content: 'long body' },
-          { title: 'bad', url: 'ftp://bad.example/' },
-        ],
+      body: {
+        code: 0,
+        message: 'ok',
+        data: {
+          results: [
+            { title: 'A', url: 'https://a.example/', snippet: 'short', content: 'long body' },
+            { title: 'bad', url: 'ftp://bad.example/' },
+          ],
+          metadata: { total_results: 1, search_time_ms: 1 },
+        },
       },
     },
-    100,
+    () => anysearchProvider().search({ query: 'DeepSeek' }),
   );
   assert.equal(result.sources.length, 1);
   assert.equal(result.sources[0].title, 'A');
@@ -26,27 +47,47 @@ test('AnySearch maps citeable results and drops invalid URLs', () => {
   assert.equal(result.truncated, false);
 });
 
-test('AnySearch preserves optional date fields', () => {
-  const result = mapAnySearchSearch({
-    code: 0,
-    data: { results: [{ title: 'Dated', url: 'https://dated.example/', snippet: 's', date: '2026-11-11' }] },
-  });
-  assert.equal(result.sources[0].publishedAt, '2026-11-11');
+test('AnySearch search returns no sources for an empty response', async () => {
+  const result = await withFetch(
+    {
+      body: {
+        code: 0,
+        message: 'ok',
+        data: { results: [], metadata: { total_results: 0, search_time_ms: 0 } },
+      },
+    },
+    () => anysearchProvider().search({ query: 'DeepSeek' }),
+  );
+  assert.deepEqual(result.sources, []);
+  assert.equal(result.truncated, false);
 });
 
-test('AnySearch rejects a non-zero business code', () => {
-  assert.throws(() => mapAnySearchSearch({ code: 7, message: 'upstream failed' }), /upstream failed/);
+test('AnySearch rejects a non-zero business code', async () => {
+  const client = new AnySearchClient({
+    baseURL: 'https://api.anysearch.com',
+    resolveApiKey: async () => undefined,
+  });
+  await withFetch({ body: { code: 7, message: 'upstream failed' } }, () =>
+    assert.rejects(client.search({ query: 'q' }), (error) => error instanceof AnySearchClientError && /upstream failed/.test(error.message)),
+  );
+});
+
+test('AnySearch preserves optional date fields', () => {
+  const source = mapAnySearchSource(
+    { title: 'Dated', url: 'https://dated.example/', snippet: 's', date: '2026-11-11' },
+  );
+  assert.equal(source.publishedAt, '2026-11-11');
+  const alternate = mapAnySearchSource(
+    { title: 'Alt', url: 'https://alt.example/', snippet: 's', published_at: '2026-11-12' },
+  );
+  assert.equal(alternate.publishedAt, '2026-11-12');
 });
 
 test('AnySearch compresses long content into a bounded summary', () => {
   const content = Array.from({ length: 100 }, (_, index) => `Sentence ${index} about Node.js fetch timeout.`).join(' ');
-  const result = mapAnySearchSearch(
-    { code: 0, data: { results: [{ title: 'A', url: 'https://a.example/', content }] } },
-    4000,
-    'Node.js fetch timeout',
-  );
-  assert.ok(result.sources[0].summary.length <= 1500);
-  assert.ok(result.sources[0].summary.length >= 800);
+  const source = mapAnySearchSource({ title: 'A', url: 'https://a.example/', content }, 4000, 'Node.js fetch timeout');
+  assert.ok(source.summary.length <= 1500);
+  assert.ok(source.summary.length >= 800);
 });
 
 test('Tavily maps the generated answer into content when enabled', () => {
@@ -106,4 +147,12 @@ test('Zhihu preserves the rate-limit code from the API envelope', () => {
     () => mapZhihuSearch({ Code: 30001, Message: 'too many requests' }),
     (error) => error.code === 'WEB_RATE_LIMITED',
   );
+});
+
+test('date boundary converters shape each provider wire format', () => {
+  assert.equal(toDateBoundary('2025', false), '2025-01-01');
+  assert.equal(toDateBoundary('2025', true), '2025-12-31');
+  assert.equal(toMonthDayYear('2025-01-02', false), '01/02/2025');
+  assert.equal(toEpochBoundary('2025-01-01', false), 1_735_689_600);
+  assert.equal(toEpochBoundary('2025-01-01', true), 1_735_689_600 + 86_399);
 });

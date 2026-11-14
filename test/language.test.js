@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { detectLanguage } from '../lib/language.js';
+import { detectLanguage } from '../lib/text.js';
 
 test('routes only Chinese and English', () => {
   assert.equal(detectLanguage('DeepSeek Harness 插件开发'), 'zh');

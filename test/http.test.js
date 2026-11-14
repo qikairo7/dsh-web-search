@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { HttpFetchProvider } from '../lib/providers/http.js';
+import { withFetch } from './helpers/withFetch.js';
 
 function httpSettings() {
   return {
@@ -10,14 +11,6 @@ function httpSettings() {
     minDirectHtmlChars: 2_048,
     http: { enabled: true },
   };
-}
-
-function withFetch(mock, run) {
-  const original = globalThis.fetch;
-  globalThis.fetch = mock;
-  return run().finally(() => {
-    globalThis.fetch = original;
-  });
 }
 
 test('HTTP fetch returns HTML for the tool layer to convert', async () => {

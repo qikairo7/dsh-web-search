@@ -5,6 +5,8 @@ import { TavilyProvider } from '../lib/providers/tavily.js';
 import { FirecrawlProvider } from '../lib/providers/firecrawl.js';
 import { ZhihuProvider } from '../lib/providers/zhihu.js';
 import { AnySearchProvider } from '../lib/providers/anysearch.js';
+import { QualityEngine } from '../lib/quality.js';
+import { ProviderRunner } from '../lib/providerRunner.js';
 
 function jsonEnvelope(payload) {
   return new Response(JSON.stringify(payload), {
@@ -179,4 +181,62 @@ test('Firecrawl search consumes routing news intent and after syntax', async () 
   } finally {
     globalThis.fetch = original;
   }
+});
+
+test('AnySearch standalone search honors the lang: operator like the routed path', async () => {
+  const original = globalThis.fetch;
+  let body;
+  globalThis.fetch = async (url, init) => {
+    body = JSON.parse(init.body);
+    return jsonEnvelope({ code: 0, data: { results: [] } });
+  };
+  try {
+    const provider = new AnySearchProvider({
+      settings: () => ({
+        requestTimeoutMs: 5_000,
+        maxSnippetChars: 300,
+        languageRouting: true,
+        anysearch: {
+          enabled: true,
+          apiKeyEnv: 'ANYSEARCH_API_KEY',
+          baseURL: 'https://api.anysearch.example',
+        },
+      }),
+      resolveKey: async () => 'k',
+    });
+    await provider.search({ query: 'lang:zh english query', maxResults: 4 });
+    assert.equal(body.language, 'zh');
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test('QualityEngine standalone fallback drops the detected language when languageRouting is off', async () => {
+  const settingsThunk = () => ({
+    officialDocsEnabled: false,
+    enrichEnabled: false,
+    semanticDedupThreshold: 0.95,
+    languageRouting: false,
+    keenable: { enabled: true },
+  });
+  const providers = {
+    keenable: {
+      available: () => true,
+      ready: async () => true,
+      search: async () => ({
+        sources: [
+          { url: 'https://www.reuters.com/article', title: 'Reuters industry news' },
+          { url: 'https://example.com/roundup', title: 'Industry roundup' },
+        ],
+        truncated: false,
+      }),
+    },
+  };
+  const engine = new QualityEngine({
+    settings: settingsThunk,
+    providers,
+    runner: new ProviderRunner({ settings: settingsThunk, providers }),
+  });
+  const outcome = await engine.search({ query: 'latest industry news 2026', maxResults: 10 }, undefined);
+  assert.ok(outcome.sources.every((source) => source.url !== 'https://www.reuters.com/article'));
 });

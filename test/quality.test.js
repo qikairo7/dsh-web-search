@@ -188,3 +188,35 @@ test('official-docs supplement is skipped for site: queries', async () => {
   assert.equal(supplementCalls.length, 0);
   assert.ok(outcome.sources.some((source) => source.url === 'https://example.com/nodejs-fs'));
 });
+
+test('QualityEngine enriches through the pipeline with a bounded summary when bound keys are missing', async () => {
+  // The settings thunk carries no enrichSummaryMinChars/MaxChars keys at all:
+  // the engine chain must still produce an 800–1500 summary, never unbounded.
+  const content = Array.from(
+    { length: 60 },
+    (_, index) => `The orbital station log entry number ${index} recorded the daily supply run.`,
+  ).join('\n');
+  const quality = makeEngine({
+    providers: {
+      zhihu: fakeProvider({
+        sources: [{ url: 'https://freshgreens.net/log', title: 'Garden log', summary: 'old' }],
+        truncated: false,
+      }),
+    },
+    overrides: { enrichEnabled: true, enrichTopN: 5 },
+    fetcher: {
+      fetch: async () => ({ body: { kind: 'text', content } }),
+    },
+  });
+  const outcome = await quality.search({ query: 'orbital station', maxResults: 10 }, undefined);
+  const [source] = outcome.sources;
+  assert.notEqual(source.summary, 'old');
+  assert.ok(
+    source.summary.length >= 800,
+    `summary below the minimum bound: ${source.summary.length}`,
+  );
+  assert.ok(
+    source.summary.length <= 1500,
+    `summary above the maximum bound: ${source.summary.length}`,
+  );
+});
