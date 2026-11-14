@@ -35,6 +35,9 @@ test('SiliconFlow reranker reorders sources by returned index', async () => {
       settings: rerankSettings,
       resolveKey: async () => 'key',
     });
+    const scored = await reranker.rerankScored('query', sources());
+    assert.deepEqual(scored.map((entry) => entry.score), [0, 0, 0]);
+
     const result = await reranker.rerank('query', sources(), 3);
     assert.deepEqual(result.map((source) => source.url), [
       'https://c.example/',

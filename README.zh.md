@@ -95,8 +95,10 @@ AnySearch + Tavily，按 URL 去重后用 SiliconFlow `BAAI/bge-reranker-v2-m3` 
   API 抓取。小型 SPA 空壳由 `minDirectHtmlChars`（默认 2048）识别并触发回退。
 - **回退边界**：只对可恢复错误回退：网络错误、超时、429、5xx、缺少凭据。用户取消和
   无效 URL 立即返回。直连 HTTP 的 404 是结果，不触发回退。
-- **质量搜索**：`searchMode: quality` 并行查询两家后端，按 URL 去重，再用 SiliconFlow
-  的 `BAAI/bge-reranker-v2-m3` 重排；重排不可用时回退到合并后的 Provider 顺序。
+- **质量搜索**：`searchMode: quality` 并行查询两家后端，按 URL 去重，用 `BAAI/bge-m3`
+  embeddings 去掉近似重复内容，再用 `BAAI/bge-reranker-v2-m3` 重排，并叠加域名权威加权
+  （官方 docs、MDN、GitHub、StackOverflow 优先）；重排或 embedding 不可用时回退到
+  合并后的 Provider 顺序。
 - **意图路由**：本地规则把查询分成 `technical`、`news`、`chinese-community`、`general`，
   再决定后端组合和 fast 模式顺序。
 - **缓存与熔断**：搜索结果缓存 5 分钟 / 200 条，抓取缓存 10 分钟 / 100 条；某后端
@@ -140,6 +142,9 @@ AnySearch + Tavily，按 URL 去重后用 SiliconFlow `BAAI/bge-reranker-v2-m3` 
 | `siliconflowApiKeyEnv` | `SILICONFLOW_API_KEY` | SiliconFlow 凭据引用 |
 | `siliconflowBaseURL` | `https://api.siliconflow.cn/v1` | SiliconFlow API 地址 |
 | `siliconflowRerankModel` | `BAAI/bge-reranker-v2-m3` | 重排模型 |
+| `siliconflowEmbeddingsEnabled` | `true` | 启用语义去重 |
+| `siliconflowEmbeddingModel` | `BAAI/bge-m3` | Embedding 模型 |
+| `semanticDedupThreshold` | `0.95` | 语义重复的余弦阈值 |
 | `requestTimeoutMs` | `60000` | 单次请求超时 |
 | `maxFetchChars` | `200000` | `web_fetch` 最大字符数 |
 | `maxSnippetChars` | `4000` | 每条搜索 summary 最大字符数 |

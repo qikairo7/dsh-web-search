@@ -28,6 +28,14 @@ A provider that runs the configured search or fetch strategy and falls back when
 
 The quality-mode step that sends candidate titles, summaries, and URLs to a cross-encoder model and returns the candidates in relevance order.
 
+## Semantic dedup
+
+The quality-mode step that embeds candidate titles and summaries with `BAAI/bge-m3` and removes candidates whose cosine similarity is above `semanticDedupThreshold`.
+
+## Authority boost
+
+A small domain prior added to a reranker score so official docs, MDN, GitHub, StackOverflow, and academic/government pages rank above generic pages when relevance is close.
+
 ## Intent routing
 
 Local query classification (`technical`, `news`, `chinese-community`, `general`) used to choose the provider pair and fast-mode order.

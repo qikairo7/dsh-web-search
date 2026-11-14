@@ -104,8 +104,10 @@ priority order above. `fetchMode` defaults to **fast** (direct HTTP first); set 
   timeouts, 429, 5xx, and missing credentials. Caller cancellation and invalid URLs return
   immediately. A 404 from direct HTTP is returned as a result, not a fallback trigger.
 - **Quality search**: `searchMode: quality` queries two providers in parallel, merges by
-  URL, and reranks candidates with `BAAI/bge-reranker-v2-m3` from SiliconFlow. If the
-  reranker is unavailable, the merged provider order is returned.
+  URL, removes near-duplicates with `BAAI/bge-m3` embeddings, then reranks with
+  `BAAI/bge-reranker-v2-m3` and adds a domain-authority prior (official docs, MDN, GitHub,
+  StackOverflow first). If the reranker or embedding service is unavailable, the merged
+  provider order is returned.
 - **Intent routing**: simple local rules classify a query as `technical`, `news`,
   `chinese-community`, or `general`, then choose the provider pair and fast-mode order.
 - **Cache and circuit breaker**: search results are cached for 5 minutes (200 entries),
@@ -151,6 +153,9 @@ optional; the defaults below match the verified setup.
 | `siliconflowApiKeyEnv` | `SILICONFLOW_API_KEY` | SiliconFlow credential reference |
 | `siliconflowBaseURL` | `https://api.siliconflow.cn/v1` | SiliconFlow API base |
 | `siliconflowRerankModel` | `BAAI/bge-reranker-v2-m3` | Rerank model |
+| `siliconflowEmbeddingsEnabled` | `true` | Enable semantic duplicate removal |
+| `siliconflowEmbeddingModel` | `BAAI/bge-m3` | Embedding model |
+| `semanticDedupThreshold` | `0.95` | Cosine similarity threshold for duplicate removal |
 | `requestTimeoutMs` | `60000` | Per-request timeout |
 | `maxFetchChars` | `200000` | Maximum characters returned by `web_fetch` |
 | `maxSnippetChars` | `4000` | Maximum characters per search summary |
