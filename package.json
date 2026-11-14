@@ -1,0 +1,69 @@
+{
+  "name": "@qikairo7/dsh-web-search",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Self-contained multi-backend web search and fetch providers for DeepSeek Harness",
+  "keywords": [
+    "deepseek-harness",
+    "dsh-plugin",
+    "dsh",
+    "web-search",
+    "web-fetch",
+    "anysearch",
+    "tavily",
+    "firecrawl",
+    "zhihu"
+  ],
+  "homepage": "https://github.com/qikairo7/dsh-web-search#readme",
+  "bugs": {
+    "url": "https://github.com/qikairo7/dsh-web-search/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qikairo7/dsh-web-search.git"
+  },
+  "license": "MIT",
+  "author": "qikairo7",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/**/*.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md",
+    "README.zh.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check lib/index.js && node --test"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": ">=4.0.5-alpha.1 <5",
+    "@deepseek-ai/dsh-credentials": "*",
+    "@deepseek-ai/dsh-web": "*"
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": ">=3.18.1-rc.1 <4"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "~4.1.0",
+    "@deepseek-ai/dsh-credentials": "0.2.2-rc.3",
+    "@deepseek-ai/dsh-web": "0.2.2-rc.3"
+  }
+}
