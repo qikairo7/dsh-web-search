@@ -120,13 +120,16 @@ extraction.
 - **Official docs supplement**: for technical queries with known official domains
   (`deepseek-harness.github.io`, `api-docs.deepseek.com`, `nodejs.org`, `developer.mozilla.org`,
   `react.dev`, `docs.python.org`, `go.dev`, `rust-lang.org`), quality mode runs one extra
-  Tavily search restricted to those domains and merges the results.
-- **Language routing**: query language is detected (`zh`, `ja`, `ko`, `es`, `fr`, `de`, `en`)
-  and passed to Tavily/AnySearch as the `language` hint; an explicit `lang:` wins.
+  Tavily search restricted to those domains, drops archived Node.js `/download/release/`
+  docs, and merges the results.
+- **Language routing**: the project scope is Chinese and English only; a query with Han
+  characters is `zh`, otherwise `en`, and that value is passed to Tavily/AnySearch as the
+  `language` hint. An explicit `lang:` wins.
 - **News mode**: `news` intent enables Tavily `topic: news` + `time_range: week`, Firecrawl
-  news sources + `qdr:w`, Zhihu realtime index, and AIHOT for AI-news queries.
-- **Content cleaning**: API fetch providers strip common navigation/sign-in lines from
-  Markdown before returning it.
+  news sources + `qdr:w`, Zhihu realtime index, and AIHOT for AI-news queries. Known
+  Chinese/English news domains get a small ranking bonus.
+- **Content cleaning**: API fetch providers strip common navigation, sign-in, footer and
+  breadcrumb lines from Markdown before returning it.
 - **Clean fetch**: `fetchMode: clean` changes the order to
   `tavily → firecrawl → http → anysearch` for cleaner Markdown at the cost of API credits.
 - **No private-network blocking**: direct HTTP can reach loopback and private-network hosts,

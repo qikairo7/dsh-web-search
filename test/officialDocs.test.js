@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { officialDomainsForQuery } from '../lib/officialDocs.js';
+import { filterOfficialDocs, isDeprecatedDocUrl, officialDomainsForQuery } from '../lib/officialDocs.js';
 
 test('officialDomainsForQuery returns official docs domains', () => {
   assert.deepEqual(officialDomainsForQuery('DeepSeek Harness 插件开发'), [
@@ -10,4 +10,16 @@ test('officialDomainsForQuery returns official docs domains', () => {
   ]);
   assert.deepEqual(officialDomainsForQuery('Node.js fetch timeout'), ['nodejs.org']);
   assert.deepEqual(officialDomainsForQuery('random weather'), []);
+});
+
+test('filters archived Node.js release docs', () => {
+  assert.equal(isDeprecatedDocUrl('https://nodejs.org/download/release/v18.16.0/docs/api/globals.html'), true);
+  assert.equal(isDeprecatedDocUrl('https://nodejs.org/api/globals.html'), false);
+  assert.deepEqual(
+    filterOfficialDocs([
+      { url: 'https://nodejs.org/download/release/v18.16.0/docs/api/globals.html' },
+      { url: 'https://nodejs.org/api/globals.html' },
+    ]).map((source) => source.url),
+    ['https://nodejs.org/api/globals.html'],
+  );
 });

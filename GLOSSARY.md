@@ -42,11 +42,11 @@ An extra Tavily search restricted to known official-document domains for technic
 
 ## Language routing
 
-Detection of the query language (`zh`, `ja`, `ko`, `es`, `fr`, `de`, `en`) used as a provider `language` hint; an explicit `lang:` operator wins.
+Detection of the query language (`zh` or `en`) used as a provider `language` hint; an explicit `lang:` operator wins.
 
 ## News mode
 
-The routing rule for `news` queries: Tavily news topic/time range, Firecrawl news sources, Zhihu realtime index, and AIHOT for AI-news queries.
+The routing rule for `news` queries: Tavily news topic/time range, Firecrawl news sources, Zhihu realtime index, known news-domain ranking, and AIHOT for AI-news queries.
 
 ## AIHOT
 
