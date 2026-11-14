@@ -10,11 +10,13 @@ DSH 插件：只实现 `ctx.web` 的搜索/抓取 Provider，用免费额度后�
 
 ```sh
 pnpm install
-pnpm check        # node --check lib/index.js && node --test
-pnpm benchmark    # live 基准；需要 AS_KEY/TV_KEY/FC_KEY/ZH_KEY/SF_KEY/DS_TOKEN
+pnpm docs:check   # 文档层级、链接、模块地图、配置覆盖与预算
+pnpm check        # 全量语法检查 + docs:check + node --test
+pnpm benchmark:preflight # 先验证凭据与各后端连通性
+pnpm benchmark    # live 基准；自动加载 gitignored 的 .env（AS_KEY/TV_KEY/FC_KEY/ZH_KEY/SF_KEY/DS_TOKEN）
 ```
 
-Node `22.19+` 或 `24+`，只用 pnpm。DSH 沙箱报 `spawn EPERM` 时，改用 `node --check lib/index.js && node --test --test-isolation=none`。
+Node `22.19+` 或 `24+`，只用 pnpm。DSH 沙箱报 `spawn EPERM` 时，改用 `node scripts/check-syntax.mjs && node --test --test-isolation=none`。
 
 ## 硬边界
 
@@ -22,13 +24,16 @@ Node `22.19+` 或 `24+`，只用 pnpm。DSH 沙箱报 `spawn EPERM` 时，改用
 - `lib/` 不得调用 DeepSeek 付费 Search/Fetch API；不得新增 `@modelcontextprotocol/*` 依赖或 MCP server。
 - 标准 provider id 固定为 `anysearch`、`tavily`、`firecrawl`、`zhihu`、`zhihu-site`、`aihot`、`http`、`auto`；新增后端先写 ADR，再注册唯一 id。
 - 不改 `cordis.patch.yml` 的 `web-fetch-http: disabled`；`http` id 属于本插件。
-- 不提交真实密钥或 `.credentials.yaml`；基准只从环境变量读 key。
+- 不提交真实密钥或 `.credentials.yaml`；基准从 `.env` / 环境变量读 key，`.env` 已 gitignore，不写进 shell 命令。
 - 不静默推翻 `docs/adr/` 的已接受决策；有冲突先说明，再写新 ADR。
 
 ## 指针
 
-- 改路由、配置、默认值或配额：先读 `README.md` / `README.zh.md` 的 Behavior details 与 Configuration，两份同步。
-- 写代码、改文档或 Review：`CODING_STANDARDS.md`（仓库结构、实现原则、Provider 契约、测试、文档规范、完成与 Review 门禁）。
+- 改代码前读 `docs/architecture.md`；文档层级、事实归属和写作预算见 `docs/AGENTS.md`。
+- 开发环境、测试策略、扩展步骤：`docs/development.md`、`docs/testing.md`、`docs/cookbook/adding-a-provider.md`。
+- 改路由、配置、默认值或配额：先读 `README.md` / `README.zh.md` 的 Behavior / 行为、Configuration / 配置，两份同步。
+- 写代码或 Review：`CODING_STANDARDS.md`（实现原则、Provider 契约、测试、完成与 Review 门禁）；artifact 级细节见 `docs/defensive-patterns.md`。
+- 记录需要保留理由与被放弃方案的决策：`.agents/notes/`，格式见目录 README。
 - 查术语与架构决策：`GLOSSARY.md`、`docs/adr/`；导航见 `docs/agents/domain.md`。
 - 开 Issue 或提 PR：`docs/agents/issue-tracker.md`。
 - 查历史基准或改基准：`docs/benchmarks/`；runner 是 `scripts/public-benchmark.mjs`。

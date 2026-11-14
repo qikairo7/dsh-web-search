@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { AutoFetchProvider, AutoSearchProvider } from '../lib/providers/router.js';
+import { enrichSources } from '../lib/enrich.js';
 
 function searchProvider(name, calls, { fail = false, result } = {}) {
   return {
@@ -197,10 +198,19 @@ test('AutoSearchProvider quality mode merges two providers, reranks, and caches'
   assert.deepEqual(calls, ['anysearch', 'zhihu', 'tavily']);
 });
 
-test('AutoSearchProvider enriches top sources from fetched content', async () => {
-  const router = new AutoSearchProvider({
-    settings: () => settings({ enrichSummaryMinChars: 100, enrichSummaryMaxChars: 300 }),
-    providers: {},
+test('enrichSources replaces the summary from fetched content', async () => {
+  const sources = await enrichSources({
+    sources: [
+      { url: 'https://nodejs.org/api/http.html', title: 'HTTP API', summary: 'old' },
+      { url: 'https://example.com', title: 'Example', summary: 'old' },
+    ],
+    query: 'Node.js AbortSignal timeout',
+    settings: settings({
+      enrichEnabled: true,
+      enrichTopN: 1,
+      enrichSummaryMinChars: 100,
+      enrichSummaryMaxChars: 300,
+    }),
     fetcher: {
       fetch: async () => ({
         body: {
@@ -208,27 +218,14 @@ test('AutoSearchProvider enriches top sources from fetched content', async () =>
         },
       }),
     },
+    signal: undefined,
   });
-  const sources = await router.enrichSources(
-    [
-      { url: 'https://nodejs.org/api/http.html', title: 'HTTP API', summary: 'old' },
-      { url: 'https://example.com', title: 'Example', summary: 'old' },
-    ],
-    { query: 'Node.js AbortSignal timeout' },
-    settings({
-      enrichEnabled: true,
-      enrichTopN: 1,
-      enrichSummaryMinChars: 100,
-      enrichSummaryMaxChars: 300,
-    }),
-    undefined,
-  );
   assert.ok(sources[0].summary.length > 100);
   assert.doesNotMatch(sources[0].summary, /<html|<script|<link/iu);
   assert.equal(sources[1].summary, 'old');
 });
 
-test('AutoSearchProvider keeps a longer summary when fetched content is too short', async () => {
+test('enrichSources keeps a longer summary when fetched content is too short', async () => {
   const body = `<article><p>${'Short fetched paragraph about fetch timeouts. '.repeat(40)}</p></article>`;
   const longSummary = 'Existing detailed summary sentence. '.repeat(80);
   const enrichmentSettings = settings({
@@ -237,28 +234,24 @@ test('AutoSearchProvider keeps a longer summary when fetched content is too shor
     enrichSummaryMinChars: 800,
     enrichSummaryMaxChars: 1_500,
   });
-  const router = new AutoSearchProvider({
-    settings: () => enrichmentSettings,
-    providers: {},
-    fetcher: {
-      fetch: async () => ({ body: { kind: 'html', content: body } }),
-    },
-  });
-  const sources = await router.enrichSources(
-    [
+  const sources = await enrichSources({
+    sources: [
       { url: 'https://example.com/kept', title: 'Example one', summary: longSummary },
       { url: 'https://example.com/replaced', title: 'Example two', summary: 'old' },
     ],
-    { query: 'fetch timeout' },
-    enrichmentSettings,
-    undefined,
-  );
+    query: 'fetch timeout',
+    settings: enrichmentSettings,
+    fetcher: {
+      fetch: async () => ({ body: { kind: 'html', content: body } }),
+    },
+    signal: undefined,
+  });
   assert.equal(sources[0].summary, longSummary);
   assert.ok(sources[1].summary.length > 'old'.length);
   assert.match(sources[1].summary, /Short fetched paragraph/u);
 });
 
-test('AutoSearchProvider converts HTML fragments when the body kind is html', async () => {
+test('enrichSources converts HTML fragments when the body kind is html', async () => {
   const body = `<article><p>${'Fragment paragraph about AbortSignal timeouts. '.repeat(10)}</p></article>`;
   const enrichmentSettings = settings({
     enrichEnabled: true,
@@ -266,19 +259,15 @@ test('AutoSearchProvider converts HTML fragments when the body kind is html', as
     enrichSummaryMinChars: 100,
     enrichSummaryMaxChars: 300,
   });
-  const router = new AutoSearchProvider({
-    settings: () => enrichmentSettings,
-    providers: {},
+  const sources = await enrichSources({
+    sources: [{ url: 'https://example.com/fragment', title: 'Fragment test', summary: 'old' }],
+    query: 'AbortSignal timeout',
+    settings: enrichmentSettings,
     fetcher: {
       fetch: async () => ({ body: { kind: 'html', content: body } }),
     },
+    signal: undefined,
   });
-  const sources = await router.enrichSources(
-    [{ url: 'https://example.com/fragment', title: 'Fragment test', summary: 'old' }],
-    { query: 'AbortSignal timeout' },
-    enrichmentSettings,
-    undefined,
-  );
   assert.ok(sources[0].summary.length >= 100);
   assert.doesNotMatch(sources[0].summary, /<article|<p>/iu);
   assert.match(sources[0].summary, /Fragment paragraph/u);
@@ -339,4 +328,29 @@ test('AutoFetchProvider clean mode prefers Tavily over HTTP', async () => {
   const result = await router.fetch({ url: 'https://example.com/' });
   assert.deepEqual(calls, ['tavily']);
   assert.equal(result.body.content, 'tavily');
+});
+
+test('AutoFetchProvider does not fall back for an invalid URL', async () => {
+  const calls = [];
+  const providers = {
+    http: {
+      id: 'http',
+      available: () => true,
+      ready: async () => true,
+      async fetch() {
+        calls.push('http');
+        const error = new Error('url must be an absolute HTTP(S) URL');
+        error.name = 'WebError';
+        error.code = 'WEB_INVALID_URL';
+        throw error;
+      },
+    },
+    tavily: fetchProvider('tavily', calls),
+  };
+  const router = new AutoFetchProvider({ settings: () => settings(), providers });
+  await assert.rejects(
+    () => router.fetch({ url: 'not-a-url' }),
+    (error) => error.code === 'WEB_INVALID_URL',
+  );
+  assert.deepEqual(calls, ['http']);
 });

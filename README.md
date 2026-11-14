@@ -177,15 +177,23 @@ Advanced deployments can also override `anysearchBaseURL`, `tavilyBaseURL`, and 
 ```sh
 pnpm install
 git config core.hooksPath .githooks
+pnpm docs:check
 pnpm check
 pnpm benchmark
 ```
 
-`pnpm check` runs the guardrail tests; the pre-commit hook runs the same command. `pnpm benchmark` loads the committed FRAMES/WebWalkerQA fixture first, then falls back to the public rows API; `SAMPLE_SIZE` sets the rows per benchmark (default 50). Run `pnpm benchmark:refresh` when the benchmark data changes. Live API verification requires the credentials above.
+`pnpm check` runs the guardrail tests and the docs check; the pre-commit hook runs the same command. `pnpm benchmark` loads the committed FRAMES/WebWalkerQA fixture first, then falls back to the public rows API; `SAMPLE_SIZE` sets the rows per benchmark (default 50). Run `pnpm benchmark:refresh` when the benchmark data changes. Live API verification requires the credentials above.
 
 ## Documentation
 
+- [Architecture](docs/architecture.md)
+- [Development guide](docs/development.md)
+- [Testing policy](docs/testing.md)
+- [Adding a provider](docs/cookbook/adding-a-provider.md)
 - [Architecture decisions](docs/adr/)
+- [Documentation standard](docs/AGENTS.md)
+- [Contributing](CONTRIBUTING.md)
+- [Benchmark policy](BENCHMARK.md)
 - [Benchmark reports](docs/benchmarks/)
 - [Project terms](GLOSSARY.md)
 

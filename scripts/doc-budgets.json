@@ -1,0 +1,16 @@
+{
+  "AGENTS.md": 2000,
+  "CODING_STANDARDS.md": 8000,
+  "README.md": 16000,
+  "README.zh.md": 10000,
+  "GLOSSARY.md": 5000,
+  "docs/AGENTS.md": 3500,
+  "docs/architecture.md": 6000,
+  "docs/development.md": 3500,
+  "docs/testing.md": 2600,
+  "docs/cookbook/adding-a-provider.md": 3000,
+  "docs/defensive-patterns.md": 2600,
+  "CONTRIBUTING.md": 1800,
+  "BENCHMARK.md": 1500,
+  ".agents/notes/README.md": 2000
+}

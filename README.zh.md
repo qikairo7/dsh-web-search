@@ -177,15 +177,23 @@ bundle patch 默认固定使用 `auto`；独立 Provider 也会注册，可以�
 ```sh
 pnpm install
 git config core.hooksPath .githooks
+pnpm docs:check
 pnpm check
 pnpm benchmark
 ```
 
-`pnpm check` 运行 guardrail 测试；pre-commit hook 运行同一命令。`pnpm benchmark` 优先读已提交的 FRAMES/WebWalkerQA fixture，读取失败才回退到公开 rows API；`SAMPLE_SIZE` 控制每个基准的行数（默认 50）。基准数据变化时运行 `pnpm benchmark:refresh` 刷新。真实 API 验收需要上面的凭据。
+`pnpm check` 运行 guardrail 测试和文档检查；pre-commit hook 运行同一命令。`pnpm benchmark` 优先读已提交的 FRAMES/WebWalkerQA fixture，读取失败才回退到公开 rows API；`SAMPLE_SIZE` 控制每个基准的行数（默认 50）。基准数据变化时运行 `pnpm benchmark:refresh` 刷新。真实 API 验收需要上面的凭据。
 
 ## 文档
 
+- [架构](docs/architecture.md)
+- [开发指南](docs/development.md)
+- [测试策略](docs/testing.md)
+- [新增 Provider](docs/cookbook/adding-a-provider.md)
 - [架构决策](docs/adr/)
+- [文档标准](docs/AGENTS.md)
+- [贡献指南](CONTRIBUTING.md)
+- [基准规则](BENCHMARK.md)
 - [基准报告](docs/benchmarks/)
 - [项目术语](GLOSSARY.md)
 

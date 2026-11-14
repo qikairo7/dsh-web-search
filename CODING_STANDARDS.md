@@ -4,20 +4,7 @@
 
 ## 1. 仓库结构与发布
 
-```text
-lib/index.js                 插件入口：name / inject / Config / apply，注册各 provider 与 auto 路由
-lib/providers/               每个后端一个文件（anysearch、tavily、firecrawl、zhihu、aihot、http）
-  router.js                  auto 路由：fast/quality 模式、回退、缓存、熔断、证据补全
-lib/*.js                     共用模块：http、errors、credentials、settings、cache、intent、
-                             technical、language、query、officialDocs、news、authority、
-                             rerank、embeddings、summarize、clean、text
-test/*.test.js               node:test 单测，按 lib 模块对应；不访问网络
-scripts/public-benchmark.mjs FRAMES/WebWalkerQA 基准 runner，结果写到 .research/（gitignored）
-docs/adr/                    已接受的架构决策；改契约前先读
-docs/benchmarks/             历史基准报告
-cordis.patch.yml             bundle patch：auto 为默认 provider、启用 tool-web、禁用自带 web-fetch-http
-locale/{en,zh}.json          插件元数据文案
-```
+模块地图、请求流和扩展点见 `docs/architecture.md`。本节只规定发布边界：
 
 - `lib/**/*.js` 是唯一随包发布的 JS；新增运行时文件放在 `lib/`，否则同步修改 `package.json#files`。
 - `package.json` 的 `scripts` 是命令的唯一来源；仓库没有 `dev` / `build` / `lint` / `typecheck` 脚本。
@@ -57,8 +44,8 @@ locale/{en,zh}.json          插件元数据文案
 
 ## 4. 配置
 
-- 每个配置字段同时出现在三处：`lib/index.js` 的 `Config`（默认值引用 `DEFAULT_SETTINGS`，按现有模式包 `maybeVolatile`）、`lib/settings.js` 的 `DEFAULT_SETTINGS` 和 `resolveSettings`。
-- `*ApiKeyEnv` 字段加 `.role('credential-ref')`。
+- 每个配置字段在 `lib/settings.js` 的 `SETTINGS_SPEC` 声明一次：`key`、`path`、`kind`、约束（`min` / `max` / `step`）与 `defaultPath`；`DEFAULT_SETTINGS` 提供默认值，`Config` 与 `resolveSettings` 都由 spec 生成。
+- `*ApiKeyEnv` 字段在 spec 里标 `role: 'credential-ref'`。
 - 每个字段由 `resolveSettings` 校验并有默认值；代码里不藏开关常量。
 - 当前默认值和配额不在本文件复述：`README.md` / `README.zh.md` 的 Configuration 是用户可见事实，`lib/settings.js` 的 `DEFAULT_SETTINGS` 是代码事实；改默认值或配额时，两份 README 与 `DEFAULT_SETTINGS` 同步（ADR-0003）。
 
@@ -82,14 +69,7 @@ locale/{en,zh}.json          插件元数据文案
 
 ## 7. 文档
 
-- 撰写、改写、校对或审阅本项目任何文档前，先加载 `tech-doc-style-chinese` 技能；该技能是本项目文档的标准规范。
-- 适用范围包括 `AGENTS.md`、`README.md`、`README.zh.md`、`docs/**`、`locale/*.json` 中的中文文案，以及提交说明和 PR 描述。
-- 保留事实、条件、限制、安全信息和确定程度；缺失信息标「待确认」，不自行补日期、数字、能力或结论。
-- 术语按 `GLOSSARY.md` 的首选写法，不自行造同义词或换用近义词。
-- 中文正文用直角引号「」，中英文、数字和版本号之间加半角空格，中文与行内代码之间加半角空格；中文段落一段一行，不做硬换行。
-- 代码字面量、JSON 键名、URL、API 路径、字段名、命令和配置项保持原样，不做机器可读内容的排版替换。
-- 存量文档在下次编辑时按本规范校正；不做与内容无关的全量重排。
-- `README.md` / `README.zh.md` 的行为、Provider 和配置表保持同步；契约变化先写 ADR。
+文档层级、事实归属、写作规则、篇幅预算和机械检查见 `docs/AGENTS.md`。中文文风按 `tech-doc-style-chinese`，术语按 `GLOSSARY.md`；两份 README 保持同步；契约变化先写 ADR。`pnpm docs:check` 单独验证文档，`pnpm check` 已包含它。
 
 ## 8. 协作与提交
 
@@ -100,7 +80,7 @@ locale/{en,zh}.json          插件元数据文案
 
 ## 9. Review 门禁
 
-以下任一项不满足即阻塞合并。Review 时逐项核对，不只看 diff。
+按 artifact 展开的规则见 `docs/defensive-patterns.md`；以下是必须逐项核对的总门禁。以下任一项不满足即阻塞合并。Review 时逐项核对，不只看 diff。
 
 1. **契约**：provider 实现 `id`、`title`、`description`、`available()`、`ready()`、`search()` / `fetch()`；`web_search` / `web_fetch` 的入参与结果形状不变；设置页仍由 `Config` 生成。
 2. **回退语义**：只有可恢复错误（网络、超时、429、5xx、凭据缺失）触发下一个 provider；取消和非法 URL 立即返回；直连 HTTP 的 404 作为结果返回；熔断只统计可恢复失败。

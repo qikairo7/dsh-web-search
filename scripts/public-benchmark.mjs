@@ -8,6 +8,8 @@ import { HttpFetchProvider } from '../lib/providers/http.js';
 import { AutoFetchProvider, AutoSearchProvider } from '../lib/providers/router.js';
 import { SiliconFlowReranker } from '../lib/rerank.js';
 import { SiliconFlowEmbeddings } from '../lib/embeddings.js';
+import { resolveSettings } from '../lib/settings.js';
+import { deepseekAuthHeaders } from './benchmark-auth.mjs';
 
 const keys = {
   ANYSEARCH_API_KEY: process.env.AS_KEY,
@@ -18,42 +20,20 @@ const keys = {
 };
 const deepseekToken = process.env.DS_TOKEN;
 const SAMPLE_SIZE = Number(process.env.SAMPLE_SIZE ?? 50);
+const PREFLIGHT = process.argv.includes('--preflight');
+const ENRICH = process.env.BENCHMARK_ENRICH === '1';
 
+// Start from the real defaults, then make the benchmark's scope explicit:
+// search-only by default; BENCHMARK_ENRICH=1 opts into evidence enrichment.
 const settings = {
+  ...resolveSettings(),
   searchMode: 'quality',
   fetchMode: 'clean',
-  intentRouting: true,
-  languageRouting: true,
-  officialDocsEnabled: true,
-  chineseSearchOrder: ['zhihu', 'anysearch', 'tavily', 'firecrawl'],
-  defaultSearchOrder: ['anysearch', 'tavily', 'zhihu', 'firecrawl'],
-  fetchOrder: ['http', 'tavily', 'firecrawl', 'anysearch'],
-  cleanFetchOrder: ['tavily', 'firecrawl', 'http', 'anysearch'],
-  anysearch: { enabled: true, apiKeyEnv: 'ANYSEARCH_API_KEY', baseURL: 'https://api.anysearch.com' },
-  tavily: { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', baseURL: 'https://api.tavily.com', includeAnswer: true },
-  firecrawl: { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', baseURL: 'https://api.firecrawl.dev' },
-  zhihu: { enabled: true, apiKeyEnv: 'ZHIHU_API_KEY', baseURL: 'https://developer.zhihu.com', includeMetadata: true },
-  aihot: { enabled: true, baseURL: 'https://aihot.news' },
-  http: { enabled: true },
-  siliconflow: {
-    enabled: true,
-    apiKeyEnv: 'SILICONFLOW_API_KEY',
-    baseURL: 'https://api.siliconflow.cn/v1',
-    model: 'BAAI/bge-reranker-v2-m3',
-    embeddingsEnabled: true,
-    embeddingModel: 'BAAI/bge-m3',
-  },
-  requestTimeoutMs: 30_000,
-  maxFetchChars: 200_000,
-  maxSnippetChars: 4_000,
-  minDirectHtmlChars: 2_048,
+  enrichEnabled: ENRICH,
   searchCacheTtlMs: 0,
   searchCacheMaxEntries: 0,
   fetchCacheTtlMs: 0,
   fetchCacheMaxEntries: 0,
-  breakerFailureThreshold: 3,
-  breakerCooldownMs: 300_000,
-  semanticDedupThreshold: 0.95,
 };
 
 const resolveKey = async (reference) => keys[reference];
@@ -180,9 +160,11 @@ function goldUrlsFromWebWalker(row) {
 }
 
 async function deepseekSearch(query) {
+  // Accept both DSH account tokens and DeepSeek API keys (sk-...).
+  const authHeaders = deepseekAuthHeaders(deepseekToken);
   const response = await fetch('https://api.deepseek.com/v1/tools/search', {
     method: 'POST',
-    headers: { 'x-dsh-auth-token': deepseekToken, 'content-type': 'application/json' },
+    headers: { ...authHeaders, 'content-type': 'application/json' },
     body: JSON.stringify({ query, count: 10, need_content: false, ori_question: query }),
     signal: AbortSignal.timeout(60_000),
     redirect: 'error',
@@ -203,6 +185,77 @@ async function oursSearch(query) {
   return result.sources;
 }
 
+function errorText(error) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+async function preflight() {
+  const checks = [];
+  const record = async (name, check, required = false) => {
+    try {
+      const detail = await check();
+      checks.push({ name, ok: true, required, detail: String(detail ?? 'ok') });
+    } catch (error) {
+      checks.push({ name, ok: false, required, detail: errorText(error) });
+    }
+  };
+
+  for (const [name, provider] of Object.entries(providers)) {
+    if (typeof provider.search === 'function') {
+      await record(`${name}:search`, async () => {
+        if (!provider.available()) throw new Error('unavailable');
+        if (!(await provider.ready())) throw new Error('credential missing');
+        const result = await provider.search({ query: 'DeepSeek Harness', maxResults: 2 });
+        return `${result.sources.length} sources`;
+      });
+    }
+    if (typeof provider.fetch === 'function') {
+      await record(`${name}:fetch`, async () => {
+        if (!provider.available()) throw new Error('unavailable');
+        if (!(await provider.ready())) throw new Error('credential missing');
+        const result = await provider.fetch({ url: 'https://example.com' });
+        return `${result.body.content.length} chars`;
+      });
+    }
+  }
+
+  await record('siliconflow:rerank', async () => {
+    if (!reranker.available()) throw new Error('unavailable');
+    if (!(await reranker.ready())) throw new Error('credential missing');
+    const result = await reranker.rerankScored('DeepSeek Harness', [
+      { url: 'https://example.com', title: 'Example', summary: 'DeepSeek Harness' },
+    ]);
+    return Array.isArray(result) ? 'ok' : 'no result';
+  }, true);
+  await record('siliconflow:embeddings', async () => {
+    if (!embeddings.available()) throw new Error('unavailable');
+    if (!(await embeddings.ready())) throw new Error('credential missing');
+    const result = await embeddings.embed(['DeepSeek Harness']);
+    return Array.isArray(result) ? 'ok' : 'no result';
+  }, true);
+  await record('deepseek:search', async () => {
+    const results = await deepseekSearch('DeepSeek Harness');
+    return `${results.length} results`;
+  }, true);
+
+  for (const check of checks) {
+    const status = check.ok ? 'PASS' : check.required ? 'FAIL' : 'WARN';
+    console.log(`${status} ${check.name}: ${check.detail}`);
+  }
+  const hardFailure = checks.some((check) => !check.ok && check.required);
+  const searchPasses = checks.filter((check) => check.name.endsWith(':search') && check.ok).length;
+  if (hardFailure || searchPasses < 2) {
+    console.error(`preflight failed: required checks failed or only ${searchPasses} search providers passed`);
+    return false;
+  }
+  return true;
+}
+
+if (PREFLIGHT) {
+  const ok = await preflight();
+  process.exit(ok ? 0 : 1);
+}
+
 async function evaluateDataset(name, rows, getQuestion, getGoldUrls, getAnswer) {
   const details = [];
   const aggregate = {
@@ -210,12 +263,26 @@ async function evaluateDataset(name, rows, getQuestion, getGoldUrls, getAnswer) 
     deepseek: { evidenceRecall: 0, allEvidenceRecall: 0, mrr: 0, answerHit: 0, top1Gold: 0 },
   };
   let completed = 0;
+  let oursErrors = 0;
+  let deepseekErrors = 0;
+  let oursEmpty = 0;
+  let deepseekEmpty = 0;
   for (const row of rows.slice(0, SAMPLE_SIZE)) {
     const question = clipQuery(getQuestion(row));
     const goldUrls = getGoldUrls(row);
     const answer = getAnswer(row);
-    const ours = await oursSearch(question).catch(() => []);
-    const deepseek = await deepseekSearch(question).catch(() => []);
+    const oursResult = await oursSearch(question)
+      .then((value) => ({ value }))
+      .catch((error) => ({ error }));
+    const deepseekResult = await deepseekSearch(question)
+      .then((value) => ({ value }))
+      .catch((error) => ({ error }));
+    if (oursResult.error !== undefined) oursErrors += 1;
+    if (deepseekResult.error !== undefined) deepseekErrors += 1;
+    const ours = oursResult.value ?? [];
+    const deepseek = deepseekResult.value ?? [];
+    if (ours.length === 0) oursEmpty += 1;
+    if (deepseek.length === 0) deepseekEmpty += 1;
     const oursScore = scoreResult(ours, goldUrls, answer);
     const deepseekScore = scoreResult(deepseek, goldUrls, answer);
     for (const key of Object.keys(aggregate.ours)) {
@@ -226,12 +293,30 @@ async function evaluateDataset(name, rows, getQuestion, getGoldUrls, getAnswer) 
     completed += 1;
     if (completed % 5 === 0) console.log(`${name}: ${completed}/${Math.min(SAMPLE_SIZE, rows.length)}`);
   }
+  if (details.length > 0 && oursErrors === details.length) {
+    throw new Error(`${name}: every plugin search failed; run pnpm benchmark:preflight`);
+  }
+  if (details.length > 0 && deepseekErrors === details.length) {
+    throw new Error(`${name}: every DeepSeek search failed; check DS_TOKEN`);
+  }
+  if (oursErrors > 0 || deepseekErrors > 0) {
+    console.warn(
+      `${name}: provider errors ours=${oursErrors} deepseek=${deepseekErrors}; empty ours=${oursEmpty} deepseek=${deepseekEmpty}`,
+    );
+  }
   const n = Math.max(details.length, 1);
   for (const key of Object.keys(aggregate.ours)) {
     aggregate.ours[key] = Math.round((aggregate.ours[key] / n) * 1000) / 1000;
     aggregate.deepseek[key] = Math.round((aggregate.deepseek[key] / n) * 1000) / 1000;
   }
-  return { name, sampleSize: details.length, aggregate, details };
+  return {
+    name,
+    sampleSize: details.length,
+    aggregate,
+    errors: { ours: oursErrors, deepseek: deepseekErrors },
+    empty: { ours: oursEmpty, deepseek: deepseekEmpty },
+    details,
+  };
 }
 
 const framesRows = await loadRows('google/frames-benchmark', 'default', 'test', SAMPLE_SIZE);
@@ -259,6 +344,16 @@ const results = {
 await writeFile('.research/public-benchmark.json', JSON.stringify(results, null, 2), 'utf8');
 console.log(JSON.stringify({
   sampleSize: results.sampleSize,
-  frames: { sampleSize: results.frames.sampleSize, aggregate: results.frames.aggregate },
-  webwalker: { sampleSize: results.webwalker.sampleSize, aggregate: results.webwalker.aggregate },
+  frames: {
+    sampleSize: results.frames.sampleSize,
+    aggregate: results.frames.aggregate,
+    errors: results.frames.errors,
+    empty: results.frames.empty,
+  },
+  webwalker: {
+    sampleSize: results.webwalker.sampleSize,
+    aggregate: results.webwalker.aggregate,
+    errors: results.webwalker.errors,
+    empty: results.webwalker.empty,
+  },
 }, null, 2));
