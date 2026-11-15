@@ -119,7 +119,7 @@ function scoreResult(sources, goldUrls, answer) {
 }
 
 async function loadRows(dataset, config, split, count) {
-  // shortcut: fixture pins the 50-row sample; regenerate when the benchmark changes.
+  // The committed fixture keeps runs offline and reproducible; regenerate via pnpm benchmark:refresh.
   const fixtureUrl = new URL('./fixtures/public-benchmark-sample.json', import.meta.url);
   let fixture = {};
   try {
