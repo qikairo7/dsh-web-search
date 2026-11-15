@@ -17,6 +17,7 @@ pnpm benchmark
 
 - FRAMES：Evidence Recall@10、All-Evidence Recall@10、MRR、Answer Hit@10、Top-1 Gold。
 - WebWalkerQA：同上，数据源与样本量见报告。
+- All-Evidence（多跳）衡量的是单轮搜索的天花板；DSH 内多跳由 agent 迭代搜索与 `web_search` 的多查询（单次最多 10 个）承担，实战影响远小于该项分数。
 - 报告必须保留日期、版本、样本量和原始指标；不要改写历史数据。
 
 ## 规则
