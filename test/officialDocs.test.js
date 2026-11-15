@@ -11,6 +11,8 @@ test('officialDomainsForQuery returns official docs domains', () => {
   assert.deepEqual(officialDomainsForQuery('Node.js fetch timeout'), ['nodejs.org']);
   assert.deepEqual(officialDomainsForQuery('Docker compose volume'), ['docs.docker.com']);
   assert.deepEqual(officialDomainsForQuery('random weather'), []);
+  assert.deepEqual(officialDomainsForQuery('where to go on vacation'), []);
+  assert.deepEqual(officialDomainsForQuery('go programming language tutorial'), ['go.dev']);
 });
 
 test('filters archived Node.js release docs', () => {

@@ -25,12 +25,14 @@
   "license": "MIT",
   "author": "qikairo7",
   "type": "module",
+  "packageManager": "pnpm@11.28.5",
   "main": "lib/index.js",
   "exports": {
     ".": "./lib/index.js",
     "./locale/*.json": "./locale/*.json",
     "./icon": "./icon.svg",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./client": "./client.js"
   },
   "files": [
     "lib/**/*.js",
@@ -41,7 +43,15 @@
     "README.zh.md",
     "CHANGELOG.md",
     "LICENSE",
-    "NOTICE"
+    "SAFETY.md",
+    "SAFETY.zh.md",
+    "SECURITY.md",
+    "SECURITY.zh.md",
+    "TRADEMARKS.md",
+    "TRADEMARKS.zh.md",
+    "THIRD_PARTY_NOTICES.md",
+    "LICENSES/*.txt",
+    "client.js"
   ],
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
@@ -58,8 +68,20 @@
     "quality:probe": "node --env-file-if-exists=.env scripts/quality-probe.mjs"
   },
   "dsh": {
+    "engines": {
+      "dsh": ">=0.2.2-rc.3 <0.4.0-0"
+    },
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-plugin-manager",
+        "@deepseek-ai/dsh-api-remotes"
+      ]
     }
   },
   "peerDependencies": {

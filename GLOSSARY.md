@@ -4,11 +4,11 @@ Use these terms consistently in issues, tests, docs, and code comments.
 
 | Term | Definition |
 |---|---|
-| Backend | A remote search or fetch service the plugin calls over HTTPS. The v1 backends are AnySearch, Tavily, Firecrawl, and Zhihu. |
+| Backend | A remote search or fetch service the plugin calls over HTTPS. The current backends are AnySearch, Keenable, Exa, Tavily, Firecrawl, Zhihu, AIHOT, and direct HTTP. |
 | Provider | A DSH `ctx.web` capability implementation. A search provider answers `search()`; a fetch provider answers `fetch()`. A provider is not a model-facing tool. |
 | Tool layer | The first-party `dsh-tool-web` package that owns the `web_search` and `web_fetch` tools, their schemas, prompt guidance, output formatting, and Web UI cards. This plugin reuses it. |
 | Auto router | A provider that runs the configured search or fetch strategy and falls back when a recoverable error occurs. |
-| Fast mode | `searchMode: fast` or `fetchMode: fast`. Uses one search provider in priority order, or direct HTTP first for fetch. This is the low-latency, free-first mode. |
+| Fast mode | `searchMode: fast` or `fetchMode: fast`. Uses one search provider in priority order; fetch follows `fetchOrder` (Keenable, then direct HTTP). This is the low-latency, free-first mode. |
 | Quality mode | `searchMode: quality`. Queries the language's free quality set in parallel (Chinese: Zhihu + Keenable + AnySearch; English: Keenable + AnySearch; AI news adds AIHOT first), merges by URL, and reranks with SiliconFlow `BAAI/bge-reranker-v2-m3`. This is the default search mode. |
 | Rerank | The quality-mode step that sends candidate titles, summaries, and URLs to a cross-encoder model and returns the candidates in relevance order. |
 | Semantic dedup | The quality-mode step that embeds candidate titles and summaries with `BAAI/bge-m3` and removes candidates whose cosine similarity is above `semanticDedupThreshold`. |
@@ -17,13 +17,13 @@ Use these terms consistently in issues, tests, docs, and code comments.
 | News freshness supplement | An extra Tavily news search (one request, outside the circuit breaker) merged into quality-mode results when a non-AI news query returns fewer than 3 sources dated within 7 days. AI-news queries never trigger it; AIHOT leads that intent. |
 | Language routing | Detection of the query language (`zh` or `en`) used as a provider `language` hint; an explicit `lang:` operator wins. |
 | News mode | The routing rule for `news` queries: Tavily news topic/time range, Firecrawl news sources, Zhihu realtime index, language-specific news-domain ranking, wrong-language news filtering, and AIHOT for AI-news queries. |
-| Evidence enrichment | The quality-mode step that fetches the top 5 result pages through the direct-HTTP-first path and regenerates their summaries at 800–1500 characters. Technical and official-doc pages prefer API signatures, parameters, examples, and code blocks. |
+| Evidence enrichment | The quality-mode step that fetches the top 5 result pages through the default fetch order and regenerates their summaries at 800–1500 characters. Technical and official-doc pages prefer API signatures, parameters, examples, and code blocks. |
 | AIHOT | An anonymous, read-only AI-news API used as an optional search-only provider for AI-news queries. |
 | Intent routing | Local query classification (`technical`, `news`, `chinese-community`, `general`) used to choose the provider set and fast-mode order. |
 | Chinese query | A search query that contains at least one Han script character. Chinese queries use the `chineseSearchOrder` and enable the Zhihu site supplement. |
 | Zhihu supplement | The Zhihu provider's behavior of calling `zhihu_search` after `global_search` when a Chinese query returns fewer than the requested number of sources, then merging the results by URL. |
-| Direct HTTP fetch | A fetch strategy that requests the target URL from the DSH host and returns the response body to the tool layer for HTML-to-markdown conversion. `fetchMode: fast` uses this first; `fetchMode: clean` uses Tavily/Firecrawl first. |
+| Direct HTTP fetch | A fetch strategy that requests the target URL from the DSH host and returns the response body to the tool layer for HTML-to-markdown conversion. `fetchMode: fast` keeps it early in the order (Keenable first); `fetchMode: clean` moves it after Keenable/AnySearch/Exa. |
 | Query syntax | The provider-neutral `site:`, `lang:`, `after:`, and `before:` operators parsed from a search query and forwarded to providers that support the corresponding filters. |
 | Routing annotation | The routing facts the auto router resolves once per search — intent, resolved language hint, and parsed query syntax — attached to the request as `request.routing`. Providers consume it and fall back to self-derivation when called without it. |
-| Provider tier | The catalog-declared quota class of a provider: `free` (anonymous, a generous free allowance, or a recurring monthly allowance such as Exa's or Tavily's) or `paid` (scarce monthly credits, fallback-only). Default orders and quality pairs derive their paid tail from this declaration. |
+| Provider tier | The catalog-declared quota class of a provider: `free` (anonymous, a generous free allowance, or a recurring monthly allowance such as Exa's) or `paid` (scarce monthly credits, fallback-only). Default orders and quality pairs derive their paid tail from this declaration. |
 | Credentials reference | An environment-variable-shaped name such as `TAVILY_API_KEY` that the plugin resolves through the DSH credentials service, with the launch environment as a fallback. |

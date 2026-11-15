@@ -189,6 +189,20 @@ test('official-docs supplement is skipped for site: queries', async () => {
   assert.ok(outcome.sources.some((source) => source.url === 'https://example.com/nodejs-fs'));
 });
 
+test('news language filter drops wrong-language news instead of keeping every source', async () => {
+  const engine = makeEngine({
+    providers: {
+      keenable: fakeProvider({
+        sources: [{ url: 'https://www.reuters.com/world/china', title: 'China industry news' }],
+        truncated: false,
+      }),
+    },
+    overrides: { languageRouting: true },
+  });
+  const outcome = await engine.search({ query: '最新行业新闻 2026', maxResults: 10 }, undefined);
+  assert.equal(outcome, undefined);
+});
+
 function newsFreshnessSetup(freeSources, { overrides = {} } = {}) {
   const supplementCalls = [];
   const providers = {

@@ -19,7 +19,7 @@
 - 测试名写成行为句，例如 `AutoSearchProvider uses the Chinese order and falls back on failure`。
 - 新行为同时覆盖映射层和路由层：映射函数测输入到结果的转换，路由器测顺序、回退、缓存和熔断。
 - 行为改动要有一个在改动前失败、改动后通过的测试；纯文档或格式化改动不需要新增测试。
-- 测真实实现，不把实现逻辑复制进测试；用本地 stub provider，不引入 mock 库。需要拦截 HTTP 的适配器/客户端测试可以临时替换 `globalThis.fetch`，必须在同一测试内恢复。
+- 测真实实现，不把实现逻辑复制进测试；用本地 stub provider，不引入 mock 库。需要拦截 HTTP 的适配器/客户端测试统一用 `test/helpers/withFetch.js`，不要在测试里手写保存和恢复 `globalThis.fetch`。
 - 不要绕过或削弱 `test/architecture.test.js`：它扫描 `lib/` 和 `scripts/` 的付费 API 标记，只允许 `scripts/public-benchmark.mjs` 例外。
 
 ## 运行顺序

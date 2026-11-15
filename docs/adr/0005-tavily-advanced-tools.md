@@ -4,7 +4,7 @@ Status: Accepted.
 
 ## Context
 
-Tavily's official API exposes Search filters (search depth, topic, time range, domain include/exclude, generated answer, raw content) and batch Extract (1–20 URLs) that `web_search` / `web_fetch` cannot express. The user asked to use the other backends' API capabilities, not only AnySearch's vertical search.
+Tavily's official API exposes Search filters (search depth, topic, time range, domain include/exclude, generated answer, raw content) and batch Extract (1–20 URLs) that `web_search` / `web_fetch` cannot express. The project needs the other backends' API capabilities, not only AnySearch's vertical search.
 
 ## Decision
 

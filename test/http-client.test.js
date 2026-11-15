@@ -17,14 +17,12 @@ function hangingFetch(url, init) {
 
 /** A response whose body read hangs until the abort signal fires. */
 function hangingBody(url, init) {
-  return {
-    ok: true,
-    status: 200,
-    text: () =>
-      new Promise((_, reject) => {
-        init.signal.addEventListener('abort', () => reject(init.signal.reason));
-      }),
-  };
+  const stream = new ReadableStream({
+    start(controller) {
+      init.signal.addEventListener('abort', () => controller.error(init.signal.reason), { once: true });
+    },
+  });
+  return new Response(stream, { status: 200, headers: { 'content-type': 'text/plain' } });
 }
 
 test('requestJSON returns parsed JSON and forwards method, merged headers, and redirect policy', async () => {
@@ -204,7 +202,9 @@ test('requestJSON maps a timeout while reading the response body', async () => {
 
 test('requestJSON wraps response body read failures', async () => {
   await withFetch(
-    async () => ({ ok: true, status: 200, text: async () => { throw new Error('stream reset'); } }),
+    async () => new Response(new ReadableStream({
+      start(controller) { controller.error(new Error('stream reset')); },
+    }), { status: 200, headers: { 'content-type': 'text/plain' } }),
     async () => {
       await assert.rejects(
         () => requestJSON('https://api.example.com/broken-stream'),
@@ -228,6 +228,22 @@ test('requestJSON maps HTTP 429 to WEB_RATE_LIMITED and surfaces the detail', as
         error.message === 'provider request failed (HTTP 429): slow down',
     );
   });
+});
+
+test('requestJSON maps a non-JSON HTTP 429 to WEB_RATE_LIMITED', async () => {
+  await withFetch(
+    { status: 429, headers: { 'content-type': 'text/html' }, body: '<html><body>slow down</body></html>' },
+    async () => {
+      await assert.rejects(
+        () => requestJSON('https://api.example.com/html-limited'),
+        (error) =>
+          error instanceof ProviderRequestError &&
+          error.code === 'WEB_RATE_LIMITED' &&
+          error.status === 429 &&
+          /slow down/.test(error.message),
+      );
+    },
+  );
 });
 
 test('requestJSON surfaces every backend error body shape in the failure message', async () => {

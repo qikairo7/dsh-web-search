@@ -67,6 +67,10 @@ test('AnySearch business error codes map to seam codes', () => {
   }
   const aborted = new AnySearchClientError('aborted', { kind: 'aborted', operation: 'fetch' });
   assert.equal(anySearchErrorCode(aborted), 'WEB_ABORTED');
+  const rateLimited = new AnySearchClientError('limited', { operation: 'search', httpStatus: 429 });
+  assert.equal(anySearchErrorCode(rateLimited), 'WEB_RATE_LIMITED');
+  const fetchTimeout = new AnySearchClientError('timeout', { kind: 'timeout', operation: 'fetch' });
+  assert.equal(anySearchErrorCode(fetchTimeout), 'WEB_FETCH_TIMEOUT');
 });
 
 test('AnySearchClient keeps valid results when a malformed result lacks a title', async () => {

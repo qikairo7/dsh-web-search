@@ -13,7 +13,19 @@ const required = [
   'README.zh.md',
   'GLOSSARY.md',
   'CONTRIBUTING.md',
+  'CONTRIBUTING.zh.md',
+  'SAFETY.md',
+  'SAFETY.zh.md',
+  'SECURITY.md',
+  'SECURITY.zh.md',
+  'TRADEMARKS.md',
+  'TRADEMARKS.zh.md',
+  'THIRD_PARTY_NOTICES.md',
+  'LICENSE',
+  'CHANGELOG.md',
   'BENCHMARK.md',
+  'docs/agents/issue-tracker.md',
+  'docs/cookbook/raising-summary-cap.md',
   'docs/AGENTS.md',
   'docs/architecture.md',
   'docs/configuration.md',
@@ -71,6 +83,9 @@ for (const file of markdown) {
 
   lines.forEach((line, index) => {
     if (/\s+$/.test(line)) errors.push(`${file}:${index + 1}: trailing whitespace`);
+    if (/[A-Za-z]:\\Users\\[^<]/u.test(line)) {
+      errors.push(`${file}:${index + 1}: absolute Windows user path`);
+    }
   });
 
   for (const match of text.matchAll(/\]\(([^)]+)\)/g)) {

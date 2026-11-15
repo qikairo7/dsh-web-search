@@ -13,6 +13,7 @@ test('parses currency pairs in both directions', () => {
   assert.deepEqual(parseFxQuery('人民币兑美元汇率 今日'), { base: 'CNY', target: 'USD' });
   assert.deepEqual(parseFxQuery('美元兑人民币汇率'), { base: 'USD', target: 'CNY' });
   assert.deepEqual(parseFxQuery('USD/CNY exchange rate'), { base: 'USD', target: 'CNY' });
+  assert.equal(parseFxQuery('how to audit exchange rate calculations'), undefined);
 });
 
 test('realtimeSearch returns live weather with a dated summary', async () => {

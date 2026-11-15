@@ -19,7 +19,7 @@ async function collect(dir) {
   return files;
 }
 
-const files = [];
+const files = ['client.js'];
 for (const root of roots) files.push(...(await collect(root)));
 
 const failures = [];

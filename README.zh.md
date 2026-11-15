@@ -1,8 +1,12 @@
 # @qikairo7/dsh-web-search
 
+[English](README.md) | 中文
+
 DeepSeek Harness（DSH）的自包含多后端网页搜索与抓取 Provider 插件。它替换官方收费的网页 Provider，但保留第一方 `dsh-tool-web` 工具层。模型仍然调用 `web_search` 和 `web_fetch`，只是后端换了；另有可选的 AnySearch / Tavily / AIHOT 高级工具。插件不调用 DeepSeek Search/Fetch API。
 
 非目标：不接入官方收费 Search/Fetch API，不依赖 MCP，不安装第三方 DSH 插件。
+
+> 状态：1.0 之前。行为、默认值和后端支持可能在次版本之间变化。使用前请阅读 [SAFETY.zh.md](SAFETY.zh.md)。
 
 ## 为什么做
 
@@ -24,9 +28,9 @@ DeepSeek Harness（DSH）的自包含多后端网页搜索与抓取 Provider 插
 
 **为什么选它，而不是别的：**
 
-- 对比 DeepSeek Search API：免费而非按次计费，公开基准上检索质量明显更好（FRAMES 证据召回 0.60 对 0.06、Answer Hit 0.50 对 0.40、抓取成功 13/14 对 9/14）；代价是延迟（约 4 秒对 0.4 秒），在 agent 异步工作流里无感。
+- 对比 DeepSeek Search API：免费而非按次计费，公开基准上检索质量明显更好（FRAMES 证据召回 0.60 对 0.06、Answer Hit 0.50 对 0.40）；代价是延迟（约 4 秒对 0.4 秒），在 agent 异步工作流里无感。
 - 对比单独对接一个后端（AnySearch、Keenable 等都有自家 DSH 插件）：单后端只有一份配额、一个单点故障。本插件把八份免费额度汇成一个池，自动故障切换，再对结果做合并、去重、BGE 重排与证据增强——模型只调用一个工具，不需要关心后端是谁。
-- 代价也如实说：比裸付费 API 慢；社区维护而非厂商 SLA。5 分钟搜索缓存会减少重复消耗。
+- 代价也如实说：比裸付费 API 慢；社区维护而非厂商 SLA。
 
 ## 环境要求
 
@@ -36,13 +40,19 @@ DeepSeek Harness（DSH）的自包含多后端网页搜索与抓取 Provider 插
 
 ## 安装
 
-从当前目录安装：
+从代码检出安装：
 
 ```sh
-dsh plugin --profile desktop add "D:\\网页搜索和提取"
+git clone https://github.com/qikairo7/dsh-web-search.git
+cd dsh-web-search
+dsh plugin --profile desktop add "."
 ```
 
-也可以用 Plugin Manager 安装本地目录。安装后重启 DSH。
+也可以用 Plugin Manager 安装该目录。安装后重启 DSH。
+
+安装后打开 **Plugins → 已安装插件 → dsh-web-search → 配置**，填写各后端 API Key、启用或停用后端、设置搜索与抓取模式。Key 写入 DSH 凭据库，页面不会回显原值。
+
+本插件仅从本仓库分发，不发布到 npm。
 
 ## 凭据
 
@@ -72,7 +82,7 @@ AnySearch 可以匿名使用；注册 Key 后额度更高。Keenable 没有 Key 
 | `zhihu` | 是 | 否 | 中文搜索首选；全网 + 站内补充 |
 | `zhihu-site` | 是 | 否 | 单独选择时只搜知乎站内 |
 | `aihot` | 是 | 否 | AI 新闻查询的精选源；匿名 |
-| `http` | 否 | 是 | 抓取首选：直连 HTTP |
+| `http` | 否 | 是 | 直连 HTTP 抓取；fast 顺序中位于 Keenable 之后 |
 | `auto` | 是 | 是 | 默认自动路由 |
 
 默认顺序：
@@ -150,6 +160,12 @@ pnpm benchmark
 
 `pnpm check` 运行 guardrail 测试和文档检查；pre-commit hook 运行同一命令。`pnpm probe` 是日常实测探针：14 条固定查询 + 2 个抓取，带分后端遥测、清单健康信号、滚动 7 天聚合与 PASS/FAIL 判定（见[测试策略](docs/testing.md)）。`pnpm benchmark` 优先读已提交的 FRAMES/WebWalkerQA fixture，读取失败才回退到公开 rows API；`SAMPLE_SIZE` 控制每个基准的行数（默认 50）。基准数据变化时运行 `pnpm benchmark:refresh` 刷新。真实 API 验收需要上面的凭据。
 
+## 社区与支持
+
+- Bug 和功能请求请提交到 [GitHub Issues](https://github.com/qikairo7/dsh-web-search/issues)。
+- 开 PR 前先读 [CONTRIBUTING.zh.md](CONTRIBUTING.zh.md)。
+- 安全漏洞按 [SECURITY.zh.md](SECURITY.zh.md) 私下报告。
+
 ## 文档
 
 - [架构](docs/architecture.md)
@@ -158,7 +174,7 @@ pnpm benchmark
 - [新增 Provider](docs/cookbook/adding-a-provider.md)
 - [架构决策](docs/adr/)
 - [文档标准](docs/AGENTS.md)
-- [贡献指南](CONTRIBUTING.md)
+- [贡献指南](CONTRIBUTING.zh.md)
 - [版本日志](CHANGELOG.md)
 - [基准规则](BENCHMARK.md)
 - [基准报告](docs/benchmarks/)
@@ -166,4 +182,4 @@ pnpm benchmark
 
 ## 许可证
 
-MIT
+MIT。第三方代码、依赖和基准数据见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)；名称与兼容性说明见 [TRADEMARKS.zh.md](TRADEMARKS.zh.md)。

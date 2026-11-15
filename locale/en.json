@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Web search router",
-    "description": "Routes the built-in web_search and web_fetch tools across AnySearch, Tavily, Firecrawl, and Zhihu. Quality mode merges three providers and reranks with BGE; keys are read from DSH credentials. Configure order and limits in Plugins > Built-in plugin settings > Web search and fetch."
+    "description": "Routes the built-in web_search and web_fetch tools across AnySearch, Keenable, Exa, Tavily, Firecrawl, Zhihu, AIHOT, and direct HTTP. Quality mode merges free providers and reranks with BGE; keys are read from DSH credentials. Configure keys, providers, and modes in Plugins > Installed plugins > dsh-web-search > Configuration."
   }
 }

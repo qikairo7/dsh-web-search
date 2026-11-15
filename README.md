@@ -1,8 +1,12 @@
 # @qikairo7/dsh-web-search
 
+English | [中文](README.zh.md)
+
 Self-contained multi-backend web search and fetch providers for DeepSeek Harness (DSH). The bundle replaces the paid official web providers while keeping the first-party `dsh-tool-web` tool layer. The model still calls `web_search` and `web_fetch`; only the backends change, with optional AnySearch / Tavily / AIHOT advanced tools. The plugin does not call the DeepSeek Search or Fetch APIs.
 
 Non-goals: the paid DeepSeek Search/Fetch APIs, an MCP server, and third-party DSH plugins.
+
+> Status: pre-1.0. Behavior, defaults, and provider support can change between minor versions. Review [SAFETY.md](SAFETY.md) before use.
 
 ## Why this exists
 
@@ -24,7 +28,7 @@ The legacy `deepseek-official` search runs a full model turn for every search. T
 
 **Why this over the alternatives:**
 
-- Over the DeepSeek Search API: free instead of per-request billing, and measurably better retrieval on the public benchmarks (FRAMES evidence recall 0.60 vs 0.06, answer hit 0.50 vs 0.40, fetch success 13/14 vs 9/14). The trade is latency (~4 s vs 0.4 s), invisible inside async agent turns.
+- Over the DeepSeek Search API: free instead of per-request billing, and measurably better retrieval on the public benchmarks (FRAMES evidence recall 0.60 vs 0.06, answer hit 0.50 vs 0.40). The trade is latency (~4 s vs 0.4 s), invisible inside async agent turns.
 - Over wiring one backend directly (AnySearch, Keenable, and friends ship their own DSH plugins): one backend is one quota and one point of failure. This bundle pools eight free allowances behind automatic failover, then merges, dedupes, reranks (BGE), and enriches the results — the model calls one tool and stops thinking about backends.
 - The costs, stated plainly: slower than a raw paid API, and community-maintained rather than a vendor SLA.
 
@@ -36,13 +40,19 @@ The legacy `deepseek-official` search runs a full model turn for every search. T
 
 ## Install
 
-From this checkout:
+From a checkout:
 
 ```sh
-dsh plugin --profile desktop add "D:\\网页搜索和提取"
+git clone https://github.com/qikairo7/dsh-web-search.git
+cd dsh-web-search
+dsh plugin --profile desktop add "."
 ```
 
-Or install the local package directory with the Plugin Manager. Restart DSH after installing.
+Or install the checkout directory with the Plugin Manager. Restart DSH after installing.
+
+After install, open **Plugins → Installed plugins → dsh-web-search → Configuration** to fill provider API keys, enable or disable backends, and set search and fetch modes. Keys are written to the DSH credential store and never read back into the page.
+
+Distribution is from this repository; the package is not published to npm.
 
 ## Credentials
 
@@ -58,7 +68,7 @@ ZHIHU_API_KEY: "..."
 SILICONFLOW_API_KEY: "sk-..."
 ```
 
-AnySearch works without a key in anonymous mode; a registered key raises the daily quota. Keenable works anonymously too. Exa requires a key. Zhihu requires an Access Secret from the Zhihu Open Platform. Tavily and Firecrawl report themselves not ready when their key is missing, so the router skips them. The exact reference names are configurable with the `*ApiKeyEnv` fields.
+AnySearch works without a key in anonymous mode; a registered key raises the daily quota. Keenable works anonymously too; a key raises the quota. Exa requires a key. Zhihu requires an Access Secret from the Zhihu Open Platform. Tavily and Firecrawl report themselves not ready when their key is missing, so the router skips them. The exact reference names are configurable with the `*ApiKeyEnv` fields.
 
 ## Providers
 
@@ -72,7 +82,7 @@ AnySearch works without a key in anonymous mode; a registered key raises the dai
 | `zhihu` | yes | no | Chinese search first; global search + site supplement |
 | `zhihu-site` | yes | no | Zhihu site-only search when selected explicitly |
 | `aihot` | yes | no | Curated AI news for AI-news queries; anonymous |
-| `http` | no | yes | Direct HTTP fetch first |
+| `http` | no | yes | Direct HTTP fetch; second after Keenable in the fast order |
 | `auto` | yes | yes | Default router for both capabilities |
 
 Default orders:
@@ -150,6 +160,12 @@ pnpm benchmark
 
 `pnpm check` runs the guardrail tests and the docs check; the pre-commit hook runs the same command. `pnpm probe` is the daily live probe: 14 fixed queries plus 2 fetches with per-provider telemetry, list-health signals, a rolling 7-day aggregate, and PASS/FAIL verdicts (see [Testing policy](docs/testing.md)). `pnpm benchmark` loads the committed FRAMES/WebWalkerQA fixture first, then falls back to the public rows API; `SAMPLE_SIZE` sets the rows per benchmark (default 50). Run `pnpm benchmark:refresh` when the benchmark data changes. Live API verification requires the credentials above.
 
+## Community and support
+
+- Report bugs and request features in [GitHub Issues](https://github.com/qikairo7/dsh-web-search/issues).
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) before you open a pull request.
+- Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
+
 ## Documentation
 
 - [Architecture](docs/architecture.md)
@@ -166,4 +182,4 @@ pnpm benchmark
 
 ## License
 
-MIT
+MIT. Third-party code, dependencies, and benchmark data are disclosed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Names and compatibility statements are covered by [TRADEMARKS.md](TRADEMARKS.md).

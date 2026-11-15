@@ -70,3 +70,22 @@ test('SiliconFlow reranker returns undefined without a key', async () => {
   });
   assert.equal(await reranker.rerankScored('query', sources(), undefined), undefined);
 });
+
+test('SiliconFlow reranker rethrows caller cancellation', async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => { throw new DOMException('Aborted', 'AbortError'); };
+  try {
+    const reranker = new SiliconFlowReranker({
+      settings: rerankSettings,
+      resolveKey: async () => 'key',
+    });
+    const controller = new AbortController();
+    controller.abort();
+    await assert.rejects(
+      () => reranker.rerankScored('query', sources(), controller.signal),
+      (error) => error.code === 'WEB_ABORTED',
+    );
+  } finally {
+    globalThis.fetch = original;
+  }
+});

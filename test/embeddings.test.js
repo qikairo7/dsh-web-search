@@ -55,3 +55,19 @@ test('SiliconFlowEmbeddings leaves sources unchanged without a key', async () =>
   const sources = [{ url: 'https://a.example/' }, { url: 'https://b.example/' }];
   assert.deepEqual(await embeddings.dedupe(sources, 0.95), sources);
 });
+
+test('SiliconFlowEmbeddings rethrows caller cancellation', async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => { throw new DOMException('Aborted', 'AbortError'); };
+  try {
+    const embeddings = new SiliconFlowEmbeddings({ settings, resolveKey: async () => 'key' });
+    const controller = new AbortController();
+    controller.abort();
+    await assert.rejects(
+      () => embeddings.embed(['a', 'b'], controller.signal),
+      (error) => error.code === 'WEB_ABORTED',
+    );
+  } finally {
+    globalThis.fetch = original;
+  }
+});

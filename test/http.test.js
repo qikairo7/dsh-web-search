@@ -85,6 +85,49 @@ test('HTTP fetch detects a small SPA shell and asks for fallback', async () => {
   );
 });
 
+test('HTTP fetch keeps a small page with visible content', async () => {
+  const html = `<!doctype html><html><body><div id="root"><h1>Title</h1><p>${'Real content. '.repeat(30)}</p></div><script src="/app.js"></script></body></html>`;
+  await withFetch(
+    async () => new Response(html, { status: 200, headers: { 'content-type': 'text/html' } }),
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings });
+      const result = await provider.fetch({ url: 'https://static.example/' });
+      assert.match(result.body.content, /Real content\./u);
+    },
+  );
+});
+
+test('HTTP fetch rejects a body that exceeds the byte cap while streaming', async () => {
+  const body = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new Uint8Array(5_000_001));
+      controller.close();
+    },
+  });
+  await withFetch(
+    async () => new Response(body, { status: 200, headers: { 'content-type': 'text/html' } }),
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings });
+      await assert.rejects(
+        () => provider.fetch({ url: 'https://large.example/' }),
+        (error) => error.code === 'WEB_FETCH_TOO_LARGE',
+      );
+    },
+  );
+});
+
+test('HTTP fetch decodes a declared non-UTF-8 charset', async () => {
+  const gbk = new Uint8Array([0xd6, 0xd0, 0xce, 0xc4]);
+  await withFetch(
+    async () => new Response(gbk, { status: 200, headers: { 'content-type': 'text/plain; charset=gbk' } }),
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings });
+      const result = await provider.fetch({ url: 'https://gbk.example/' });
+      assert.equal(result.body.content, '中文');
+    },
+  );
+});
+
 test('HTTP fetch returns 404 as a result, not an error', async () => {
   await withFetch(
     async () => new Response('<html><body>missing</body></html>', { status: 404, headers: { 'content-type': 'text/html' } }),

@@ -21,7 +21,8 @@
 | `GLOSSARY.md` | 项目术语的唯一写法 | 实现细节 |
 | `docs/agents/` | 代理工作流：领域文档读取、Issue 与 PR 操作 | 产品行为 |
 | `docs/benchmarks/` | 历史基准报告与复现命令；数字和日期不改写 | 当前配置默认值 |
-| `CONTRIBUTING.md` | 贡献入口和阅读顺序 | 详细实现规则 |
+| `CONTRIBUTING.md` / `CONTRIBUTING.zh.md` | 贡献入口和阅读顺序 | 详细实现规则 |
+| `SAFETY.md` / `SECURITY.md` / `TRADEMARKS.md` / `THIRD_PARTY_NOTICES.md` | 风险模型、漏洞报告、项目身份与第三方归属 | 使用教程、实现规则 |
 | `CHANGELOG.md` | 面向用户的版本变化公告，每个已发版一条 | 实现细节、决策理由、未发版的重构 |
 | `BENCHMARK.md` | 基准入口、运行规则和指标说明 | 历史报告数据 |
 | `docs/AGENTS.md` | 本文件：文档结构、写作、预算、检查 | 实现规则 |

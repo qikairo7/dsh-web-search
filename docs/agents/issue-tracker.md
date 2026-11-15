@@ -20,19 +20,11 @@ Issues and specs live as GitHub issues. Use the `gh` CLI.
 
 ## Repo target
 
-Infer the repo from `git remote -v`; `gh` does this inside a clone. File issues only into the user's own repo. Before the first `gh issue create` of a session, run `gh repo view --json nameWithOwner` and confirm the target if it is not the user's repo. Never file into `mattpocock/skills` unless the user owns it.
+Infer the repo from `git remote -v`; `gh` does this inside a clone. File issues only into the user's own repo. Before the first `gh issue create` of a session, run `gh repo view --json nameWithOwner` and confirm the target if it is not the user's repo.
 
 ## Pull requests
 
 PRs as a request surface: no. GitHub shares one number space across issues and PRs, so resolve a bare `#42` with `gh pr view 42`, then `gh issue view 42`.
-
-## Wayfinding
-
-- Map: one issue labelled `wayfinder:map` with Notes, Decisions-so-far, and Fog.
-- Child: a GitHub sub-issue of the map labelled `wayfinder:<type>` (`research`, `prototype`, `grilling`, `task`); fallback is a task list plus `Part of #<map>`.
-- Frontier: first open child in map order with no open blocker and no assignee.
-- Claim: `gh issue edit <n> --add-assignee @me`.
-- Resolve: comment the answer, close the issue, then append a context pointer to the map.
 
 ## Skill phrases
 

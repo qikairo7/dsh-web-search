@@ -4,7 +4,7 @@ Status: Accepted. Supersedes the provider-only part of ADR-0001.
 
 ## Context
 
-ADR-0001 kept this plugin provider-only because `dsh-tool-web` owns the generic `web_search` and `web_fetch` tools. The official `@anysearch/anysearch-dsh` package also exposes three AnySearch-specific tools: `anysearch_capabilities`, `anysearch_search`, and `anysearch_batch_search`. The user explicitly asked to port them into this multi-backend project.
+ADR-0001 kept this plugin provider-only because `dsh-tool-web` owns the generic `web_search` and `web_fetch` tools. The official `@anysearch/anysearch-dsh` package also exposes three AnySearch-specific tools: `anysearch_capabilities`, `anysearch_search`, and `anysearch_batch_search`. This multi-backend project ports them to keep the advanced AnySearch capabilities available.
 
 ## Decision
 
