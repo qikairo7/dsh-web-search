@@ -189,6 +189,92 @@ test('official-docs supplement is skipped for site: queries', async () => {
   assert.ok(outcome.sources.some((source) => source.url === 'https://example.com/nodejs-fs'));
 });
 
+function newsFreshnessSetup(freeSources, { overrides = {} } = {}) {
+  const supplementCalls = [];
+  const providers = {
+    zhihu: fakeProvider({ sources: freeSources, truncated: false }),
+    keenable: fakeProvider({ sources: freeSources, truncated: false }),
+    anysearch: fakeProvider({ sources: freeSources, truncated: false }),
+    tavily: {
+      available: () => true,
+      ready: async () => true,
+      search: async (request) => {
+        supplementCalls.push(request.query);
+        return {
+          sources: [
+            {
+              url: 'https://www.sohu.com/a/fresh-news',
+              title: '2026年11月 行业新闻汇总',
+              publishedAt: new Date().toISOString(),
+            },
+          ],
+          truncated: false,
+        };
+      },
+    },
+  };
+  return {
+    supplementCalls,
+    quality: makeEngine({ providers, overrides }),
+  };
+}
+
+test('news-freshness supplement runs when free news results lack fresh dates', async () => {
+  const { supplementCalls, quality } = newsFreshnessSetup([
+    { url: 'https://www.sohu.com/a/old-news', title: '旧闻', publishedAt: '2020-01-01T00:00:00Z' },
+  ]);
+  const outcome = await quality.search({ query: '2026年11月 行业新闻', maxResults: 10 }, undefined);
+  assert.deepEqual(supplementCalls, ['2026年11月 行业新闻']);
+  assert.ok(outcome.sources.some((source) => source.url === 'https://www.sohu.com/a/fresh-news'));
+});
+
+test('news-freshness supplement is skipped when three free results are freshly dated', async () => {
+  const publishedAt = new Date().toISOString();
+  const { supplementCalls, quality } = newsFreshnessSetup([
+    { url: 'https://www.sohu.com/a/one', title: '一', publishedAt },
+    { url: 'https://www.sohu.com/a/two', title: '二', publishedAt },
+    { url: 'https://www.sohu.com/a/three', title: '三', publishedAt },
+  ]);
+  await quality.search({ query: '2026年11月 行业新闻', maxResults: 10 }, undefined);
+  assert.deepEqual(supplementCalls, []);
+});
+
+test('news-freshness supplement never fires for AI news', async () => {
+  const { supplementCalls, quality } = newsFreshnessSetup([
+    { url: 'https://www.sohu.com/a/stale-ai', title: '旧 AI 新闻', publishedAt: '2020-01-01T00:00:00Z' },
+  ]);
+  await quality.search({ query: '2026年11月 AI 行业新闻', maxResults: 10 }, undefined);
+  assert.deepEqual(supplementCalls, []);
+});
+
+test('news-freshness supplement respects newsFreshnessEnabled: false', async () => {
+  const { supplementCalls, quality } = newsFreshnessSetup(
+    [{ url: 'https://www.sohu.com/a/old-news', title: '旧闻', publishedAt: '2020-01-01T00:00:00Z' }],
+    { overrides: { newsFreshnessEnabled: false } },
+  );
+  await quality.search({ query: '2026年11月 行业新闻', maxResults: 10 }, undefined);
+  assert.deepEqual(supplementCalls, []);
+});
+
+test('news-freshness supplement failure returns the free results untouched', async () => {
+  const providers = {
+    zhihu: fakeProvider({
+      sources: [{ url: 'https://www.sohu.com/a/free', title: '免费结果' }],
+      truncated: false,
+    }),
+    tavily: {
+      available: () => true,
+      ready: async () => true,
+      search: async () => {
+        throw new Error('tavily down');
+      },
+    },
+  };
+  const quality = makeEngine({ providers });
+  const outcome = await quality.search({ query: '2026年11月 行业新闻', maxResults: 10 }, undefined);
+  assert.deepEqual(outcome.sources.map((source) => source.url), ['https://www.sohu.com/a/free']);
+});
+
 test('QualityEngine enriches through the pipeline with a bounded summary when bound keys are missing', async () => {
   // The settings thunk carries no enrichSummaryMinChars/MaxChars keys at all:
   // the engine chain must still produce an 800–1500 summary, never unbounded.
@@ -208,7 +294,7 @@ test('QualityEngine enriches through the pipeline with a bounded summary when bo
       fetch: async () => ({ body: { kind: 'text', content } }),
     },
   });
-  const outcome = await quality.search({ query: 'orbital station', maxResults: 10 }, undefined);
+  const outcome = await quality.search({ query: '轨道空间站', maxResults: 10 }, undefined);
   const [source] = outcome.sources;
   assert.notEqual(source.summary, 'old');
   assert.ok(

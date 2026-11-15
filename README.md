@@ -12,15 +12,15 @@ The legacy `deepseek-official` search runs a full model turn for every search. T
 |---|---|---|
 | Keenable | 100,000/month (key); 1,000/hour anonymous | Default search + Markdown fetch |
 | AnySearch | 1000 searches/day with a registered key; anonymous access also works | Search |
-| Exa | Balance-based | Semantic search + Contents fetch |
+| Exa | $10 free credits/month (docs.exa.ai); one-time $10 onboarding bonus | Semantic search + Contents fetch; free depth |
 | Zhihu | 5000 global + 5000 site searches/day | Chinese search |
-| Tavily | 1000 credits/month | Fallback only: empty free search, missing official docs, fetch failure chain |
+| Tavily | 1000 credits/month | Fallback only: empty free search, missing official docs, stale news, fetch failure chain |
 | Firecrawl | 1000 credits/month | Last-resort fetch for hard JS/PDF pages |
 | AIHOT | Anonymous read-only | AI-news search/curation (free) |
 | Direct HTTP | No API cost | Static-page fetch |
 | SiliconFlow | Free allowance | BGE rerank + embeddings |
 
-`quality` mode queries free sources by default (Keenable, AnySearch, Zhihu, AIHOT); Exa is a paid supplement; Tavily only handles empty results or missing official docs. Evidence enrichment prefers Keenable/HTTP/AnySearch, then Exa/Tavily/Firecrawl. `fast` uses the free order first.
+`quality` mode queries free sources by default (Chinese: Zhihu + Keenable + AnySearch; English: Keenable + AnySearch; AI news adds AIHOT first). Exa's monthly free allowance makes it the free depth hop after the default free stack; Tavily and Firecrawl are the paid tail, spent only on empty results, missing official docs, stale news, or fetch failures. Evidence enrichment prefers Keenable/HTTP/AnySearch, then Exa/Tavily/Firecrawl. `fast` uses the free order first.
 
 ## Requirements
 
@@ -60,8 +60,8 @@ AnySearch works without a key in anonymous mode; a registered key raises the dai
 |---|---|---|---|
 | `anysearch` | yes | yes | English/default search supplement; broad coverage |
 | `keenable` | yes | yes | Free-quota first; search + clean Markdown fetch |
-| `exa` | yes | yes | Semantic search + Contents fetch; balance-based supplement |
-| `tavily` | yes | yes | Search fallback; optional generated answer; PDF Extract |
+| `exa` | yes | yes | Semantic search + Contents fetch; free depth after the default free stack |
+| `tavily` | yes | yes | Search fallback; news-freshness and official-docs supplements; optional generated answer; PDF Extract |
 | `firecrawl` | yes | yes | Fetch last-resort only; strong Scrape for SPA/PDF |
 | `zhihu` | yes | no | Chinese search first; global search + site supplement |
 | `zhihu-site` | yes | no | Zhihu site-only search when selected explicitly |
@@ -72,12 +72,12 @@ AnySearch works without a key in anonymous mode; a registered key raises the dai
 Default orders:
 
 - Chinese query (at least one Han character): `zhihu → keenable → anysearch → exa → tavily → firecrawl`
-- Other query: `keenable → anysearch → zhihu → exa → tavily → firecrawl`
+- Other query: `keenable → anysearch → exa → tavily → firecrawl`
 - Fetch: `keenable → http → anysearch → exa → tavily → firecrawl`
 
 The default `auto` provider is pinned by the bundle patch. Individual providers are also registered and can be selected in the Web search and fetch settings page.
 
-`searchMode` defaults to **quality**: the router queries free providers (Chinese: Zhihu + Keenable + AnySearch; English: Keenable + AnySearch + Zhihu; AI news: AIHOT + Keenable + AnySearch + Zhihu), merges and deduplicates by URL, then reranks with SiliconFlow `BAAI/bge-reranker-v2-m3`. Exa is paid and not in default quality; Tavily and Firecrawl are fallback-only. `fetchMode` defaults to **fast**; `clean` uses `keenable → anysearch → exa → http → tavily → firecrawl`, preferring free extraction and keeping Tavily/Firecrawl as fallback. The `tool-web` summary cap comes from the agent preset (standard 800; a bundle patch cannot override it); provider `maxSnippetChars` is 4000 but `web_search` truncates to that cap. Tavily search uses `include_raw_content`; the optional `tavily_search` tool supports `include_published_date`.
+`searchMode` defaults to **quality**: the router queries the language's free providers (Chinese: Zhihu + Keenable + AnySearch; English: Keenable + AnySearch; AI news: AIHOT first, plus the language set), merges and deduplicates by URL, then reranks with SiliconFlow `BAAI/bge-reranker-v2-m3`. Exa holds the free depth position and is not in the default quality fan-out; Tavily and Firecrawl are fallback-only. `fetchMode` defaults to **fast**; `clean` uses `keenable → anysearch → exa → http → tavily → firecrawl`, preferring free extraction and keeping Tavily/Firecrawl as fallback. The `tool-web` summary cap comes from the agent preset (standard 800; a bundle patch cannot override it); provider `maxSnippetChars` is 4000 but `web_search` truncates to that cap. Tavily search uses `include_raw_content`; the optional `tavily_search` tool supports `include_published_date`.
 
 ### Advanced tools
 
@@ -101,12 +101,12 @@ The default `auto` provider is pinned by the bundle patch. Individual providers 
 - **Zhihu supplement**: for a Chinese query, `zhihu` calls `global_search` first. If it returns fewer than `maxResults` sources, it calls `zhihu_search` and merges the results by URL. English queries do not call the site endpoint.
 - **Intent routing**: local rules classify a query as `technical`, `news`, `chinese-community`, or `general`, then choose the provider set and fast-mode order.
 - **Language routing**: the project covers Chinese and English only. A query with Han characters is `zh`, otherwise `en`; the value is passed to Tavily/AnySearch as the `language` hint. An explicit `lang:` wins.
-- **News mode**: `news` intent enables Tavily `topic: news` + `time_range: week`, Firecrawl news sources + `qdr:w`, the Zhihu realtime index, and AIHOT for AI-news queries. Known Chinese/English news domains get a small ranking bonus; wrong-language news sources are filtered out; AIHOT items get an extra provider boost.
+- **News mode**: `news` intent enables Tavily `topic: news` + `time_range: week`, Firecrawl news sources + `qdr:w`, the Zhihu realtime index, and AIHOT for AI-news queries. Known Chinese/English news domains get a small ranking bonus; wrong-language news sources are filtered out; AIHOT items get an extra provider boost. Non-AI news queries whose free results carry fewer than 3 sources dated within 7 days trigger one extra Tavily news search (`newsFreshnessEnabled`, default on).
 - **Query syntax**: `site:`, `lang:`, `after:`, and `before:` are parsed and forwarded to Tavily, Firecrawl, and Zhihu where their APIs support the filter.
 
 ### Quality pipeline
 
-- **Quality search**: `searchMode: quality` queries free providers in parallel (Chinese: Zhihu + Keenable + AnySearch; English: Keenable + AnySearch + Zhihu; AI news: AIHOT + Keenable + AnySearch + Zhihu), merges by URL, removes near-duplicates with `BAAI/bge-m3` embeddings, then reranks with `BAAI/bge-reranker-v2-m3` and adds a domain-authority prior (official docs, MDN, GitHub, StackOverflow first). AnySearch page bodies are compressed into an 800–1500 character query-aware extract. If the reranker or embedding service is unavailable, the merged provider order is returned.
+- **Quality search**: `searchMode: quality` queries the language's free providers in parallel (Chinese: Zhihu + Keenable + AnySearch; English: Keenable + AnySearch; AI news: AIHOT + the language set), merges by URL, removes near-duplicates with `BAAI/bge-m3` embeddings, then reranks with `BAAI/bge-reranker-v2-m3` and adds a domain-authority prior (official docs, MDN, GitHub, StackOverflow first). AnySearch page bodies are compressed into an 800–1500 character query-aware extract. If the reranker or embedding service is unavailable, the merged provider order is returned.
 - **Live weather/FX**: queries classified as weather or currency-rate use Open-Meteo (weather) or ExchangeRate-API/Frankfurter (FX) first and return one dated source with live values; if those APIs fail, normal search takes over. No API key is needed.
 - **Evidence enrichment**: the top 5 sources are fetched through the default fetch path and their summaries are regenerated at 800–1500 characters. Technical and official-doc pages prefer API signatures, parameters, examples, and code blocks.
 - **Official docs supplement**: for technical queries with known official domains (`deepseek-harness.github.io`, `api-docs.deepseek.com`, `nodejs.org`, `developer.mozilla.org`, `react.dev`, `docs.python.org`, `go.dev`, `rust-lang.org`, plus known vendor domains for Docker, Kubernetes, AWS, Azure, GitHub, TypeScript, Java, and NVIDIA), quality mode runs one extra Tavily search restricted to those domains only when free results miss every official domain, drops archived Node.js `/download/release/` docs and old release blogs, and merges the results.

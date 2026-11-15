@@ -26,8 +26,8 @@ test('chooses free-provider quality pairs', () => {
   assert.deepEqual(qualityPair('DeepSeek Harness 插件开发', 'technical'), ['zhihu', 'keenable', 'anysearch']);
   assert.deepEqual(qualityPair('2026年11月 AI 行业新闻', 'news'), ['aihot', 'keenable', 'anysearch', 'zhihu']);
   assert.deepEqual(qualityPair('2026年11月 行业新闻', 'news'), ['zhihu', 'keenable', 'anysearch']);
-  assert.deepEqual(qualityPair('Node.js fetch timeout', 'technical'), ['keenable', 'anysearch', 'zhihu']);
-  assert.deepEqual(qualityPair('latest AI news', 'news'), ['aihot', 'keenable', 'anysearch', 'zhihu']);
+  assert.deepEqual(qualityPair('Node.js fetch timeout', 'technical'), ['keenable', 'anysearch']);
+  assert.deepEqual(qualityPair('latest AI news', 'news'), ['aihot', 'keenable', 'anysearch']);
 });
 
 test('fast order applies intent routing only when enabled', () => {
@@ -47,6 +47,13 @@ test('fast order applies intent routing only when enabled', () => {
   ]);
   assert.deepEqual(fastOrder('2026年11月 行业新闻', settings, 'news'), [
     'zhihu',
+    'keenable',
+    'anysearch',
+    'exa',
+    'tavily',
+    'firecrawl',
+  ]);
+  assert.deepEqual(fastOrder('Node.js fetch timeout', settings, 'technical'), [
     'keenable',
     'anysearch',
     'exa',

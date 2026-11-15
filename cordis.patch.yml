@@ -26,6 +26,7 @@
         intentRouting: true
         languageRouting: true
         officialDocsEnabled: true
+        newsFreshnessEnabled: true
         aihotEnabled: true
         enrichEnabled: true
         enrichTopN: 5
@@ -34,6 +35,6 @@
         keenableEnabled: true
         exaEnabled: true
         chineseSearchOrder: zhihu,keenable,anysearch,exa,tavily,firecrawl
-        defaultSearchOrder: keenable,anysearch,zhihu,exa,tavily,firecrawl
+        defaultSearchOrder: keenable,anysearch,exa,tavily,firecrawl
         fetchOrder: keenable,http,anysearch,exa,tavily,firecrawl
         cleanFetchOrder: keenable,anysearch,exa,http,tavily,firecrawl

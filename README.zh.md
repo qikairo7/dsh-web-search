@@ -12,15 +12,15 @@ DeepSeek Harness（DSH）的自包含多后端网页搜索与抓取 Provider 插
 |---|---|---|
 | Keenable | 100,000 次/月（Key）；匿名 1,000 次/小时 | 默认搜索 + 干净 Markdown 抓取 |
 | AnySearch | 注册后 1000 次搜索/天；匿名也可用 | 搜索 |
-| Exa | 余额制（约 30 美元/月额度） | 语义搜索 + Contents 抓取 |
+| Exa | 每月 10 美元免费额度（docs.exa.ai）+ 一次性 10 美元注册奖励 | 语义搜索 + Contents 抓取；免费深度回退 |
 | 知乎 | 全网 5000 次/天 + 站内 5000 次/天 | 中文搜索 |
-| Tavily | 1000 credits/月 | 仅兜底：免费源空结果、缺官方文档、Fetch 失败链 |
+| Tavily | 1000 credits/月 | 仅兜底：免费源空结果、缺官方文档、新闻时效不足、Fetch 失败链 |
 | Firecrawl | 1000 credits/月 | Fetch 最后兜底：难抓的 JS/PDF 页面 |
 | AIHOT | 匿名只读 | AI 新闻搜索/精选（免费） |
 | 直连 HTTP | 无 API 成本 | 静态页面抓取 |
 | SiliconFlow | 免费额度 | BGE 重排 + embeddings |
 
-`quality` 默认只查免费源（Keenable、AnySearch、知乎、AIHOT）；Exa 是余额制付费补充；Tavily 只在免费源空结果或缺少官方文档时兜底，每次兜底搜索按 1 credit 计。证据增强最多抓取前 5 个页面，优先走 Keenable、直连 HTTP 与 AnySearch；仍失败才回退 Exa/Tavily/Firecrawl。`fast` 模式同样先走免费顺序，Tavily/Firecrawl 只做最后兜底。5 分钟搜索缓存会减少重复消耗。
+`quality` 默认只查免费源（中文：知乎 + Keenable + AnySearch；英文：Keenable + AnySearch；AI 新闻先查 AIHOT）。Exa 的每月免费额度使它成为免费栈之后的免费深度回退；Tavily / Firecrawl 是付费尾，只在免费源空结果、缺官方文档、新闻时效不足或 Fetch 失败时消耗。证据增强最多抓取前 5 个页面，优先走 Keenable、直连 HTTP 与 AnySearch；仍失败才回退 Exa/Tavily/Firecrawl。`fast` 模式同样先走免费顺序。5 分钟搜索缓存会减少重复消耗。
 
 ## 环境要求
 
@@ -60,8 +60,8 @@ AnySearch 可以匿名使用；注册 Key 后额度更高。Keenable 没有 Key 
 |---|---|---|---|
 | `anysearch` | 是 | 是 | 英文/默认搜索补充；覆盖面广 |
 | `keenable` | 是 | 是 | 免费额度首选；搜索 + 干净 Markdown 抓取 |
-| `exa` | 是 | 是 | 语义搜索 + Contents 抓取；余额制补充 |
-| `tavily` | 是 | 是 | 搜索兜底；可选生成答案；PDF Extract |
+| `exa` | 是 | 是 | 语义搜索 + Contents 抓取；免费栈之后的免费深度回退 |
+| `tavily` | 是 | 是 | 搜索兜底；新闻时效/官方文档补充；可选生成答案；PDF Extract |
 | `firecrawl` | 是 | 是 | 仅 Fetch 最后兜底；SPA/PDF 抓取最强 |
 | `zhihu` | 是 | 否 | 中文搜索首选；全网 + 站内补充 |
 | `zhihu-site` | 是 | 否 | 单独选择时只搜知乎站内 |
@@ -72,12 +72,12 @@ AnySearch 可以匿名使用；注册 Key 后额度更高。Keenable 没有 Key 
 默认顺序：
 
 - 中文查询（包含任意汉字）：`zhihu → keenable → anysearch → exa → tavily → firecrawl`
-- 其他查询：`keenable → anysearch → zhihu → exa → tavily → firecrawl`
+- 其他查询：`keenable → anysearch → exa → tavily → firecrawl`
 - 抓取：`keenable → http → anysearch → exa → tavily → firecrawl`
 
 bundle patch 默认固定使用 `auto`；独立 Provider 也会注册，可以在「网页搜索与抓取」设置页里单独选择。
 
-`searchMode` 默认是 **quality**：中文查询查知乎 + Keenable + AnySearch，英文查询查 Keenable + AnySearch + 知乎，AI 新闻查询查 AIHOT + Keenable + AnySearch + 知乎；按 URL 去重后重排。Exa 是余额制付费补充，不进入默认 quality；Tavily / Firecrawl 默认不参与 quality 搜索，只在免费源空结果或缺少官方文档时兜底。设为 `fast` 则使用上面的单后端优先顺序。`fetchMode` 默认是 **fast**（直连 HTTP 优先）；设为 **clean** 会按 `keenable → anysearch → exa → http → tavily → firecrawl` 的顺序，优先免费抽取，Tavily/Firecrawl 只做兜底。`tool-web` 的摘要上限由 profile 的 agent preset 决定（DSH 标准 preset 默认 **800**，bundle patch 不能覆盖 preset 内的 `tool-web` 行）；Provider 的 `maxSnippetChars` 默认是 4000，但进入 `web_search` 工具后仍按该上限截断。Tavily 搜索启用 `include_raw_content`；可选的 `tavily_search` 工具支持 `include_published_date`。
+`searchMode` 默认是 **quality**：中文查询查知乎 + Keenable + AnySearch，英文查询查 Keenable + AnySearch，AI 新闻查询先查 AIHOT 再查该语言组合；按 URL 去重后重排。Exa 占免费深度位，不进入默认 quality 并发；Tavily / Firecrawl 只做付费兜底。设为 `fast` 则使用上面的单后端优先顺序。`fetchMode` 默认是 **fast**（直连 HTTP 优先）；设为 **clean** 会按 `keenable → anysearch → exa → http → tavily → firecrawl` 的顺序，优先免费抽取，Tavily/Firecrawl 只做兜底。`tool-web` 的摘要上限由 profile 的 agent preset 决定（DSH 标准 preset 默认 **800**，bundle patch 不能覆盖 preset 内的 `tool-web` 行）；Provider 的 `maxSnippetChars` 默认是 4000，但进入 `web_search` 工具后仍按该上限截断。Tavily 搜索启用 `include_raw_content`；可选的 `tavily_search` 工具支持 `include_published_date`。
 
 ### 高级工具
 
@@ -101,12 +101,12 @@ bundle patch 默认固定使用 `auto`；独立 Provider 也会注册，可以�
 - **知乎补充**：中文查询先调 `global_search`；结果少于 `maxResults` 时再调 `zhihu_search`，按 URL 去重合并。英文查询不调站内接口。
 - **意图路由**：本地规则把查询分成 `technical`、`news`、`chinese-community`、`general`，再决定后端组合和 fast 模式顺序。
 - **语言路由**：项目只做中文和英文；含汉字为 `zh`，否则为 `en`，把 `language` 传给 Tavily/AnySearch；显式 `lang:` 优先。
-- **新闻模式**：`news` 意图启用 Tavily `topic: news` + `time_range: week`、Firecrawl 新闻源 + `qdr:w`、知乎实时索引；AI 新闻查询用 AIHOT；已知中英文新闻域名获得额外排序加权，错语言的新闻源会被过滤，AIHOT 条目额外加权。
+- **新闻模式**：`news` 意图启用 Tavily `topic: news` + `time_range: week`、Firecrawl 新闻源 + `qdr:w`、知乎实时索引；AI 新闻查询用 AIHOT；已知中英文新闻域名获得额外排序加权，错语言的新闻源会被过滤，AIHOT 条目额外加权。非 AI 新闻查询的免费结果 7 天内带日期来源不足 3 条时，额外跑一次 Tavily news 搜索（`newsFreshnessEnabled`，默认开启）。
 - **查询语法**：解析 `site:`、`lang:`、`after:`、`before:`，在 Tavily、Firecrawl、知乎支持的情况下转成对应过滤参数。
 
 ### 质量管线
 
-- **质量搜索**：`searchMode: quality` 并行查询免费源（中文知乎 + Keenable + AnySearch；英文 Keenable + AnySearch + 知乎；AI 新闻 AIHOT + Keenable + AnySearch + 知乎），按 URL 去重，用 `BAAI/bge-m3` embeddings 去掉近似重复内容，再用 `BAAI/bge-reranker-v2-m3` 重排，并叠加域名权威加权（官方 docs、MDN、GitHub、StackOverflow 优先）。AnySearch 的正文会压缩成 800 到 1500 字的查询相关摘要。重排或 embedding 不可用时，回退到合并后的 Provider 顺序。
+- **质量搜索**：`searchMode: quality` 并行查询该语言的免费源（中文知乎 + Keenable + AnySearch；英文 Keenable + AnySearch；AI 新闻 AIHOT + 该语言组合），按 URL 去重，用 `BAAI/bge-m3` embeddings 去掉近似重复内容，再用 `BAAI/bge-reranker-v2-m3` 重排，并叠加域名权威加权（官方 docs、MDN、GitHub、StackOverflow 优先）。AnySearch 的正文会压缩成 800 到 1500 字的查询相关摘要。重排或 embedding 不可用时，回退到合并后的 Provider 顺序。
 - **实时天气/汇率**：查询命中天气或汇率意图时，先调用 Open-Meteo（天气）或 ExchangeRate-API/Frankfurter（汇率），返回带数值和更新时间的单一来源；接口失败再回退普通搜索。无需 API Key。
 - **证据增强**：前 5 条结果会走默认 Fetch 顺序取正文，并重新生成 800 到 1500 字摘要；技术/官方文档优先保留 API、参数、示例和代码块。
 - **官方文档补充**：技术查询命中已知官方域名（`deepseek-harness.github.io`、`api-docs.deepseek.com`、`nodejs.org`、`developer.mozilla.org`、`react.dev`、`docs.python.org`、`go.dev`、`rust-lang.org`，以及 Docker、Kubernetes、AWS、Azure、GitHub、TypeScript、Java、NVIDIA 等已知厂商域名）时，只有免费结果未命中任何官方域，才额外跑一次限定域名的 Tavily 搜索，过滤 Node.js `/download/release/` 旧版本文档和旧 release blog 后合并结果。

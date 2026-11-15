@@ -26,7 +26,7 @@ keenable / anysearch / exa / tavily / firecrawl / zhihu / zhihu-site / aihot / h
 
 `lib/index.js` 导出 `name`、`inject`、`Config` 和 `apply()`。`apply()` 经 `createProviders()` 按 catalog 顺序构造各 Provider 实例与 SiliconFlow 客户端，注册 search / fetch Provider、`auto` 路由与可选高级工具。
 
-Provider 的能力矩阵与默认顺序由 [README 的 Providers 段](../README.md#providers) 拥有；代码中的注册列表在 `lib/index.js`。
+Provider 的能力矩阵与默认顺序归 [README Providers 段](../README.md#providers)；注册列表在 `lib/index.js`。
 
 ## 模块地图
 
@@ -34,11 +34,12 @@ Provider 的能力矩阵与默认顺序由 [README 的 Providers 段](../README.
 |---|---|
 | `lib/index.js` | 插件入口；由 `SETTINGS_SPEC` 生成 `Config`，`createProviders()` 按 catalog 派生实例并注册 |
 | `lib/providers/*.js` | 各后端适配器与 `mapXxxSearch()` 纯映射；消费 `request.routing` 注记，缺省时经 `resolveRouting` 推导 |
-| `lib/providers/shared.js` | 适配器共用层：`providerOperation` 操作骨架（超时接线、错误边界、诊断标签）、`USER_AGENT`、header、计数夹取、凭据检查 |
+| `lib/providers/shared.js` | 适配器共用层：`providerOperation` 骨架（超时、错误边界、诊断标签）、`USER_AGENT`、计数夹取、凭据检查 |
 | `lib/providers/anysearchClient.js` | AnySearch HTTP 客户端（移植自 `anysearch-dsh`） |
 | `lib/providers/router.js` | `AutoSearchProvider` / `AutoFetchProvider`：模式分流、routing 注解、缓存回退；fetch 支持显式 order |
 | `lib/providerRunner.js` | 搜索/抓取共用的资格判定、熔断、attempt 与有序回退 |
 | `lib/routing.js` | routing 事实的唯一家：`routingFacts` 注记构造与 `resolveRouting` 缺省推导（intent / syntax / language） |
+| `lib/roles.js` | 路由角色单一表：quality 组合、fast 免费前缀、settings 级默认顺序 |
 | `lib/quality.js` | `QualityEngine`：单入口编排合并、去重、重排降级、权威排序、证据增强与官方文档补充 |
 | `lib/enrich.js` | Evidence enrichment：抓取、HTML 清洗、技术/普通摘要；有界性在模块内兜底 |
 | `lib/cache.js` | TTL + LRU 机制层（`TtlLruCache`）与按能力的策略层（`ResultCache`：TTL / 容量 / 写条件） |
@@ -50,7 +51,7 @@ Provider 的能力矩阵与默认顺序由 [README 的 Providers 段](../README.
 | `lib/http.js` | `joinURL`、`requestJSON` / `requestText`、超时、取消与 HTTP 错误 |
 | `lib/host.js` | host 归一化与域名匹配的唯一实现 |
 | `lib/errors.js` | `WebError` 适配与 `WEB_*` 错误码；`toWebError` 保留调用方已带的 `WEB_*` code |
-| `lib/intent.js` | intent 路由分类；fastOrder 付费尾从 catalog tier 派生 |
+| `lib/intent.js` | intent 路由分类；quality/fast 顺序查询 `lib/roles.js` 角色表 |
 | `lib/technical.js` | 技术文本与查询词启发式 |
 | `lib/query.js` | `site:`、`lang:`、`after:`、`before:` 解析（provider 中立） |
 | `lib/officialDocs.js` | 官方文档域名规则与旧文档过滤 |
@@ -66,19 +67,19 @@ Provider 的能力矩阵与默认顺序由 [README 的 Providers 段](../README.
 
 ## 搜索流程
 
-1. `web_search` 进入 `AutoSearchProvider.search()`；先检查取消、读取 `settings()`，经 `routingFacts()` 解析 routing 注解一次下发，再按 `searchMode` 分流。
+1. `web_search` 进入 `AutoSearchProvider.search()`；检查取消、读 `settings()`，经 `routingFacts()` 一次下发 routing 注解，按 `searchMode` 分流。
 2. 缓存命中直接返回；key 由 resolved settings 指纹与请求生成。
 3. 天气/汇率查询先由 `realtime.js`（Open-Meteo、ExchangeRate-API/Frankfurter）应答；失败则继续正常搜索。
-4. `quality`：`QualityEngine.search()` 用 `qualityPair()` 给出免费 Provider（组合见 README），经 `ProviderRunner.attempt()` 并行调用，合并去重后走 BGE 重排（一次尝试，失败降级为提供方优先序）、域名权威加权与证据增强。官方文档补充只由 catalog 声明 `domainSearch` 的 Provider 承担：免费结果缺官方域且无 `site:` 时触发一次，失败不计熔断。
+4. `quality`：`QualityEngine.search()` 从角色表取该语言免费 Provider 并行调用，合并去重后走 BGE 重排（一次尝试，失败降级为提供方优先序）、权威加权与证据增强。补充缝各触发一次、不计熔断：官方文档补充由 `domainSearch` 声明者承担（缺官方域且无 `site:` 时）；新闻时效补充由 `newsSupplement` 声明者承担（条件见 README）。
 5. `fast`：`ProviderRunner.run()` 按 `fastOrder()` 顺序逐个尝试（付费尾由 catalog tier 派生）；只有 `isRecoverable(error)` 为真才进入下一个 Provider。
 6. 所有 Provider 都失败时返回最后一个可恢复错误；空结果不写缓存。
 
 ## 抓取流程
 
 1. `web_fetch` 进入 `AutoFetchProvider.fetch()`；读取 `fetchMode` 与对应顺序，显式 order 计入缓存键。
-2. `ProviderRunner.run({ capability: 'fetch' })` 执行回退；`fast` 默认 `keenable → http → anysearch → exa → tavily → firecrawl`，`clean` 默认 `keenable → anysearch → exa → http → tavily → firecrawl`。Tavily 和 Firecrawl 只在前面的免费路径失败后使用。证据增强经显式 `order: fetchOrder` 复用同一实例的缓存与熔断。
+2. `ProviderRunner.run({ capability: 'fetch' })` 执行回退；`fast` 默认 `keenable → http → anysearch → exa → tavily → firecrawl`，`clean` 默认 `keenable → anysearch → exa → http → tavily → firecrawl`。付费尾只在免费路径失败后使用；证据增强经显式 `order: fetchOrder` 复用缓存与熔断。
 3. 直连 HTTP 自己实现最多 5 跳重定向、5 MB 上限、HTML/text/JSON/XML 类型判断和 SPA 空壳回退。
-4. 成功结果写缓存；只有可恢复失败按顺序回退并计入熔断，取消和非法 URL 由 `isRecoverable()` 判定为终止并立即返回。
+4. 成功结果写缓存；回退与熔断规则同搜索（见不变量）。
 
 ## 配置流
 
@@ -101,9 +102,9 @@ settings() thunk ──→ Provider / Router
 
 | 目标 | 做法 |
 |---|---|
-| 新增后端 | 新增 provider 文件与 ID 常量；在 `lib/catalog.js` 声明能力、settingsKey、tier 与算子支持；在 `lib/index.js` 的 factory 表加一行；在 `lib/settings.js` 补 `SETTINGS_SPEC` 与默认值；补 README 与映射/路由测试；新 id 或契约先写 ADR |
+| 新增后端 | 新增 provider 文件与 ID 常量；在 `lib/catalog.js` 声明能力、settingsKey、tier 与算子，在 `lib/index.js` factory 表与 `lib/settings.js` `SETTINGS_SPEC` 登记；补 README 与映射/路由测试；新 id 或契约先写 ADR |
 | 新增配置字段 | 同时修改 `Config`、`DEFAULT_SETTINGS`、`SETTINGS_SPEC`，并更新两份 README |
-| 修改路由或回退 | 改 `lib/providers/router.js` 或 `lib/routing.js`，补路由测试，更新 README 的 Behavior 与配额说明 |
+| 修改路由或回退 | 改 `lib/providers/router.js`、`lib/roles.js` 或 `lib/routing.js`，补路由测试，更新 README 的 Behavior 与配额说明 |
 | 修改文档 | 先读 [docs/AGENTS.md](AGENTS.md)，按事实归属改唯一一份，再跑 `pnpm docs:check` |
 | 记录决策 | 契约级写 ADR；需要保留理由与被放弃方案写 Agent Note |
 

@@ -61,18 +61,19 @@ test('every provider maps to a resolved settings section', () => {
   }
 });
 
-test('catalog declares the domain-search capability and news boost', () => {
+test('catalog declares the domain-search capability, news supplement, and news boost', () => {
   const domainSearch = PROVIDER_CATALOG.filter((entry) =>
     entry.capabilities.includes('domainSearch'),
   );
   assert.deepEqual(domainSearch.map((entry) => entry.id), ['tavily']);
+  assert.equal(PROVIDER_CATALOG.find((entry) => entry.id === 'tavily').newsSupplement, true);
   assert.equal(PROVIDER_CATALOG.find((entry) => entry.id === 'aihot').newsBoost, 0.5);
 });
 
 test('catalog declares a tier and operator set for every provider', () => {
   assert.deepEqual(
     PROVIDER_CATALOG.filter((entry) => entry.tier === 'paid').map((entry) => entry.id).sort(),
-    ['exa', 'firecrawl', 'tavily'],
+    ['firecrawl', 'tavily'],
   );
   for (const entry of PROVIDER_CATALOG) {
     assert.ok(['free', 'paid'].includes(entry.tier), `${entry.id} tier`);
@@ -88,7 +89,7 @@ test('catalog declares a tier and operator set for every provider', () => {
 
 test('paidSearchFallback lists paid search providers in the declared order', () => {
   const fallback = paidSearchFallback();
-  assert.deepEqual(fallback, ['exa', 'tavily', 'firecrawl']);
+  assert.deepEqual(fallback, ['tavily', 'firecrawl']);
   for (const id of fallback) {
     const entry = PROVIDER_CATALOG.find((provider) => provider.id === id);
     assert.equal(entry.tier, 'paid', `${id} tier`);
