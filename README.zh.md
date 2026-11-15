@@ -138,10 +138,11 @@ pnpm install
 git config core.hooksPath .githooks
 pnpm docs:check
 pnpm check
+pnpm probe
 pnpm benchmark
 ```
 
-`pnpm check` 运行 guardrail 测试和文档检查；pre-commit hook 运行同一命令。`pnpm benchmark` 优先读已提交的 FRAMES/WebWalkerQA fixture，读取失败才回退到公开 rows API；`SAMPLE_SIZE` 控制每个基准的行数（默认 50）。基准数据变化时运行 `pnpm benchmark:refresh` 刷新。真实 API 验收需要上面的凭据。
+`pnpm check` 运行 guardrail 测试和文档检查；pre-commit hook 运行同一命令。`pnpm probe` 是日常实测探针：14 条固定查询 + 2 个抓取，带分后端遥测、清单健康信号、滚动 7 天聚合与 PASS/FAIL 判定（见[测试策略](docs/testing.md)）。`pnpm benchmark` 优先读已提交的 FRAMES/WebWalkerQA fixture，读取失败才回退到公开 rows API；`SAMPLE_SIZE` 控制每个基准的行数（默认 50）。基准数据变化时运行 `pnpm benchmark:refresh` 刷新。真实 API 验收需要上面的凭据。
 
 ## 文档
 
@@ -152,6 +153,7 @@ pnpm benchmark
 - [架构决策](docs/adr/)
 - [文档标准](docs/AGENTS.md)
 - [贡献指南](CONTRIBUTING.md)
+- [版本日志](CHANGELOG.md)
 - [基准规则](BENCHMARK.md)
 - [基准报告](docs/benchmarks/)
 - [项目术语](GLOSSARY.md)

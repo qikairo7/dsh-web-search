@@ -22,6 +22,7 @@
 | `docs/agents/` | 代理工作流：领域文档读取、Issue 与 PR 操作 | 产品行为 |
 | `docs/benchmarks/` | 历史基准报告与复现命令；数字和日期不改写 | 当前配置默认值 |
 | `CONTRIBUTING.md` | 贡献入口和阅读顺序 | 详细实现规则 |
+| `CHANGELOG.md` | 面向用户的版本变化公告，每个已发版一条 | 实现细节、决策理由、未发版的重构 |
 | `BENCHMARK.md` | 基准入口、运行规则和指标说明 | 历史报告数据 |
 | `docs/AGENTS.md` | 本文件：文档结构、写作、预算、检查 | 实现规则 |
 
@@ -41,6 +42,7 @@
 | 基准结果 | `docs/benchmarks/`；保留原始数据与复现命令 |
 | 实现规则、Review 门禁 | `CODING_STANDARDS.md` |
 | Issue 与 PR 流程 | `docs/agents/issue-tracker.md` |
+| 版本发布 | `CHANGELOG.md` 增加对应版本段落，行为变化写明对用户可见的影响 |
 
 ## 开发顺序
 
@@ -64,7 +66,7 @@
 
 - 预算在 `scripts/doc-budgets.json`，按 Unicode 字符数计算。
 - `pnpm docs:check` 检查预算、必需文件、相对链接、代码围栏、尾随空格、`docs/configuration.md` 的 Config 字段覆盖、默认值一致性和双语结构，以及 Agent Note 的格式。
-- 超预算先迁移到更合适的层级，再压缩；最后才调预算，并在 PR 中说明原因。
+- 发版提交时把每个预算重定基线为当前长度向上取整到千位；发布之间的增量先压缩或迁移到更合适的层级。不要通过修改 `doc-budgets.json` 或跳过检查来让门禁变绿。
 
 ## 机械检查
 
