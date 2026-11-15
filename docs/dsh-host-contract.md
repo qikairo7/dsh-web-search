@@ -13,7 +13,7 @@
 DSH `0.2.2-rc.3` 的 `standard` preset 在 `@deepseek-ai/dsh-web-app` 的 `presets/standard.patch.yml` 内声明 `tool-web`（只配 `fetch` 与 `searchTimeoutMs`，`searchSummaryMaxChars` 走 800 默认值）。bundle patch 里的 `- id: tool-web` 命中不了 preset 内的子行，因此：
 
 - 不要在插件 patch 里声明这个 cap。
-- 官方覆盖通道是 profile patch 里 `- id: preset-standard` 整体重述 preset 声明：`config` 整体替换、不深合并，必须完整重述 `id` / `order` / `plugins` 列表（DSH dsh-doc skill 的 compositions 参考记录了该机制）。代价是覆盖会把 preset 钉在重述时的状态，DSH 升级后要刷新该块。本机 desktop profile 已用该通道把 `searchSummaryMaxChars` 提到 1600。
+- 官方覆盖通道是 profile patch 里 `- id: preset-standard` 整体重述 preset 声明：`config` 整体替换、不深合并，必须完整重述 `id` / `order` / `plugins` 列表（DSH dsh-doc skill 的 compositions 参考记录了该机制）。代价是覆盖会把 preset 钉在重述时的状态，DSH 升级后要刷新该块。面向用户的操作步骤见 [提高摘要上限](cookbook/raising-summary-cap.md)；本机 desktop profile 已用该通道把 `searchSummaryMaxChars` 提到 1600。
 - 用 `dsh --profile <name> --dump-config` 检查最终组合，不要只看 bundle patch。
 
 ## DeepSeek 的两条链路

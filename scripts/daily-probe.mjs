@@ -30,6 +30,14 @@ import { hostMatchesDomain } from '../lib/host.js';
 const PROBE_DIR = '.research/daily-probe';
 const HISTORY_DAYS = 7;
 
+/** Local calendar date (YYYY-MM-DD), so the file name matches the runner's day. */
+function localDate() {
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+}
+
+const FULL = process.argv.includes('--full');
+
 const env = Object.fromEntries(
   (await readFile('.env', 'utf8')).split(/\r?\n/u).filter(Boolean).map((line) => {
     const index = line.indexOf('=');
@@ -124,6 +132,47 @@ const FETCH_URLS = [
   { id: 'example', url: 'https://example.com' },
 ];
 
+/**
+ * `--full` direct-checks every backend, including the ones the routed probe
+ * never reaches on a healthy day (exa, tavily, firecrawl, zhihu-site, http).
+ * Costs a handful of paid credits per run; meant for weekly or on-suspicion
+ * use, not the daily schedule.
+ */
+async function directCheck(name, capability, request) {
+  const provider = providers[name];
+  const started = Date.now();
+  const base = { name, capability, ms: Date.now() - started };
+  try {
+    if (provider?.available !== undefined && !provider.available()) {
+      return { ...base, ms: Date.now() - started, skipped: 'unavailable' };
+    }
+    if (typeof provider?.ready === 'function' && !(await provider.ready())) {
+      return { ...base, ms: Date.now() - started, skipped: 'not ready' };
+    }
+    const result = await provider[capability](request);
+    return {
+      ...base,
+      ms: Date.now() - started,
+      ok: true,
+      count: result?.sources?.length ?? result?.body?.content?.length ?? 0,
+    };
+  } catch (error) {
+    return { ...base, ms: Date.now() - started, ok: false, error: error.message };
+  }
+}
+
+const directChecks = [];
+if (FULL) {
+  for (const name of ['keenable', 'anysearch', 'zhihu', 'zhihu-site', 'aihot', 'exa', 'tavily', 'firecrawl']) {
+    directChecks.push(await directCheck(name, 'search', { query: 'DeepSeek Harness 插件', maxResults: 3 }));
+    console.error(`${name}: direct search done`);
+  }
+  for (const name of ['http', 'anysearch', 'exa', 'tavily', 'firecrawl']) {
+    directChecks.push(await directCheck(name, 'fetch', { url: 'https://example.com' }));
+    console.error(`${name}: direct fetch done`);
+  }
+}
+
 function searchMetrics(result, item) {
   const sources = result.sources ?? [];
   const domains = officialDomainsForQuery(item.query);
@@ -194,7 +243,7 @@ const providerHealth = Object.fromEntries(
 );
 
 const summary = {
-  date: new Date().toISOString().slice(0, 10),
+  date: localDate(),
   search: {
     success: `${okRows.length}/${rows.length}`,
     goldTop3: okRows.filter((row) => row.goldTop3).length,
@@ -218,6 +267,13 @@ const verdicts = {
   searchPass: okRows.length >= 13 && okRows.filter((row) => row.goldTop10).length >= 12,
   fetchPass: fetches.filter((row) => row.ok).length >= 1,
   noDeadProvider: Object.values(providerHealth).every((stats) => !stats.dead),
+  ...(FULL
+    ? {
+        fullPass: directChecks.every(
+          (check) => check.skipped !== undefined || check.ok === true,
+        ),
+      }
+    : {}),
 };
 const warns = [];
 if (summary.listHealth.knownNewsShare !== undefined && summary.listHealth.knownNewsShare < 0.3) {
@@ -258,9 +314,9 @@ async function rollingAggregate(today, todaySummary) {
 
 await mkdir(PROBE_DIR, { recursive: true });
 const rolling = await rollingAggregate(summary.date, summary);
-await writeFile(join(PROBE_DIR, `${summary.date}.json`), JSON.stringify({ summary, verdicts, warns, rolling, providerHealth, rows, fetches }, null, 2), 'utf8');
+await writeFile(join(PROBE_DIR, `${summary.date}.json`), JSON.stringify({ summary, verdicts, warns, rolling, providerHealth, rows, fetches, directChecks }, null, 2), 'utf8');
 
-const pass = verdicts.searchPass && verdicts.fetchPass && verdicts.noDeadProvider;
+const pass = verdicts.searchPass && verdicts.fetchPass && verdicts.noDeadProvider && (FULL ? verdicts.fullPass : true);
 console.log(JSON.stringify({ summary, verdicts, warns, rolling }, null, 2));
 if (!pass) {
   console.error('PROBE FAIL');

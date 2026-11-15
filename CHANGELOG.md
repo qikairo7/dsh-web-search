@@ -7,11 +7,15 @@ All notable changes to this project are documented here. The format follows [Kee
 ### Added
 
 - `pnpm probe` (`scripts/daily-probe.mjs`): daily live probe over the fixed query set with per-provider telemetry, news/official-domain list-health signals, a rolling 7-day aggregate, and PASS/FAIL verdicts. Daily live evidence moves from the heavy FRAMES/WebWalkerQA run to this probe; the benchmark stays release-time validation.
+- `pnpm probe --full`: direct health checks against every backend, including the ones the routed probe never reaches on a healthy day (exa, tavily, firecrawl, zhihu-site, http). Costs a handful of paid credits; meant for weekly or on-suspicion use.
+- Cookbook: [raising the web_search summary cap](docs/cookbook/raising-summary-cap.md), the profile-level fix for the 800-character preset default.
 - This changelog.
 
 ### Changed
 
+- Probe files use the local calendar date instead of UTC.
 - Documentation budgets re-baseline with each release instead of forcing migration at a fixed cap; `docs/architecture.md` budget raised to 7000.
+- `docs:check` now also compares the total table row count between the two READMEs.
 
 ## 0.10.0 — 2026-11-16
 

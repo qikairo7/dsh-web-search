@@ -207,10 +207,12 @@ const fenceInfos = (text) =>
     .map((line) => line.replace(/^```/, '').trim());
 const configRows = (text) => [...text.matchAll(/^\| `([^`]+)` \| `([^`]*)` \|/gm)].length;
 const providerRows = (text) => [...text.matchAll(/^\| `([a-z-]+)` \|/gm)].map((match) => match[1]);
+const tableRows = (text) => text.split(/\r?\n/).filter((line) => /^\|/.test(line)).length;
 
 for (const [name, left, right] of [
   ['heading levels', headingLevels(readmeEn), headingLevels(readmeZh)],
   ['code fences', fenceInfos(readmeEn), fenceInfos(readmeZh)],
+  ['table row count', tableRows(readmeEn), tableRows(readmeZh)],
 ]) {
   if (JSON.stringify(left) !== JSON.stringify(right)) {
     errors.push(`README pair mismatch: ${name}`);

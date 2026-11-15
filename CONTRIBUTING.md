@@ -1,6 +1,6 @@
 # Contributing
 
-本仓库是一个 DSH 插件。开始贡献前按顺序读：
+本仓库是一个 DSH 插件，按开源产品维护：Issue 和 PR 欢迎提交，行为变化会记录在 [CHANGELOG.md](CHANGELOG.md)。开始贡献前按顺序读：
 
 1. [AGENTS.md](AGENTS.md)：常驻硬规则和入口指针。
 2. [CODING_STANDARDS.md](CODING_STANDARDS.md)：实现与 Review 标准。
