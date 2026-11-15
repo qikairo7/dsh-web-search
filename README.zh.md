@@ -50,7 +50,7 @@ dsh plugin --profile desktop add "."
 
 也可以用 Plugin Manager 安装该目录。安装后重启 DSH。
 
-安装后打开 **Plugins → 已安装插件 → dsh-web-search → 配置**，填写各后端 API Key、启用或停用后端、设置搜索与抓取模式。Key 写入 DSH 凭据库，页面不会回显原值。
+安装后打开 **插件 → 已安装插件 → 网页搜索路由器 → 配置**，填写各后端 API Key、启用或停用后端、设置搜索与抓取模式。Key 写入 DSH 凭据库，页面不会回显原值。
 
 本插件仅从本仓库分发，不发布到 npm。
 
