@@ -22,6 +22,12 @@ The legacy `deepseek-official` search runs a full model turn for every search. T
 
 `quality` mode queries free sources by default (Chinese: Zhihu + Keenable + AnySearch; English: Keenable + AnySearch; AI news adds AIHOT first). Exa's monthly free allowance makes it the free depth hop after the default free stack; Tavily and Firecrawl are the paid tail, spent only on empty results, missing official docs, stale news, or fetch failures. Evidence enrichment prefers Keenable/HTTP/AnySearch, then Exa/Tavily/Firecrawl. `fast` uses the free order first.
 
+**Why this over the alternatives:**
+
+- Over the DeepSeek Search API: free instead of per-request billing, and measurably better retrieval on the public benchmarks (FRAMES evidence recall 0.60 vs 0.06, answer hit 0.50 vs 0.40, fetch success 13/14 vs 9/14). The trade is latency (~4 s vs 0.4 s), invisible inside async agent turns.
+- Over wiring one backend directly (AnySearch, Keenable, and friends ship their own DSH plugins): one backend is one quota and one point of failure. This bundle pools eight free allowances behind automatic failover, then merges, dedupes, reranks (BGE), and enriches the results — the model calls one tool and stops thinking about backends.
+- The costs, stated plainly: slower than a raw paid API, and community-maintained rather than a vendor SLA.
+
 ## Requirements
 
 - DeepSeek Harness `0.2.2-rc.3` (the version this bundle was verified against).

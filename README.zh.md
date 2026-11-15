@@ -20,7 +20,13 @@ DeepSeek Harness（DSH）的自包含多后端网页搜索与抓取 Provider 插
 | 直连 HTTP | 无 API 成本 | 静态页面抓取 |
 | SiliconFlow | 免费额度 | BGE 重排 + embeddings |
 
-`quality` 默认只查免费源（中文：知乎 + Keenable + AnySearch；英文：Keenable + AnySearch；AI 新闻先查 AIHOT）。Exa 的每月免费额度使它成为免费栈之后的免费深度回退；Tavily / Firecrawl 是付费尾，只在免费源空结果、缺官方文档、新闻时效不足或 Fetch 失败时消耗。证据增强最多抓取前 5 个页面，优先走 Keenable、直连 HTTP 与 AnySearch；仍失败才回退 Exa/Tavily/Firecrawl。`fast` 模式同样先走免费顺序。5 分钟搜索缓存会减少重复消耗。
+`quality` 默认只查免费源（中文：知乎 + Keenable + AnySearch；英文：Keenable + AnySearch；AI 新闻先查 AIHOT）。Exa 的每月免费额度使它成为免费栈之后的免费深度回退；Tavily / Firecrawl 是付费尾，只在免费源空结果、缺官方文档、新闻时效不足或 Fetch 失败时消耗。证据增强最多抓取前 5 个页面，优先走 Keenable、直连 HTTP 与 AnySearch；仍失败才回退 Exa/Tavily/Firecrawl。`fast` 模式同样先走免费顺序。
+
+**为什么选它，而不是别的：**
+
+- 对比 DeepSeek Search API：免费而非按次计费，公开基准上检索质量明显更好（FRAMES 证据召回 0.60 对 0.06、Answer Hit 0.50 对 0.40、抓取成功 13/14 对 9/14）；代价是延迟（约 4 秒对 0.4 秒），在 agent 异步工作流里无感。
+- 对比单独对接一个后端（AnySearch、Keenable 等都有自家 DSH 插件）：单后端只有一份配额、一个单点故障。本插件把八份免费额度汇成一个池，自动故障切换，再对结果做合并、去重、BGE 重排与证据增强——模型只调用一个工具，不需要关心后端是谁。
+- 代价也如实说：比裸付费 API 慢；社区维护而非厂商 SLA。5 分钟搜索缓存会减少重复消耗。
 
 ## 环境要求
 
