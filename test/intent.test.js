@@ -1,4 +1,4 @@
-import test from 'node:test';
+import test, { mock } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { classifyIntent, fastOrder, qualityPair } from '../lib/intent.js';
@@ -10,6 +10,16 @@ test('classifies technical, news and Chinese community queries', () => {
   assert.equal(classifyIntent('怎么评价 DeepSeek Harness 这个工具'), 'chinese-community');
   assert.equal(classifyIntent(`${new Date().getFullYear()} 行业盘点`), 'news');
   assert.equal(classifyIntent(`${new Date().getFullYear() - 1} 行业盘点`), 'news');
+});
+
+test('rebuilds the news year list after the year rolls over', () => {
+  const nextYear = new Date().getFullYear() + 1;
+  mock.timers.enable({ now: Date.UTC(nextYear, 0, 1) });
+  try {
+    assert.equal(classifyIntent(`${nextYear} conference schedule`), 'news');
+  } finally {
+    mock.timers.reset();
+  }
 });
 
 test('chooses free-provider quality pairs', () => {

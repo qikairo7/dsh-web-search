@@ -9,7 +9,7 @@ pnpm benchmark:preflight
 pnpm benchmark
 ```
 
-凭据放在仓库根目录的 `.env`（gitignored，格式见 `.env.example`），`pnpm benchmark` 会自动加载；不要在 shell 命令行里直接写 key。需要 `AS_KEY`、`TV_KEY`、`FC_KEY`、`ZH_KEY`、`SF_KEY`、`DS_TOKEN`。`DS_TOKEN` 可以是 DSH account token，也可以是 DeepSeek API key（`sk-` 开头）。`SAMPLE_SIZE` 控制每个基准的行数，默认 50。默认是 search-only；`BENCHMARK_ENRICH=1` 时才启用 evidence enrichment（会更慢）。runner 优先读 `scripts/fixtures/public-benchmark-sample.json`，fixture 不足时才回退到公开 rows API；结果写 `.research/public-benchmark.json`（gitignored），不提交。
+凭据放在仓库根目录的 `.env`（gitignored，格式见 `.env.example`），`pnpm benchmark` 会自动加载；不要在 shell 命令行里直接写 key。需要 `AS_KEY`、`TV_KEY`、`FC_KEY`、`ZH_KEY`、`SF_KEY`、`DS_TOKEN`。`DS_TOKEN` 可以是 DSH account token，也可以是 DeepSeek API key（`sk-` 开头）。`SAMPLE_SIZE` 控制每个基准的行数，默认 50。默认是 search-only；`BENCHMARK_ENRICH=1` 时才启用 evidence enrichment（会更慢）。runner 优先读 `scripts/fixtures/public-benchmark-sample.json`，fixture 不足时才回退到公开 rows API，数据集更新后用 `pnpm benchmark:refresh` 重新生成；结果写 `.research/public-benchmark.json`（gitignored），不提交。
 
 ## 指标
 
