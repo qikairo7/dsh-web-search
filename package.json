@@ -51,7 +51,10 @@
     "TRADEMARKS.zh.md",
     "THIRD_PARTY_NOTICES.md",
     "LICENSES/*.txt",
-    "client.js"
+    "client.js",
+    "docs/DETAIL.md",
+    "docs/DETAIL.zh.md",
+    "docs/preview.svg"
   ],
   "engines": {
     "node": "^22.19.0 || >=24.0.0"

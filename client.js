@@ -94,8 +94,8 @@ window.__ModuleLoader__.load({
     };
 
     const en = {
-      title: 'Web search and fetch',
-      intro: 'Fill provider API keys, choose which backends are active, and set search and fetch modes.',
+      title: 'Search and fetch settings',
+      intro: 'Fill provider API keys, choose which backends are active, and set search and fetch modes. Keenable and AnySearch work anonymously, so you can start without any key.',
       keysTitle: 'Provider API keys',
       keysHint: 'Keys are stored write-only in the DSH credential store. The page never reads a saved value back.',
       providersTitle: 'Providers',
@@ -111,6 +111,12 @@ window.__ModuleLoader__.load({
       configured: 'Configured',
       notConfigured: 'Not configured',
       fromEnvironment: 'From environment',
+      statusUnknown: 'Status unknown',
+      loading: 'Loading settings…',
+      retry: 'Retry',
+      show: 'Show',
+      hide: 'Hide',
+      unsaved: 'Unsaved changes',
       keyPlaceholder: 'sk-…',
       savedPlaceholder: 'Saved key: type a new one to replace it',
       save: 'Save',
@@ -120,6 +126,7 @@ window.__ModuleLoader__.load({
       savedKey: 'Saved {name} key.',
       clearedKey: 'Cleared {name} key.',
       saveFailed: 'The deployment refused the write. Check the key and try again.',
+      configSaveFailed: 'The deployment refused these settings. Review the values and try again.',
       enterKey: 'Enter a key first.',
       clearConfirm: 'Clear the stored key for {name}?',
       configSaved: 'Settings saved.',
@@ -127,7 +134,7 @@ window.__ModuleLoader__.load({
       configConflict: 'Another change landed first. The page was refreshed; review and save again.',
       refresh: 'Refresh status',
       unavailable: 'The plugin settings are not available. Make sure the plugin is enabled.',
-      readOnly: 'This deployment stores settings read-only.',
+      readOnly: 'This deployment stores settings read-only. API keys can still be saved to the credential store.',
       hintKeenable: 'Free quota; anonymous access works, a key raises the quota.',
       hintAnysearch: 'Anonymous access works; a registered key raises the daily quota.',
       hintExa: 'Semantic search and Contents fetch; required for the free depth hop.',
@@ -150,8 +157,8 @@ window.__ModuleLoader__.load({
     };
 
     const zh = {
-      title: '网页搜索与抓取',
-      intro: '填写各后端 API Key，选择启用的后端，并设置搜索与抓取模式。',
+      title: '搜索与抓取设置',
+      intro: '填写各后端 API Key，选择启用的后端，并设置搜索与抓取模式。Keenable 和 AnySearch 可匿名使用，没有其他 Key 也能先开始。',
       keysTitle: '后端 API Key',
       keysHint: 'Key 只写入 DSH 凭据库，保存后不会回显原值。',
       providersTitle: '后端开关',
@@ -167,6 +174,12 @@ window.__ModuleLoader__.load({
       configured: '已配置',
       notConfigured: '未配置',
       fromEnvironment: '来自环境变量',
+      statusUnknown: '状态未知',
+      loading: '正在加载设置…',
+      retry: '重试',
+      show: '显示',
+      hide: '隐藏',
+      unsaved: '有未保存的改动',
       keyPlaceholder: 'sk-…',
       savedPlaceholder: '已保存；输入新 Key 可替换',
       save: '保存',
@@ -176,6 +189,7 @@ window.__ModuleLoader__.load({
       savedKey: '{name} Key 已保存。',
       clearedKey: '{name} Key 已清除。',
       saveFailed: '部署拒绝了写入，请检查 Key 后重试。',
+      configSaveFailed: '部署拒绝了这些设置，请复核后重试。',
       enterKey: '请先输入 Key。',
       clearConfirm: '确认清除 {name} 的已保存 Key？',
       configSaved: '设置已保存。',
@@ -183,7 +197,7 @@ window.__ModuleLoader__.load({
       configConflict: '有另一处修改先落盘，页面已刷新，请复核后重新保存。',
       refresh: '刷新状态',
       unavailable: '插件设置当前不可用，请确认插件已启用。',
-      readOnly: '当前部署以只读方式保存设置。',
+      readOnly: '当前部署以只读方式保存设置；API Key 仍可写入凭据库。',
       hintKeenable: '免费额度；可匿名使用，配置 Key 后额度更高。',
       hintAnysearch: '可匿名使用；注册 Key 后每日额度更高。',
       hintExa: '语义搜索与 Contents 抓取；免费深度回退需要它。',
@@ -410,8 +424,24 @@ window.__ModuleLoader__.load({
       return draft;
     }
 
-    function sameValue(left, right) {
-      return left === right;
+    function configOperations(current, draft) {
+      const operations = [];
+      const keys = [
+        'searchMode',
+        'fetchMode',
+        ...SWITCHES.map((field) => field.key),
+        ...PROVIDERS.map((provider) => provider.toggleKey),
+        ...EXTRA_TOGGLES.map((toggle) => toggle.key),
+      ];
+      for (const key of keys) {
+        const before = key === 'searchMode'
+          ? (current.searchMode === 'fast' ? 'fast' : 'quality')
+          : key === 'fetchMode'
+            ? (current.fetchMode === 'clean' ? 'clean' : 'fast')
+            : truthy(current[key], BOOLEAN_DEFAULTS[key] !== false);
+        if (before !== draft[key]) operations.push({ op: 'set', path: [key], value: draft[key] });
+      }
+      return operations;
     }
 
     function Toggle(props) {
@@ -440,11 +470,13 @@ window.__ModuleLoader__.load({
       const [state, setState] = React.useState({ status: 'loading' });
       const [draft, setDraft] = React.useState({});
       const [keyDrafts, setKeyDrafts] = React.useState({});
+      const [keyMessages, setKeyMessages] = React.useState({});
+      const [revealed, setRevealed] = React.useState({});
       const [busy, setBusy] = React.useState(false);
       const [message, setMessage] = React.useState('');
       const [messageError, setMessageError] = React.useState(false);
 
-      const refresh = React.useCallback(async () => {
+      const refresh = React.useCallback(async (resetDraft = true) => {
         const settingsResult = await safeCall(() => props.ctx.remote.settings.describe());
         if (!isOk(settingsResult)) {
           setState({ status: 'unavailable' });
@@ -462,8 +494,9 @@ window.__ModuleLoader__.load({
           ns,
           writable: settingsResult.value.writable !== false,
           credentials: isOk(credentialsResult) ? credentialsResult.value : {},
+          credentialsError: !isOk(credentialsResult),
         });
-        setDraft(configDraft(ns));
+        if (resetDraft) setDraft(configDraft(ns));
       }, [props.ctx]);
 
       React.useEffect(() => {
@@ -475,20 +508,26 @@ window.__ModuleLoader__.load({
         setMessageError(error);
       };
 
+      const noteKey = (provider, text, error = false) => {
+        setMessage('');
+        setKeyMessages((current) => ({ ...current, [provider.id]: { text, error } }));
+      };
+
       const saveKey = async (provider, ref) => {
         const value = (keyDrafts[provider.id] ?? '').trim();
         if (value.length === 0) {
-          note(t('enterKey'), true);
+          noteKey(provider, t('enterKey'), true);
           return;
         }
         setBusy(true);
         const result = await safeCall(() => props.ctx.remote.credentials.set(ref, value));
         if (isOk(result)) {
           setKeyDrafts((current) => ({ ...current, [provider.id]: '' }));
-          note(t('savedKey', { name: provider.label }));
-          await refresh();
+          setRevealed((current) => ({ ...current, [provider.id]: false }));
+          noteKey(provider, t('savedKey', { name: provider.label }));
+          await refresh(false);
         } else {
-          note(t('saveFailed'), true);
+          noteKey(provider, t('saveFailed'), true);
         }
         setBusy(false);
       };
@@ -498,27 +537,17 @@ window.__ModuleLoader__.load({
         setBusy(true);
         const result = await safeCall(() => props.ctx.remote.credentials.unset(ref));
         if (isOk(result)) {
-          note(t('clearedKey', { name: provider.label }));
-          await refresh();
+          noteKey(provider, t('clearedKey', { name: provider.label }));
+          await refresh(false);
         } else {
-          note(t('saveFailed'), true);
+          noteKey(provider, t('saveFailed'), true);
         }
         setBusy(false);
       };
 
       const saveConfig = async () => {
         if (state.status !== 'ready' || !state.writable) return;
-        const current = state.ns.value ?? {};
-        const operations = [];
-        for (const key of ['searchMode', 'fetchMode', ...SWITCHES.map((field) => field.key),
-          ...PROVIDERS.map((provider) => provider.toggleKey), ...EXTRA_TOGGLES.map((toggle) => toggle.key)]) {
-          const before = key === 'searchMode'
-            ? (current.searchMode === 'fast' ? 'fast' : 'quality')
-            : key === 'fetchMode'
-              ? (current.fetchMode === 'clean' ? 'clean' : 'fast')
-              : truthy(current[key], BOOLEAN_DEFAULTS[key] !== false);
-          if (!sameValue(before, draft[key])) operations.push({ op: 'set', path: [key], value: draft[key] });
-        }
+        const operations = configOperations(state.ns.value ?? {}, draft);
         if (operations.length === 0) {
           note(t('configNoChanges'));
           return;
@@ -532,28 +561,41 @@ window.__ModuleLoader__.load({
           note(t('configConflict'), true);
           await refresh();
         } else {
-          note(t('saveFailed'), true);
+          note(t('configSaveFailed'), true);
         }
         setBusy(false);
       };
 
       if (state.status === 'loading') {
-        return h('section', { style: styles.section }, h('h3', { style: styles.heading }, t('title')));
+        return h('section', { style: styles.section },
+          h('h3', { style: styles.heading }, t('title')),
+          h('p', { style: styles.intro }, t('loading')));
       }
       if (state.status === 'unavailable') {
         return h('section', { style: styles.section },
           h('h3', { style: styles.heading }, t('title')),
-          h('p', { style: { ...styles.intro, ...styles.error } }, t('unavailable')));
+          h('p', { style: { ...styles.intro, ...styles.error } }, t('unavailable')),
+          h('button', {
+            type: 'button',
+            style: styles.button,
+            onClick: () => { void refresh(); },
+          }, t('retry')));
       }
 
       const ns = state.ns;
       const readOnly = !state.writable;
+      const dirty = configOperations(ns.value ?? {}, draft).length > 0;
       const providerCards = PROVIDERS.map((provider, index) => {
         const ref = String(ns.value?.[provider.refKey] ?? '').trim() || provider.defaultRef;
         const info = state.credentials?.[ref] ?? {};
         const configured = info.configured === true;
         const writable = info.writable !== false;
         const fromEnvironment = info.source === 'environment';
+        const shown = revealed[provider.id] === true;
+        const keyMessage = keyMessages[provider.id];
+        const statusText = state.credentialsError
+          ? t('statusUnknown')
+          : configured ? (fromEnvironment ? t('fromEnvironment') : t('configured')) : t('notConfigured');
         return h('div', { key: provider.id, style: { ...styles.card, ...(index === 0 ? styles.cardFirst : {}) } },
           h('div', { style: styles.cardHead },
             h('div', null,
@@ -561,35 +603,45 @@ window.__ModuleLoader__.load({
               h('p', { style: styles.hint }, t(provider.hintKey))),
             h('div', { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
               h(Toggle, {
-                label: provider.label,
+                label: `${provider.label} ${draft[provider.toggleKey] === true ? t('enabled') : t('disabled')}`,
                 checked: draft[provider.toggleKey] === true,
                 disabled: readOnly || busy,
                 onChange: (value) => setDraft((current) => ({ ...current, [provider.toggleKey]: value })),
               }),
-              h('span', { style: { ...styles.badge, ...(configured ? styles.badgeOn : styles.badgeOff) } },
-                configured ? (fromEnvironment ? t('fromEnvironment') : t('configured')) : t('notConfigured')))),
+              h('span', { style: { ...styles.badge, ...(configured && !state.credentialsError ? styles.badgeOn : styles.badgeOff) } },
+                statusText))),
           h('div', { style: styles.keyRow },
             h('input', {
-              style: { ...styles.input, ...(readOnly || !writable || busy ? styles.disabled : {}) },
-              type: 'password',
+              style: { ...styles.input, ...(!writable || busy ? styles.disabled : {}) },
+              type: shown ? 'text' : 'password',
               autoComplete: 'new-password',
               placeholder: configured ? t('savedPlaceholder') : t('keyPlaceholder'),
               value: keyDrafts[provider.id] ?? '',
-              disabled: readOnly || !writable || busy,
+              disabled: !writable || busy,
               onChange: (event) => setKeyDrafts((current) => ({ ...current, [provider.id]: event.target.value })),
             }),
             h('button', {
               type: 'button',
-              style: { ...styles.button, ...styles.primary, ...((busy || readOnly || !writable || (keyDrafts[provider.id] ?? '').trim().length === 0) ? styles.disabled : {}) },
-              disabled: busy || readOnly || !writable || (keyDrafts[provider.id] ?? '').trim().length === 0,
+              style: { ...styles.button, ...((busy || !writable) ? styles.disabled : {}) },
+              disabled: busy || !writable,
+              onClick: () => setRevealed((current) => ({ ...current, [provider.id]: !shown })),
+            }, shown ? t('hide') : t('show')),
+            h('button', {
+              type: 'button',
+              style: { ...styles.button, ...styles.primary, ...((busy || !writable || (keyDrafts[provider.id] ?? '').trim().length === 0) ? styles.disabled : {}) },
+              disabled: busy || !writable || (keyDrafts[provider.id] ?? '').trim().length === 0,
               onClick: () => { void saveKey(provider, ref); },
             }, t('save')),
             h('button', {
               type: 'button',
-              style: { ...styles.button, ...((busy || readOnly || !writable || !configured) ? styles.disabled : {}) },
-              disabled: busy || readOnly || !writable || !configured,
+              style: { ...styles.button, ...((busy || !writable || !configured) ? styles.disabled : {}) },
+              disabled: busy || !writable || !configured,
               onClick: () => { void clearKey(provider, ref); },
-            }, t('clear'))));
+            }, t('clear'))),
+          keyMessage === undefined ? null : h('p', {
+            role: 'status',
+            style: { ...styles.message, ...(keyMessage.error ? styles.error : {}) },
+          }, keyMessage.text));
       });
 
       return h('section', { style: styles.section },
@@ -645,8 +697,8 @@ window.__ModuleLoader__.load({
         h('div', { style: styles.keyRow },
           h('button', {
             type: 'button',
-            style: { ...styles.button, ...styles.primary, ...(readOnly || busy ? styles.disabled : {}) },
-            disabled: readOnly || busy,
+            style: { ...styles.button, ...styles.primary, ...(readOnly || busy || !dirty ? styles.disabled : {}) },
+            disabled: readOnly || busy || !dirty,
             onClick: () => { void saveConfig(); },
           }, busy ? t('saving') : t('save')),
           h('button', {
@@ -654,7 +706,8 @@ window.__ModuleLoader__.load({
             style: { ...styles.button, ...(busy ? styles.disabled : {}) },
             disabled: busy,
             onClick: () => { void refresh(); },
-          }, t('refresh'))),
+          }, t('refresh')),
+          dirty ? h('span', { style: styles.message }, t('unsaved')) : null),
         message.length === 0 ? null : h('p', {
           role: 'status',
           style: { ...styles.message, ...(messageError ? styles.error : {}) },
