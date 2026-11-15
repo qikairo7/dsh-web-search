@@ -125,6 +125,8 @@ The default `auto` provider is pinned by the bundle patch. Individual providers 
 
 Search results are cached for 5 minutes (200 entries); fetch results for 10 minutes (100 entries). A provider with 3 consecutive recoverable failures is skipped for 5 minutes.
 
+- **Overall deadline**: one search (realtime answer, quality pipeline, or fast fallback) is capped at 3 × `requestTimeoutMs`, so a hanging stage cannot outlive the caller's tool deadline.
+
 ## Configuration
 
 See [Configuration](docs/configuration.md) for every field, default, and meaning.

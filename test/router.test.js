@@ -415,6 +415,28 @@ test('AutoSearchProvider annotates the request with routing facts once', async (
   assert.equal(typeof seen[0].routing.syntax, 'object');
 });
 
+test('AutoSearchProvider aborts when the overall search budget expires', async () => {
+  const providers = {
+    anysearch: {
+      id: 'anysearch',
+      available: () => true,
+      ready: async () => true,
+      async search() {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        return { sources: [{ url: 'https://anysearch.example/' }], truncated: false };
+      },
+    },
+  };
+  const router = new AutoSearchProvider({
+    settings: () => settings({ searchMode: 'quality', requestTimeoutMs: 1, defaultSearchOrder: ['anysearch'] }),
+    providers,
+  });
+  await assert.rejects(
+    () => router.search({ query: 'slow query test' }),
+    (error) => error.code === 'WEB_ABORTED',
+  );
+});
+
 test('AutoFetchProvider honors an explicit order and keys the cache by it', async () => {
   const calls = [];
   const providers = {

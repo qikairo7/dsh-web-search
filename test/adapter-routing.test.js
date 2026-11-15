@@ -211,7 +211,7 @@ test('AnySearch standalone search honors the lang: operator like the routed path
   }
 });
 
-test('QualityEngine standalone fallback drops the detected language when languageRouting is off', async () => {
+test('QualityEngine keeps known news domains when languageRouting is off', async () => {
   const settingsThunk = () => ({
     officialDocsEnabled: false,
     enrichEnabled: false,
@@ -238,5 +238,5 @@ test('QualityEngine standalone fallback drops the detected language when languag
     runner: new ProviderRunner({ settings: settingsThunk, providers }),
   });
   const outcome = await engine.search({ query: 'latest industry news 2026', maxResults: 10 }, undefined);
-  assert.ok(outcome.sources.every((source) => source.url !== 'https://www.reuters.com/article'));
+  assert.ok(outcome.sources.some((source) => source.url === 'https://www.reuters.com/article'));
 });

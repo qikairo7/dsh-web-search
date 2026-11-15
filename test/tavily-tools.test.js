@@ -88,6 +88,49 @@ test('TavilyProvider.searchAdvanced posts filters to /search and maps results', 
   );
 });
 
+test('TavilyProvider.search honors tavilyIncludeAnswer in the request body', async () => {
+  let seen;
+  await withFetch(
+    async (url, init) => {
+      seen = { url: String(url), init };
+      return new Response(
+        JSON.stringify({
+          answer: 'generated answer',
+          results: [{ title: 'One', url: 'https://one.example/', content: 'x'.repeat(60) }],
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      );
+    },
+    async () => {
+      const tavily = provider();
+      const result = await tavily.search({ query: 'DeepSeek news', maxResults: 5 });
+      assert.equal(seen.url, 'https://api.tavily.com/search');
+      const body = JSON.parse(seen.init.body);
+      assert.equal(body.include_answer, true);
+      assert.equal(result.content, 'generated answer');
+    },
+  );
+
+  await withFetch(
+    async (url, init) => {
+      seen = { url: String(url), init };
+      return new Response(
+        JSON.stringify({
+          results: [{ title: 'One', url: 'https://one.example/', content: 'x'.repeat(60) }],
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      );
+    },
+    async () => {
+      const tavily = provider({ tavily: { includeAnswer: false } });
+      const result = await tavily.search({ query: 'DeepSeek news', maxResults: 5 });
+      const body = JSON.parse(seen.init.body);
+      assert.equal(body.include_answer, false);
+      assert.equal(result.content, undefined);
+    },
+  );
+});
+
 test('TavilyProvider.extractMany posts multiple URLs to /extract and separates failed results', async () => {
   let seen;
   await withFetch(

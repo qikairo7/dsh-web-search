@@ -1,17 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { filterNewsLanguage, isNewsDomain, newsBoostValue } from '../lib/news.js';
+import { filterNewsLanguage, newsBoostValue } from '../lib/news.js';
 import { sortByAuthority } from '../lib/authority.js';
-
-test('recognizes language-specific Chinese and English news domains', () => {
-  assert.equal(isNewsDomain('https://www.sohu.com/a/1100338793_121732504', 'zh'), true);
-  assert.equal(isNewsDomain('https://www.sohu.com/a/1100338793_121732504', 'en'), false);
-  assert.equal(isNewsDomain('https://www.163.com/dy/article/LBC1C14J0534A4SC.html', 'zh'), true);
-  assert.equal(isNewsDomain('https://www.reuters.com/technology/', 'en'), true);
-  assert.equal(isNewsDomain('https://www.reuters.com/technology/', 'zh'), false);
-  assert.equal(isNewsDomain('https://example.com/news', 'zh'), false);
-});
 
 test('mainstream Chinese news gets a larger boost', () => {
   assert.equal(newsBoostValue('https://www.sohu.com/a/1', 'zh'), 0.5);
@@ -57,4 +48,5 @@ test('filterNewsLanguage removes wrong-language news sources and titles', () => 
     filterNewsLanguage(sources, 'zh').map((source) => source.url),
     ['https://www.sohu.com/a/1', 'https://example.com/zh'],
   );
+  assert.deepEqual(filterNewsLanguage(sources, undefined), sources);
 });

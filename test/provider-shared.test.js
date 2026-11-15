@@ -9,6 +9,7 @@ import {
   providerOperation,
   requireKey,
   textResult,
+  USER_AGENT,
 } from '../lib/providers/shared.js';
 import { AnySearchProvider } from '../lib/providers/anysearch.js';
 import { TavilyProvider } from '../lib/providers/tavily.js';
@@ -27,11 +28,11 @@ test('jsonHeaders adds a bearer token only when a key exists', () => {
   assert.deepEqual(jsonHeaders('secret'), {
     authorization: 'Bearer secret',
     'content-type': 'application/json',
-    'user-agent': 'dsh-web-search-router/0.1.0',
+    'user-agent': USER_AGENT,
   });
   assert.deepEqual(jsonHeaders(undefined), {
     'content-type': 'application/json',
-    'user-agent': 'dsh-web-search-router/0.1.0',
+    'user-agent': USER_AGENT,
   });
   assert.equal(jsonHeaders('secret', { 'x-request-timestamp': '1' })['x-request-timestamp'], '1');
 });

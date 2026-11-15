@@ -8,6 +8,8 @@ test('classifies technical, news and Chinese community queries', () => {
   assert.equal(classifyIntent('DeepSeek Harness 插件开发'), 'technical');
   assert.equal(classifyIntent('2026年11月 AI 行业新闻'), 'news');
   assert.equal(classifyIntent('怎么评价 DeepSeek Harness 这个工具'), 'chinese-community');
+  assert.equal(classifyIntent(`${new Date().getFullYear()} 行业盘点`), 'news');
+  assert.equal(classifyIntent(`${new Date().getFullYear() - 1} 行业盘点`), 'news');
 });
 
 test('chooses free-provider quality pairs', () => {
