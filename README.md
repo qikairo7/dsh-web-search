@@ -52,7 +52,7 @@ Or install the checkout directory with the Plugin Manager. Restart DSH after ins
 
 After install, open **Plugins → Installed plugins → Web search router → Configuration** to fill provider API keys, enable or disable backends, and set search and fetch modes. Keys are written to the DSH credential store and never read back into the page.
 
-Distribution is from this repository; the package is not published to npm.
+Use **Test** on a provider card to send one real search request and confirm the saved key works. Distribution is from this repository; the package is not published to npm.
 
 ## Credentials
 

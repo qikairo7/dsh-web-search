@@ -98,6 +98,8 @@ window.__ModuleLoader__.load({
       intro: 'Fill provider API keys, choose which backends are active, and set search and fetch modes. Keenable and AnySearch work anonymously, so you can start without any key.',
       keysTitle: 'Provider API keys',
       keysHint: 'Keys are stored write-only in the DSH credential store. The page never reads a saved value back.',
+      providersAnonymous: 'Anonymous or optional key',
+      providersKey: 'Key required',
       providersTitle: 'Providers',
       modesTitle: 'Search behavior',
       advancedTitle: 'Advanced',
@@ -120,8 +122,14 @@ window.__ModuleLoader__.load({
       keyPlaceholder: 'sk-…',
       apiKeyLabel: '{name} API key',
       savedPlaceholder: 'Saved key: type a new one to replace it',
+      test: 'Test',
+      testing: 'Testing…',
+      testOk: '{name} responded in {ms} ms with {count} result(s).',
+      testFailed: 'Verification failed. Check the key, network, or provider status.',
       save: 'Save',
       clear: 'Clear',
+      confirm: 'Confirm',
+      cancel: 'Cancel',
       saving: 'Saving…',
       saved: 'Saved.',
       savedKey: 'Saved {name} key.',
@@ -162,6 +170,8 @@ window.__ModuleLoader__.load({
       intro: '填写各后端 API Key，选择启用的后端，并设置搜索与抓取模式。Keenable 和 AnySearch 可匿名使用，没有其他 Key 也能先开始。',
       keysTitle: '后端 API Key',
       keysHint: 'Key 只写入 DSH 凭据库，保存后不会回显原值。',
+      providersAnonymous: '匿名可用 / Key 可选',
+      providersKey: '需要 Key',
       providersTitle: '后端开关',
       modesTitle: '搜索行为',
       advancedTitle: '高级',
@@ -184,8 +194,14 @@ window.__ModuleLoader__.load({
       keyPlaceholder: 'sk-…',
       apiKeyLabel: '{name} API Key',
       savedPlaceholder: '已保存；输入新 Key 可替换',
+      test: '验证',
+      testing: '验证中…',
+      testOk: '{name} 在 {ms} ms 内返回 {count} 条结果。',
+      testFailed: '验证失败，请检查 Key、网络或 Provider 状态。',
       save: '保存',
       clear: '清除',
+      confirm: '确认',
+      cancel: '取消',
       saving: '保存中…',
       saved: '已保存。',
       savedKey: '{name} Key 已保存。',
@@ -253,6 +269,12 @@ window.__ModuleLoader__.load({
         margin: 0,
         fontSize: '15px',
         fontWeight: 600,
+      },
+      groupSubtitle: {
+        margin: '4px 0 0',
+        fontSize: '12px',
+        fontWeight: 600,
+        color: 'var(--dsw-alias-label-tertiary)',
       },
       hint: {
         margin: 0,
@@ -474,6 +496,7 @@ window.__ModuleLoader__.load({
       const [keyDrafts, setKeyDrafts] = React.useState({});
       const [keyMessages, setKeyMessages] = React.useState({});
       const [revealed, setRevealed] = React.useState({});
+      const [confirmClear, setConfirmClear] = React.useState(undefined);
       const [busy, setBusy] = React.useState(false);
       const [message, setMessage] = React.useState('');
       const [messageError, setMessageError] = React.useState(false);
@@ -535,7 +558,11 @@ window.__ModuleLoader__.load({
       };
 
       const clearKey = async (provider, ref) => {
-        if (!window.confirm(t('clearConfirm', { name: provider.label }))) return;
+        if (confirmClear !== provider.id) {
+          setConfirmClear(provider.id);
+          return;
+        }
+        setConfirmClear(undefined);
         setBusy(true);
         const result = await safeCall(() => props.ctx.remote.credentials.unset(ref));
         if (isOk(result)) {
@@ -545,6 +572,32 @@ window.__ModuleLoader__.load({
           noteKey(provider, t('saveFailed'), true);
         }
         setBusy(false);
+      };
+
+      const testProvider = async (provider) => {
+        setBusy(true);
+        noteKey(provider, t('testing'));
+        try {
+          const response = await fetch('/dsh-web-search/health', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ providerId: provider.id, capability: 'search' }),
+          });
+          const data = await response.json();
+          if (data?.ok === true) {
+            noteKey(provider, t('testOk', {
+              name: provider.label,
+              ms: data.latencyMs ?? '—',
+              count: data.count ?? 0,
+            }));
+          } else {
+            noteKey(provider, t('testFailed'), true);
+          }
+        } catch {
+          noteKey(provider, t('testFailed'), true);
+        } finally {
+          setBusy(false);
+        }
       };
 
       const saveConfig = async () => {
@@ -629,6 +682,12 @@ window.__ModuleLoader__.load({
               disabled: busy || !writable,
               onClick: () => setRevealed((current) => ({ ...current, [provider.id]: !shown })),
             }, shown ? t('hide') : t('show')),
+            provider.id === 'siliconflow' ? null : h('button', {
+              type: 'button',
+              style: { ...styles.button, ...((busy || !writable) ? styles.disabled : {}) },
+              disabled: busy || !writable,
+              onClick: () => { void testProvider(provider); },
+            }, busy ? t('testing') : t('test')),
             h('button', {
               type: 'button',
               style: { ...styles.button, ...styles.primary, ...((busy || !writable || (keyDrafts[provider.id] ?? '').trim().length === 0) ? styles.disabled : {}) },
@@ -641,11 +700,26 @@ window.__ModuleLoader__.load({
               disabled: busy || !writable || !configured,
               onClick: () => { void clearKey(provider, ref); },
             }, t('clear'))),
+          confirmClear === provider.id ? h('div', { style: styles.keyRow },
+            h('span', { style: styles.message }, t('clearConfirm', { name: provider.label })),
+            h('button', {
+              type: 'button',
+              style: styles.button,
+              onClick: () => { void clearKey(provider, ref); },
+            }, t('confirm')),
+            h('button', {
+              type: 'button',
+              style: styles.button,
+              onClick: () => setConfirmClear(undefined),
+            }, t('cancel'))) : null,
           keyMessage === undefined ? null : h('p', {
             role: 'status',
             style: { ...styles.message, ...(keyMessage.error ? styles.error : {}) },
           }, keyMessage.text));
       });
+      const anonymousCount = PROVIDERS.filter((provider) => provider.anonymous === true).length;
+      const anonymousCards = providerCards.slice(0, anonymousCount);
+      const keyCards = providerCards.slice(anonymousCount);
 
       return h('section', { style: styles.section },
         h('h3', { style: styles.heading }, t('title')),
@@ -654,7 +728,10 @@ window.__ModuleLoader__.load({
         h('div', { style: styles.group },
           h('h4', { style: styles.groupTitle }, t('keysTitle')),
           h('p', { style: styles.hint }, t('keysHint')),
-          ...providerCards),
+          h('h5', { style: styles.groupSubtitle }, t('providersAnonymous')),
+          ...anonymousCards,
+          h('h5', { style: styles.groupSubtitle }, t('providersKey')),
+          ...keyCards),
         h('div', { style: styles.group },
           h('h4', { style: styles.groupTitle }, t('providersTitle')),
           ...EXTRA_TOGGLES.map((toggle) => h('div', { key: toggle.key, style: styles.fieldRow },

@@ -33,6 +33,7 @@ Provider 的能力矩阵与默认顺序归 [README Providers 段](../README.md#p
 | 模块 | 职责 |
 |---|---|
 | `lib/index.js` | 插件入口；由 `SETTINGS_SPEC` 生成 `Config`，`createProviders()` 按 catalog 派生实例并注册 |
+| `lib/health.js` | 设置页的 Provider 健康检查：可选注册同源 HTTP 路由，用户点击“验证”时真实请求一次 |
 | `lib/providers/*.js` | 各后端适配器与 `mapXxxSearch()` 纯映射；消费 `request.routing` 注记，缺省时经 `resolveRouting` 推导 |
 | `lib/providers/shared.js` | 适配器共用层：`providerOperation` 骨架（超时、错误边界、诊断标签）、`USER_AGENT`、计数夹取、凭据检查 |
 | `lib/providers/anysearchClient.js` | AnySearch HTTP 客户端（移植自 `anysearch-dsh`） |
