@@ -1,5 +1,7 @@
 # @qikairo7/dsh-web-search
 
+[![Release](https://img.shields.io/github/v/release/qikairo7/dsh-web-search?label=release&color=111111)](https://github.com/qikairo7/dsh-web-search/releases) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Node](https://img.shields.io/badge/node-22.19%2B%20%7C%2024%2B-339933?logo=node.js&logoColor=white)](package.json)
+
 [English](README.md) | 中文
 
 DeepSeek Harness（DSH）的自包含多后端网页搜索与抓取 Provider 插件。它替换官方收费的网页 Provider，但保留第一方 `dsh-tool-web` 工具层。模型仍然调用 `web_search` 和 `web_fetch`，只是后端换了；另有可选的 AnySearch / Tavily / AIHOT 高级工具。插件不调用 DeepSeek Search/Fetch API。
@@ -7,6 +9,8 @@ DeepSeek Harness（DSH）的自包含多后端网页搜索与抓取 Provider 插
 非目标：不接入官方收费 Search/Fetch API，不依赖 MCP，不安装第三方 DSH 插件。
 
 > 状态：1.0 之前。行为、默认值和后端支持可能在次版本之间变化。使用前请阅读 [SAFETY.zh.md](SAFETY.zh.md)。
+
+![Provider keys feed a router that serves web search and web fetch](docs/preview.svg)
 
 ## 为什么做
 

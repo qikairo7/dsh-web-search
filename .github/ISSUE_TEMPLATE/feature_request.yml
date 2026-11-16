@@ -1,0 +1,26 @@
+name: Feature request
+description: Propose a new capability or an intentional change in observable behavior
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: What problem exists today, who is affected, and why is the change needed?
+    validations:
+      required: true
+
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected behavior
+      description: Describe the user-visible, model-visible, or system-visible behavior.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: What workarounds or other designs did you consider?

@@ -1,0 +1,90 @@
+name: Bug report
+description: Report behavior that no longer works as expected
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Remove API keys and tokens from logs before pasting them.
+
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version
+      description: The version shown in Settings → Plugins, or in `package.json`.
+      placeholder: 0.12.0
+    validations:
+      required: true
+
+  - type: input
+    id: dsh-version
+    attributes:
+      label: DeepSeek Harness version
+      placeholder: 0.2.2-rc.3
+    validations:
+      required: true
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+      placeholder: 22.19.0 or 24.20.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Provider
+      description: Pick the provider that failed, or the one selected in auto mode.
+      options:
+        - auto
+        - anysearch
+        - keenable
+        - exa
+        - tavily
+        - firecrawl
+        - zhihu
+        - aihot
+        - http
+        - Not provider-specific
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What happened, and what you expected
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error text or logs
+      description: Paste the exact error. Remove keys and tokens first.
+      render: text
