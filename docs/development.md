@@ -48,7 +48,7 @@ node scripts/check-syntax.mjs && node --test --test-isolation=none
 
 ## CI 与 Hook
 
-- `.github/workflows/check.yml` 在 Node 22 和 24 上运行 `pnpm install --frozen-lockfile` 和 `pnpm check`。
+- `.github/workflows/check.yml` 在 Node 22 和 24 上运行 `pnpm install --frozen-lockfile` 和 `pnpm check`，并在 `pull_request` 上运行 `pr-gate` 检查 PR 正文。
 - `.githooks/pre-commit` 运行 `pnpm check`；首次 clone 后用 `git config core.hooksPath .githooks` 启用。
 - 仓库没有 `dev` / `build` / `lint` / `typecheck` 脚本；不要运行不存在的命令。
 

@@ -26,13 +26,24 @@ function stripHtmlComments(text) {
   return output;
 }
 
-function sectionOf(body, name) {
+function sectionStart(body, name) {
   const heading = new RegExp(`^##\\s+${escapeRegExp(name)}\\s*$`, 'mu');
-  const match = heading.exec(body);
-  if (match === null) return undefined;
-  const rest = body.slice(match.index + match[0].length);
-  const next = /^##\s+\S/mu.exec(rest);
-  return (next === null ? rest : rest.slice(0, next.index)).trim();
+  return heading.exec(body)?.index;
+}
+
+function sectionOf(body, name) {
+  const start = sectionStart(body, name);
+  if (start === undefined) return undefined;
+  const rest = body.slice(start);
+  const headingEnd = rest.indexOf('\n');
+  const contentStart = headingEnd === -1 ? rest.length : headingEnd + 1;
+  const content = rest.slice(contentStart);
+  const next = /^##\s+\S/mu.exec(content);
+  return (next === null ? content : content.slice(0, next.index)).trim();
+}
+
+function hasPlaceholder(value) {
+  return /\bTODO\b|\bTBD\b|待补充|待确认/iu.test(value);
 }
 
 /**
@@ -48,14 +59,20 @@ export function validatePrBody(body) {
   }
 
   for (const name of REQUIRED_SECTIONS) {
-    if (sectionOf(cleaned, name) === undefined) {
+    if (sectionStart(cleaned, name) === undefined) {
       errors.push(`missing required section: ## ${name}`);
     }
   }
   if (errors.length > 0) return { ok: false, errors };
 
+  const starts = REQUIRED_SECTIONS.map((name) => sectionStart(cleaned, name));
+  if (starts.some((start, index) => index > 0 && start <= starts[index - 1])) {
+    errors.push('sections must appear in order: ## Summary, ## Evidence, ## Merge Danger');
+  }
+
   const summary = sectionOf(cleaned, 'Summary') ?? '';
   if (summary.length < 10) errors.push('Summary is too short');
+  if (hasPlaceholder(summary)) errors.push('Summary still contains a placeholder');
 
   const evidence = sectionOf(cleaned, 'Evidence') ?? '';
   const before = /\bBefore[ \t]*:[ \t]*(?:\*\*)?[ \t]*([^\n]*)/iu.exec(evidence);
@@ -66,18 +83,21 @@ export function validatePrBody(body) {
   if (after === null || after[1].trim().length === 0) {
     errors.push('Evidence must contain a non-empty After: entry');
   }
-  if (/\bTODO\b|\bTBD\b|待补充|待确认/iu.test(evidence)) {
+  if (hasPlaceholder(evidence)) {
     errors.push('Evidence still contains a placeholder');
   }
 
   const danger = sectionOf(cleaned, 'Merge Danger') ?? '';
   const door = /Door[ \t]*:[ \t]*(?:\*\*)?[ \t]*([^\n]*)/iu.exec(danger);
-  if (door === null || !/(one-way|two-way|单向|双向)/iu.test(door[1])) {
+  const doorValue = door?.[1].trim().toLowerCase() ?? '';
+  if (!['one-way', 'two-way', '单向', '双向'].includes(doorValue)) {
     errors.push('Merge Danger must contain Door: one-way or Door: two-way');
   }
   const blast = /Blast Radius[ \t]*:[ \t]*(?:\*\*)?[ \t]*([^\n]*)/iu.exec(danger);
   if (blast === null || blast[1].trim().length === 0) {
     errors.push('Merge Danger must contain a non-empty Blast Radius:');
+  } else if (hasPlaceholder(blast[1])) {
+    errors.push('Blast Radius still contains a placeholder');
   }
 
   return { ok: errors.length === 0, errors };

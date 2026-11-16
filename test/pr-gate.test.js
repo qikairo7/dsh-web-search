@@ -49,3 +49,67 @@ A sufficiently long summary.
   assert.match(result.errors.join('\n'), /non-empty After/);
   assert.match(result.errors.join('\n'), /Door:/);
 });
+
+test('PR gate rejects out-of-order sections', () => {
+  const result = validatePrBody(`## Merge Danger
+
+**Door:** two-way
+
+**Blast Radius:** pull request workflow
+
+## Summary
+
+A sufficiently long summary.
+
+## Evidence
+
+- **Before:** old
+  **After:** new
+`);
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join('\n'), /sections must appear in order/);
+});
+
+test('PR gate requires an exact Door value', () => {
+  const invalidValues = ['not-one-way', 'one-way or two-way'];
+  for (const value of invalidValues) {
+    const result = validatePrBody(`## Summary
+
+A sufficiently long summary.
+
+## Evidence
+
+- **Before:** old
+  **After:** new
+
+## Merge Danger
+
+**Door:** ${value}
+
+**Blast Radius:** pull request workflow
+`);
+    assert.equal(result.ok, false, value);
+    assert.match(result.errors.join('\n'), /Door: one-way or Door: two-way/);
+  }
+});
+
+test('PR gate rejects placeholders in Summary and Blast Radius', () => {
+  const result = validatePrBody(`## Summary
+
+TODO TODO TODO.
+
+## Evidence
+
+- **Before:** old
+  **After:** new
+
+## Merge Danger
+
+**Door:** two-way
+
+**Blast Radius:** TBD
+`);
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join('\n'), /Summary still contains a placeholder/);
+  assert.match(result.errors.join('\n'), /Blast Radius still contains a placeholder/);
+});
