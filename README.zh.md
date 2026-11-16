@@ -144,7 +144,7 @@ bundle patch 默认固定使用 `auto`；独立 Provider 也会注册，可以�
 ### 抓取与回退
 
 - **直连 HTTP**：匿名抓取，最多 5 跳重定向（允许跨域），5 MB 响应上限，只接受 HTML/text/JSON/XML。PDF 和二进制会抛 `WEB_UNSUPPORTED_CONTENT_TYPE`，由路由回退到 API 抓取。小型 SPA 空壳由 `minDirectHtmlChars`（默认 2048）识别并触发回退。
-- **回退边界**：只对可恢复错误回退：网络错误、超时、429、5xx、缺少凭据。用户取消和无效 URL 立即返回。直连 HTTP 的 404 是结果，不触发回退。
+- **回退边界**：失败分为 quota / auth / bot-wall / transient / invalid-response / unknown 六类，`fallbackFailureClasses`（默认六类全开）决定哪些类别可以尝试下一后端，显式置空表示任何失败立即中止。用户取消和无效 URL 立即返回。直连 HTTP 的 404 是结果，不触发回退。
 - **干净抓取**：`fetchMode: clean` 把顺序改为 `keenable → anysearch → exa → http → tavily → firecrawl`，优先免费抽取，Tavily/Firecrawl 只做兜底。
 - **正文清洗**：API 抓取结果会去掉常见的导航、登录、页脚、面包屑、仓库导航和头像行，再返回 Markdown。
 - **不限制内网**：直连 HTTP 可以访问回环地址和私有网段，与官方 `dsh-web-fetch-http` 行为一致。
