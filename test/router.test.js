@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import { AutoFetchProvider, AutoSearchProvider } from '../lib/providers/router.js';
 import { enrichSources } from '../lib/enrich.js';
+import { webError } from '../lib/errors.js';
 
 function searchProvider(name, calls, { fail = false, result } = {}) {
   return {
@@ -464,4 +465,112 @@ test('AutoFetchProvider honors an explicit order and keys the cache by it', asyn
   const viaMode = await router.fetch({ url: 'https://example.com/' });
   assert.deepEqual(calls, ['http', 'tavily']);
   assert.equal(viaMode.body.content, 'tavily');
+});
+
+test('AutoFetchProvider rethrows a disallowed failure class without calling the next provider', async () => {
+  const calls = [];
+  const failure = webError('HTTP fetch returned no extractable content', 'WEB_INVALID_RESPONSE');
+  const providers = {
+    http: {
+      id: 'http',
+      available: () => true,
+      ready: async () => true,
+      async fetch() {
+        calls.push('http');
+        throw failure;
+      },
+    },
+    tavily: fetchProvider('tavily', calls),
+  };
+  const router = new AutoFetchProvider({
+    settings: () =>
+      settings({ fallbackFailureClasses: ['quota', 'auth', 'bot-wall', 'transient', 'unknown'] }),
+    providers,
+  });
+  await assert.rejects(() => router.fetch({ url: 'https://example.com/' }), (error) => error === failure);
+  assert.deepEqual(calls, ['http']);
+});
+
+test('AutoFetchProvider stops at the first failure when the allowed class set is empty', async () => {
+  const calls = [];
+  const failure = webError('HTTP fetch failed (HTTP 429)', 'WEB_RATE_LIMITED');
+  const providers = {
+    http: {
+      id: 'http',
+      available: () => true,
+      ready: async () => true,
+      async fetch() {
+        calls.push('http');
+        throw failure;
+      },
+    },
+    tavily: fetchProvider('tavily', calls),
+  };
+  const router = new AutoFetchProvider({
+    settings: () => settings({ fallbackFailureClasses: [] }),
+    providers,
+  });
+  await assert.rejects(() => router.fetch({ url: 'https://example.com/' }), (error) => error === failure);
+  assert.deepEqual(calls, ['http']);
+});
+
+test('AutoFetchProvider never falls back for an aborted request, whatever the classes', async () => {
+  const calls = [];
+  const providers = {
+    http: {
+      id: 'http',
+      available: () => true,
+      ready: async () => true,
+      async fetch() {
+        calls.push('http');
+        throw webError('HTTP fetch aborted', 'WEB_ABORTED');
+      },
+    },
+    tavily: fetchProvider('tavily', calls),
+  };
+  const router = new AutoFetchProvider({
+    settings: () =>
+      settings({
+        fallbackFailureClasses: ['quota', 'auth', 'bot-wall', 'transient', 'invalid-response', 'unknown'],
+      }),
+    providers,
+  });
+  await assert.rejects(
+    () => router.fetch({ url: 'https://example.com/' }),
+    (error) => error.code === 'WEB_ABORTED',
+  );
+  assert.deepEqual(calls, ['http']);
+});
+
+test('disallowed failure classes do not feed the circuit breaker', async () => {
+  const calls = [];
+  const failure = webError('bad fetch returned no content', 'WEB_INVALID_RESPONSE');
+  const bad = {
+    id: 'bad',
+    available: () => true,
+    ready: async () => true,
+    async search() {
+      calls.push('bad');
+      throw failure;
+    },
+  };
+  const good = searchProvider('good', calls);
+  const breakerSettings = {
+    searchMode: 'fast',
+    intentRouting: false,
+    chineseSearchOrder: ['bad', 'good'],
+    defaultSearchOrder: ['bad', 'good'],
+    searchCacheTtlMs: 1_000,
+    searchCacheMaxEntries: 0,
+    breakerFailureThreshold: 2,
+    breakerCooldownMs: 60_000,
+    fallbackFailureClasses: ['quota', 'auth', 'bot-wall', 'transient', 'unknown'],
+    bad: { enabled: true },
+    good: { enabled: true },
+  };
+  const router = new AutoSearchProvider({ settings: () => breakerSettings, providers: { bad, good } });
+  for (let index = 0; index < 3; index += 1) {
+    await assert.rejects(() => router.search({ query: 'english query' }), (error) => error === failure);
+  }
+  assert.deepEqual(calls, ['bad', 'bad', 'bad']);
 });
