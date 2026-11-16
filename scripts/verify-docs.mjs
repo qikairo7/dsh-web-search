@@ -32,6 +32,7 @@ const required = [
   'docs/dsh-host-contract.md',
   'docs/development.md',
   'docs/testing.md',
+  'docs/pr-gate.md',
   'docs/cookbook/adding-a-provider.md',
   'docs/defensive-patterns.md',
   '.agents/notes/README.md',

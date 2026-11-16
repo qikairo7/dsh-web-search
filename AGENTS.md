@@ -36,5 +36,5 @@ Node `22.19+` 或 `24+`，只用 pnpm。DSH 沙箱报 `spawn EPERM` 时，改用
 - 写代码或 Review：`CODING_STANDARDS.md`（实现原则、Provider 契约、测试、完成与 Review 门禁）；artifact 级细节见 `docs/defensive-patterns.md`。
 - 记录需要保留理由与被放弃方案的决策：`.agents/notes/`，格式见目录 README。
 - 查术语与架构决策：`GLOSSARY.md`、`docs/adr/`；导航见 `docs/agents/domain.md`。
-- 开 Issue 或提 PR：`docs/agents/issue-tracker.md`。
+- PR 门禁：[pr-gate](docs/pr-gate.md)。
 - 查历史基准或改基准：`docs/benchmarks/`；runner 是 `scripts/public-benchmark.mjs`。

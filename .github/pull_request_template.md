@@ -1,18 +1,22 @@
-## Motivation
+## Summary
 
-<!-- Link the issue this change addresses: Fixes #N or Refs #N. -->
+<!-- What changes, and why? Use the smallest view that makes the point clear. -->
 
-## Changes
+## Evidence
 
-<!-- List the behavior that changes and the files that own it. -->
+<!-- Before: failure, output, or screenshot from before the change. -->
+<!-- After: passing output, test run, or screenshot after the change. -->
 
-## Testing
+- **Before:** <!-- fill with actual before evidence -->
+  **After:** <!-- fill with actual after evidence -->
 
-<!-- What did you run, and what did it prove? -->
+## Merge Danger
 
-- [ ] `pnpm check` passes.
-- [ ] Behavior changes are reflected in `README.md` and `README.zh.md`.
-- [ ] A user-visible change has a `CHANGELOG.md` entry.
+**Door:** <!-- one-way or two-way -->
+
+**Blast Radius:** <!-- one short phrase -->
+
+<!-- Optional: rollback plan, compatibility impact, or monitoring requirement. -->
 
 ## AI usage
 

@@ -12,6 +12,7 @@
 | `docs/configuration.md` | 完整配置字段、默认值与说明；README 链接到这里 | 行为教程、实现规则 |
 | `docs/development.md` | 贡献者安装、日常命令、CI、环境变量和排错 | 实现规则、产品行为 |
 | `docs/testing.md` | 测试层级、运行时机和真实 API 验收策略 | 具体命令清单、实现细节 |
+| `docs/pr-gate.md` | PR 交付门禁、正文结构和提交前检查 | 实现规则、产品行为 |
 | `docs/cookbook/` | 带步骤和验收清单的 how-to，例如新增 Provider | 设计理由、当前行为说明 |
 | `docs/defensive-patterns.md` | 按 artifact 展开的 Review 规则 | 决策历史、配置默认值 |
 | `docs/architecture.md` | 组合、模块职责、请求流、扩展点的有序地图 | 单函数细节、配置默认值 |
