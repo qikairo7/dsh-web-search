@@ -31,10 +31,10 @@ Node `22.19+` 或 `24+`，只用 pnpm。DSH 沙箱报 `spawn EPERM` 时，改用
 
 - 改代码前读 `docs/architecture.md`；DSH 集成/`tool-web`：`docs/dsh-host-contract.md`。
 - 文档规则：`docs/AGENTS.md`。
-- 开发/测试/扩展：`docs/development.md`、`docs/testing.md`、`docs/cookbook/adding-a-provider.md`。
-- 路由/配置/默认值/配额：读 README 的 Behavior 与 `docs/configuration.md`。
+- 开发/测试：`docs/development.md`、`docs/testing.md`、`docs/cookbook/adding-a-provider.md`。
+- 路由/配置/配额：读 README 的 Behavior 与 `docs/configuration.md`。
 - 写代码或 Review：`CODING_STANDARDS.md`（实现原则、Provider 契约、测试、完成与 Review 门禁）；artifact 级细节见 `docs/defensive-patterns.md`。
-- 记录需要保留理由与被放弃方案的决策：`.agents/notes/`，格式见目录 README。
+- 决策记录：`.agents/notes/`，格式见目录 README。
 - 查术语与架构决策：`GLOSSARY.md`、`docs/adr/`；导航见 `docs/agents/domain.md`。
-- PR 门禁：[pr-gate](docs/pr-gate.md)。
-- 查历史基准或改基准：`docs/benchmarks/`；runner 是 `scripts/public-benchmark.mjs`。
+- Issue/PR：[流程](docs/agents/issue-tracker.md)；PR：[门禁](docs/pr-gate.md)。
+- 基准：`docs/benchmarks/`；runner 是 `scripts/public-benchmark.mjs`。
