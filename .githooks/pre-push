@@ -1,0 +1,3 @@
+#!/bin/sh
+# Full check once before push (replaces the former per-commit full run in pre-commit).
+pnpm check
