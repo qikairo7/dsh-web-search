@@ -77,7 +77,7 @@
 - 默认分支是 `main`；从 `origin/main` 切工作分支，PR 对 `main`。
 - 分支名用 2 到 3 个短词、连字符分隔，如 `fix-router-fallback`；不要 `feat/` 之类前缀。
 - 提交信息和 PR 标题用 `type(scope): summary`；`type` 取 `feat`、`fix`、`docs`、`chore`、`refactor`、`test`，`scope` 可选。
-- **验证戳（2026-11-17，Claude Code 同款）**：每笔提交正文末尾带一行 `Verified-by: <方式>`——如 `Verified-by: pnpm-check`、`Verified-by: node --test test/errors.test.js`、`Verified-by: docs-only`；未验证的诚实写 `Verified-by: none <一句原因>`。戳用于审计可查（`git log --grep 'Verified-by: none'` 列出未验证提交），PR 里最后一笔全量验证过的提交应带 `Verified-by: pnpm-check`。
+- **验证戳**：每笔提交正文末尾带一行 `Verified-by: <方式>`——如 `Verified-by: pnpm-check`、`Verified-by: node --test test/errors.test.js`、`Verified-by: docs-only`；未验证的诚实写 `Verified-by: none <一句原因>`。戳用于审计可查（`git log --grep 'Verified-by: none'` 列出未验证提交），PR 里最后一笔全量验证过的提交应带 `Verified-by: pnpm-check`。
 - Issue、子任务和 PR 流程：`docs/agents/issue-tracker.md`。
 - PR 正文按 [docs/pr-gate.md](docs/pr-gate.md)：固定顺序为 `pr` → `tech-doc-style-chinese` → `humanizer-zh`；必须包含 `## Summary`、`## Evidence`、`## Merge Danger`；正文末尾的 `powered by dsh` 徽章要求也见该文件；运行 `node scripts/check-pr-gate.mjs --body-file <path>` 通过后才能提交。
 
