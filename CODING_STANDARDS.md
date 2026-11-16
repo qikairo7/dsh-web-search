@@ -78,8 +78,7 @@
 - 分支名用 2 到 3 个短词、连字符分隔，如 `fix-router-fallback`；不要 `feat/` 之类前缀。
 - 提交信息和 PR 标题用 `type(scope): summary`；`type` 取 `feat`、`fix`、`docs`、`chore`、`refactor`、`test`，`scope` 可选。
 - Issue、子任务和 PR 流程：`docs/agents/issue-tracker.md`。
-- PR 正文按 [docs/pr-gate.md](docs/pr-gate.md)：固定顺序为 `pr` → `tech-doc-style-chinese` → `humanizer-zh`；必须包含 `## Summary`、`## Evidence`、`## Merge Danger`；运行 `node scripts/check-pr-gate.mjs --body-file <path>` 通过后才能提交。
-- PR 正文末尾保留 `powered by dsh` 徽章，使用 `dsh-badge` skill 的固定 Markdown；不改颜色、文字和链接。
+- PR 正文按 [docs/pr-gate.md](docs/pr-gate.md)：固定顺序为 `pr` → `tech-doc-style-chinese` → `humanizer-zh`；必须包含 `## Summary`、`## Evidence`、`## Merge Danger`；正文末尾的 `powered by dsh` 徽章要求也见该文件；运行 `node scripts/check-pr-gate.mjs --body-file <path>` 通过后才能提交。
 
 ## 9. Review 门禁
 

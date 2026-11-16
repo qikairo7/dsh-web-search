@@ -8,6 +8,7 @@
 |---|---|---|
 | `AGENTS.md` | 每次会话都需要的硬规则和入口指针，每条 1 到 3 行 | 教程、示例、可推导的细节 |
 | `CODING_STANDARDS.md` | 实现与 Review 的唯一标准：契约、实现原则、测试、完成门禁 | 当前默认值、行为说明 |
+| `AI-REVIEW-LESSONS.md` | P0/P1 错题本和晋升候选；规则正文在第 10 节 | 实现规则、行为说明 |
 | `README.md` / `README.zh.md` | 用户可见事实：安装、凭据、Provider、行为、配额；两份同步 | 内部实现细节、决策历史、完整配置表 |
 | `docs/configuration.md` | 完整配置字段、默认值与说明；README 链接到这里 | 行为教程、实现规则 |
 | `docs/development.md` | 贡献者安装、日常命令、CI、环境变量和排错 | 实现规则、产品行为 |
