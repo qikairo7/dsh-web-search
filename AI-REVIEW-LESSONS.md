@@ -6,6 +6,7 @@
 
 | ID | 规则 | 为什么 | 证据 | Seen | 状态 |
 |---|---|---|---|---|---|
+| R-002 | 分类判据须对每个错误来源核对真实字段名 | 读不到状态落 unknown，白名单收窄后回退立即中止 | PR#34 errors.js:97 读不到 providers/http.js status 与 anysearch httpStatus | 1 | open |
 
 字段说明：
 

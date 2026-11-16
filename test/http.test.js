@@ -146,7 +146,7 @@ test('HTTP fetch throws on a server error', async () => {
       const provider = new HttpFetchProvider({ settings: httpSettings });
       await assert.rejects(
         () => provider.fetch({ url: 'https://example.com/error' }),
-        (error) => error.code === 'WEB_PROVIDER_ERROR',
+        (error) => error.code === 'WEB_PROVIDER_ERROR' && error.status === 500,
       );
     },
   );

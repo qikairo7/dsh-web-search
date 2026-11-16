@@ -45,6 +45,8 @@ test('classifyFailure maps HTTP statuses, including on the cause', () => {
   assert.equal(classifyFailure({ status: 408 }), 'transient');
   assert.equal(classifyFailure({ status: 503 }), 'transient');
   assert.equal(classifyFailure({ cause: { status: 402 } }), 'quota');
+  assert.equal(classifyFailure({ code: 'WEB_PROVIDER_ERROR', cause: { httpStatus: 403 } }), 'auth');
+  assert.equal(classifyFailure({ code: 'WEB_PROVIDER_ERROR', cause: { httpStatus: 503 } }), 'transient');
 });
 
 test('classifyFailure reads the status only after an unmatched code', () => {
