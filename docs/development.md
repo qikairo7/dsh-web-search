@@ -18,7 +18,7 @@ pnpm docs:check
 pnpm check
 ```
 
-`pnpm check` 依次运行语法检查、文档门禁和单测；pre-commit hook 运行同一命令。
+`pnpm check` 依次运行语法检查、文档门禁和单测；pre-commit hook 只运行语法检查，pre-push hook 在推送前运行一次全量 `pnpm check`。
 
 ## 日常命令
 
@@ -50,7 +50,7 @@ node scripts/check-syntax.mjs && node --test --test-isolation=none
 ## CI 与 Hook
 
 - `.github/workflows/check.yml` 在 Node 22 和 24 上运行 `pnpm install --frozen-lockfile` 和 `pnpm check`，并在 `pull_request` 上运行 `pr-gate` 检查 PR 正文。
-- `.githooks/pre-commit` 运行 `pnpm check`；首次 clone 后用 `git config core.hooksPath .githooks` 启用。
+- `.githooks/pre-commit` 运行 `node scripts/check-syntax.mjs`（仅语法检查）；`.githooks/pre-push` 在推送前运行全量 `pnpm check`。首次 clone 后用 `git config core.hooksPath .githooks` 启用。
 - 仓库没有 `dev` / `build` / `lint` / `typecheck` 脚本；不要运行不存在的命令。
 
 ## 环境变量
