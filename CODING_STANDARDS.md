@@ -92,3 +92,7 @@
 6. **测试与文档**：新行为在映射层和路由层都有覆盖；测试测真实实现、不复制实现逻辑；去掉实现后测试会失败；两份 README、`docs/configuration.md` 的配置表、默认值、配额说明一致；契约变化有 ADR。
 7. **边界与依赖**：`AGENTS.md` 的硬边界全部满足，无未说明的新依赖；`lib/index.js` → `lib/providers/*` → `lib/*` 的依赖方向不被反转。
 8. **实现克制**：除会被测试直接复用的 `mapXxxSearch()` 外，一次性逻辑没有被抽成函数；`try/catch` 只出现在错误边界；没有为未经确认的推测性复杂度增加代码。
+
+## 10. Review 错题本
+
+- 新增或修改 Markdown 时，所有相对链接必须指向真实文件；提交前运行 `pnpm docs:check`，确认没有 `broken relative link`。

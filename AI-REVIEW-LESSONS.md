@@ -7,7 +7,7 @@
 | ID | 规则 | 为什么 | 证据 | Seen | 状态 |
 |---|---|---|---|---|---|
 | R-001 | 示例：临时 worktree 安装依赖时必须使用 hoisted 布局 | 默认布局在 Windows junction 下找不到 `@deepseek-ai/schemastery` | PR #23 的 `pnpm check` 失败输出 | 0 | open |
-| R-002 | 新增或修改 Markdown 后，所有相对链接必须指向真实文件 | 失效相对链接会让 `pnpm docs:check` 失败，阻塞 `pnpm check` | PR #25 的 `node scripts/verify-docs.mjs` 输出 `docs/review-auto-fix-demo.md: broken relative link: missing.md` | 1 | open |
+| R-002 | 新增或修改 Markdown 后，所有相对链接必须指向真实文件 | 失效相对链接会让 `pnpm docs:check` 失败，阻塞 `pnpm check` | PR #21 的 `docs/auto-fix-demo.md`、PR #23 的 `docs/severity-status-demo.md`、PR #25 的 `docs/review-auto-fix-demo.md` 都报告 `broken relative link` | 3 | promoted |
 
 字段说明：
 
