@@ -29,12 +29,13 @@ Node `22.19+` 或 `24+`，只用 pnpm。DSH 沙箱报 `spawn EPERM` 时，改用
 
 ## 指针
 
-- 改代码前读 `docs/architecture.md`；DSH 集成/`tool-web`：`docs/dsh-host-contract.md`。
+- 改代码前读 `docs/architecture.md`；DSH 集成：`docs/dsh-host-contract.md`。
 - 文档规则：`docs/AGENTS.md`。
-- 开发/测试：`docs/development.md`、`docs/testing.md`、`docs/cookbook/adding-a-provider.md`。
-- 路由/配置/配额：读 README 的 Behavior 与 `docs/configuration.md`。
-- 写代码或 Review：`CODING_STANDARDS.md`（实现原则、Provider 契约、测试、完成与 Review 门禁）；artifact 级细节见 `docs/defensive-patterns.md`。
+- 开发/测试/加后端：`docs/development.md`、`docs/testing.md`、`docs/cookbook/adding-a-provider.md`。
+- 路由/配置/配额：README Behavior、`docs/configuration.md`。
+- 写码/Review：`CODING_STANDARDS.md`；artifact 细节 `docs/defensive-patterns.md`。
 - 决策记录：`.agents/notes/`，格式见目录 README。
-- 查术语与架构决策：`GLOSSARY.md`、`docs/adr/`；导航见 `docs/agents/domain.md`。
-- Issue/PR：[流程](docs/agents/issue-tracker.md)；PR：[门禁](docs/pr-gate.md)。
-- 基准：`docs/benchmarks/`；runner `scripts/public-benchmark.mjs`。
+- 术语与 ADR：`GLOSSARY.md`、`docs/adr/`；导航 `docs/agents/domain.md`。
+- Issue/PR：[流程](docs/agents/issue-tracker.md)、[PR 正文 skill](.agents/skills/pr-description/SKILL.md)、[门禁](docs/pr-gate.md)。
+- 推分支前：[pre-push-checks skill](.agents/skills/pre-push-checks/SKILL.md)（按改动面选检查）。
+- 基准：`docs/benchmarks/`、`scripts/public-benchmark.mjs`。
