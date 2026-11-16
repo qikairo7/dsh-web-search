@@ -103,6 +103,11 @@ test('PR gate rejects a body without the powered by dsh badge', () => {
   assert.match(result.errors.join('\n'), /powered by dsh badge/);
 });
 
+test('PR gate allows bot-authored PRs without a badge', () => {
+  const result = validatePrBody(validBody.replace(`${BADGE}\n`, ''), { author: 'dependabot[bot]' });
+  assert.deepEqual(result, { ok: true, errors: [] });
+});
+
 test('PR gate rejects placeholders in Summary and Blast Radius', () => {
   const result = validatePrBody(`## Summary
 

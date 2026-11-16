@@ -52,4 +52,5 @@ jobs:
       - name: Check PR delivery gate
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
         run: node scripts/check-pr-gate.mjs

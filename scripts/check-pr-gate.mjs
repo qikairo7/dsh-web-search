@@ -58,7 +58,10 @@ const BADGE_LINE = /^\[!\[[^\]]*\]\(https:\/\/img\.shields\.io\/badge\/powered_b
  * @param {string} body
  * @returns {{ ok: boolean, errors: string[] }}
  */
-export function validatePrBody(body) {
+export function validatePrBody(body, options = {}) {
+  const author = typeof options.author === 'string' ? options.author : '';
+  const isAutomatedAuthor = /\[bot\]$/iu.test(author)
+    || /^(?:dependabot|renovate)(?:\[bot\])?$/iu.test(author);
   const errors = [];
   const cleaned = stripHtmlComments(String(body));
   if (cleaned.trim().length === 0) {
@@ -107,7 +110,7 @@ export function validatePrBody(body) {
     errors.push('Blast Radius still contains a placeholder');
   }
 
-  if (!BADGE_LINE.test(lastNonEmptyLine(cleaned))) {
+  if (!isAutomatedAuthor && !BADGE_LINE.test(lastNonEmptyLine(cleaned))) {
     errors.push('PR body must end with the powered by dsh badge');
   }
 
@@ -128,7 +131,7 @@ function main() {
     body = readFileSync(file, 'utf8');
   }
 
-  const result = validatePrBody(body);
+  const result = validatePrBody(body, { author: process.env.PR_AUTHOR ?? '' });
   if (result.ok) {
     console.log('PR gate passed');
     return;
