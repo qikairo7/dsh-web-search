@@ -32,7 +32,7 @@ DeepSeek Harness（DSH）的自包含多后端网页搜索与抓取 Provider 插
 
 **为什么选它，而不是别的：**
 
-- 对比 DeepSeek Search API：免费而非按次计费，公开基准上检索质量明显更好（FRAMES 证据召回 0.60 对 0.06、Answer Hit 0.50 对 0.40）；代价是延迟（约 4 秒对 0.4 秒），在 agent 异步工作流里无感。
+- 对比 DeepSeek Search API：免费而非按次计费，公开基准上检索质量明显更好（FRAMES 证据召回 0.60 对 0.06、Answer Hit 0.50 对 0.40；n = 50，2026-11-16 运行，[完整报告](docs/benchmarks/2026-11-16-role-matrix-redesign.md)）；代价是延迟（约 4 秒对 0.4 秒），在 agent 异步工作流里无感。
 - 对比单独对接一个后端（AnySearch、Keenable 等都有自家 DSH 插件）：单后端只有一份配额、一个单点故障。本插件把八份免费额度汇成一个池，自动故障切换，再对结果做合并、去重、BGE 重排与证据增强——模型只调用一个工具，不需要关心后端是谁。
 - 代价也如实说：比裸付费 API 慢；社区维护而非厂商 SLA。
 
