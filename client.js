@@ -806,7 +806,14 @@ window.__ModuleLoader__.load({
           name: 'plugins.bundle.config',
           key: PACKAGE,
           locale: NS,
-        }, Page)), 'dsh-web-search: settings page');
+        }, Page)), 'dsh-web-search: bundle settings page');
+        ctx.effect(() => ctx.slots.inject('settings.section', () => ctx.slots.register({
+          name: 'settings.section',
+          id: 'web-search-router',
+          order: 60,
+          label: () => t('title'),
+          locale: NS,
+        }, Page)), 'dsh-web-search: settings section');
       },
     };
   },

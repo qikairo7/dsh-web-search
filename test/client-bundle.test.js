@@ -64,10 +64,14 @@ test('client bundle contributes the bundle settings page', () => {
     },
   };
   plugin.apply(ctx);
-  assert.deepEqual(injected, ['plugins.bundle.config']);
-  assert.equal(registrations.length, 1);
-  assert.equal(registrations[0].name, 'plugins.bundle.config');
+  assert.deepEqual(injected, ['plugins.bundle.config', 'settings.section']);
+  assert.equal(registrations.length, 2);
+  assert.deepEqual(
+    registrations.map((entry) => entry.name).sort(),
+    ['plugins.bundle.config', 'settings.section'],
+  );
   assert.equal(registrations[0].key, pkg.name);
+  assert.equal(registrations[1].id, 'web-search-router');
 });
 
 test('package manifest points at the client bundle', () => {
