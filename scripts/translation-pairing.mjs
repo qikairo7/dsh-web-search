@@ -5,7 +5,9 @@
  * changed while its Chinese pair (or vice versa) did not — and fails the
  * check until both sides move together; `--record` re-baselines after an
  * intentional synchronized edit. Pairing basis is section ordinal, because
- * structural symmetry (heading count) is already enforced by verify-docs. */
+ * structural symmetry (heading count) is already enforced by verify-docs.
+ * Outside record mode the recorded count and headings are re-verified, so a
+ * structural edit that skipped `--record` fails loudly instead of mis-pairing. */
 
 import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
@@ -71,20 +73,39 @@ if (isMain) {
       continue;
     }
     next[pair.en] = {};
+    const savedPair = record[pair.en];
+    let structureOk = true;
+    if (!recordMode) {
+      if (!savedPair) {
+        failures.push(`${pair.en} missing from ${RECORD}: run \`node scripts/translation-pairing.mjs --record\` once and commit it`);
+        structureOk = false;
+      } else if (Object.keys(savedPair).length !== enSections.length) {
+        failures.push(`${pair.en} structure changed since record (${Object.keys(savedPair).length} recorded vs ${enSections.length} sections): re-run \`node scripts/translation-pairing.mjs --record\``);
+        structureOk = false;
+      }
+    }
     for (let i = 0; i < enSections.length; i += 1) {
       const nowEn = sectionHash(enSections[i]);
       const nowZh = sectionHash(zhSections[i]);
       next[pair.en][String(i)] = { heading: enSections[i].heading, en: nowEn, zh: nowZh };
-      const saved = record[pair.en]?.[String(i)];
-      if (!recordMode && saved) {
+      const saved = savedPair?.[String(i)];
+      if (!recordMode && structureOk && saved) {
+        if (saved.heading.replace(/\r/g, '') !== enSections[i].heading.replace(/\r/g, '')) {
+          failures.push(`${pair.en}#${i + 1} heading changed since record: re-run \`node scripts/translation-pairing.mjs --record\``);
+          continue;
+        }
         const drift = driftFor(saved.heading, saved, nowEn, nowZh);
         if (drift) failures.push(`${pair.en}#${i + 1} ${drift}`);
       }
     }
   }
-  if (recordMode) {
+  if (recordMode && failures.length > 0) {
+    console.error(`translation pairs NOT recorded: ${failures.length} failure(s)`);
+    for (const failure of failures) console.error(`- ${failure}`);
+    process.exitCode = 1;
+  } else if (recordMode) {
     await writeFile(RECORD, `${JSON.stringify(next, null, 2)}\n`, 'utf8');
-    console.log(`translation pairs recorded: ${PAIRS.length} files`);
+    console.log(`translation pairs recorded: ${Object.keys(next).length} file(s)`);
   } else if (Object.keys(record).length === 0) {
     console.error(`translation-pairs record missing: run \`node scripts/translation-pairing.mjs --record\` once and commit ${RECORD}`);
     process.exitCode = 1;

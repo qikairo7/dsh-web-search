@@ -1,6 +1,22 @@
 # dsh-web-search
 
-DSH 插件：实现 `ctx.web` 的免费搜索/抓取 Provider，替换收费的 DeepSeek Search/Fetch；不复制 `dsh-tool-web` 的通用工具层。
+DSH 插件：实现 `ctx.web` 的搜索/抓取 Provider，用免费后端替换官方收费的 DeepSeek Search/Fetch；通用 `web_search` / `web_fetch` 仍由第一方 `dsh-tool-web` 提供，另有可选的 AnySearch / Tavily / AIHOT 高级工具。
+
+## 依赖方向
+
+`lib/index.js` → `lib/providers/*` → `lib/*` 共用模块。共用模块不得 import `providers/` 或 `index.js`。
+
+## 运行
+
+```sh
+pnpm install
+pnpm docs:check   # 文档层级、链接、模块地图、配置覆盖与预算
+pnpm check        # 全量语法检查 + 架构 + order-doc 同步 + 文档代码块 + 翻译配对 + docs:check + node --test
+pnpm benchmark:preflight # 先验证凭据与各后端连通性
+pnpm benchmark    # live 基准；自动加载 gitignored 的 .env（AS_KEY/TV_KEY/FC_KEY/ZH_KEY/SF_KEY/DS_TOKEN/KEENABLE_API_KEY/EXA_API_KEY）
+```
+
+Node `22.19+` 或 `24+`，只用 pnpm。DSH 沙箱报 `spawn EPERM` 时，改用 `docs/development.md` 的沙箱等价命令。
 
 ## 硬边界
 
