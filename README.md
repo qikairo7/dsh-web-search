@@ -32,7 +32,7 @@ The legacy `deepseek-official` search runs a full model turn for every search. T
 
 **Why this over the alternatives:**
 
-- Over the DeepSeek Search API: free instead of per-request billing, and measurably better retrieval on the public benchmarks (FRAMES evidence recall 0.60 vs 0.06, answer hit 0.50 vs 0.40). The trade is latency (~4 s vs 0.4 s), invisible inside async agent turns.
+- Over the DeepSeek Search API: free, not per-request billing, measurably better retrieval on [FRAMES](docs/benchmarks/2026-11-16-role-matrix-redesign.md) (n = 50, 2026-11-16: evidence recall 0.60 vs 0.06, answer hit 0.50 vs 0.40). The trade is latency (~4 s vs 0.4 s), invisible inside async agent turns.
 - Over wiring one backend directly (AnySearch, Keenable, and friends ship their own DSH plugins): one backend is one quota and one point of failure. This bundle pools eight free allowances behind automatic failover, then merges, dedupes, reranks (BGE), and enriches the results — the model calls one tool and stops thinking about backends.
 - The costs, stated plainly: slower than a raw paid API, and community-maintained rather than a vendor SLA.
 
