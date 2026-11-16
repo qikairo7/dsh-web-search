@@ -70,7 +70,7 @@ SILICONFLOW_API_KEY: "sk-..."
 
 AnySearch works without a key in anonymous mode; a registered key raises the daily quota. Keenable works anonymously too; a key raises the quota. Exa requires a key. Zhihu requires an Access Secret from the Zhihu Open Platform. Tavily and Firecrawl report themselves not ready when their key is missing, so the router skips them. The exact reference names are configurable with the `*ApiKeyEnv` fields.
 
-For multiple keys, paste one or more keys separated by commas or spaces in the provider card. The plugin stores them as the base reference plus `_2`, `_3`, … and tries them in order; a key that returns quota, rate-limit, or authentication errors moves to the next key before the router falls back to another provider. Zhihu exposes its daily allowance at `GET /api/v1/quota`; the settings page shows it alongside the other quota rows.
+For multiple keys, use **Add key** in the provider card to add one row per key. Existing keys show a masked value with a **Delete** button. The plugin stores rows as the base reference plus `_2`, `_3`, … and tries them in order; a key that returns quota, rate-limit, or authentication errors moves to the next key before the router falls back to another provider. Zhihu exposes its daily allowance at `GET /api/v1/quota`; the settings page shows it alongside the other quota rows.
 
 ## Providers
 

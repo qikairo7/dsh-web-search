@@ -70,7 +70,7 @@ SILICONFLOW_API_KEY: "sk-..."
 
 AnySearch 可以匿名使用；注册 Key 后额度更高。Keenable 没有 Key 也能匿名使用，配置 Key 后额度更高。Exa 需要 Key。知乎需要开放平台的 Access Secret。Tavily 和 Firecrawl 没有 Key 时会报告未就绪，自动路由会跳过它们。引用名可以通过 `*ApiKeyEnv` 字段修改。
 
-多 Key：在 Provider 卡片里粘贴一个或多个 Key（用逗号或空格分隔）。插件会把第一个存为基准引用，后续存为 `_2`、`_3`…，按顺序尝试；某个 Key 返回额度耗尽、限流或鉴权错误时自动换下一个 Key，再决定是否回退到其他 Provider。知乎通过 `GET /api/v1/quota` 提供每日额度，设置页会显示在额度面板中。
+多 Key：在 Provider 卡片点 **添加 Key**，每一行填一个 Key。已保存的 Key 会显示打码值，并带 **删除** 按钮。插件会把第一行存为基准引用，后续存为 `_2`、`_3`…，按顺序尝试；某个 Key 返回额度耗尽、限流或鉴权错误时自动换下一个 Key，再决定是否回退到其他 Provider。知乎通过 `GET /api/v1/quota` 提供每日额度，设置页会显示在额度面板中。
 
 ## Provider
 

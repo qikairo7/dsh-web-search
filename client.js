@@ -167,8 +167,11 @@ window.__ModuleLoader__.load({
       apiKeyLabel: '{name} API key',
       keysCount: '{count} keys',
       tooManyKeys: 'Use at most 8 keys per provider.',
-      savedPlaceholderOne: 'Saved key; paste a new key to replace it',
-      savedPlaceholder: 'Saved keys; paste new keys to replace them',
+      savedKeyMasked: 'Saved key',
+      addKey: 'Add key',
+      removeKey: 'Delete key',
+      addKeyLabel: 'Add key for {name}',
+      removeKeyLabel: 'Delete key {index} for {name}',
       test: 'Test',
       testing: 'Testing…',
       testOk: '{name} responded in {ms} ms with {count} result(s).',
@@ -266,8 +269,11 @@ window.__ModuleLoader__.load({
       apiKeyLabel: '{name} API Key',
       keysCount: '{count} 个 Key',
       tooManyKeys: '每个 Provider 最多 8 个 Key。',
-      savedPlaceholderOne: '已保存 1 个 Key；粘贴新 Key 可替换',
-      savedPlaceholder: '已保存多个 Key；粘贴新 Key 可替换',
+      savedKeyMasked: '已保存 Key',
+      addKey: '添加 Key',
+      removeKey: '删除',
+      addKeyLabel: '为 {name} 添加 Key',
+      removeKeyLabel: '删除 {name} 的第 {index} 个 Key',
       test: '验证',
       testing: '验证中…',
       testOk: '{name} 在 {ms} ms 内返回 {count} 条结果。',
@@ -399,6 +405,23 @@ window.__ModuleLoader__.load({
         gap: '8px',
         alignItems: 'center',
       },
+      keyList: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px',
+      },
+      keyValue: {
+        flex: '1 1 220px',
+        minHeight: '30px',
+        display: 'flex',
+        alignItems: 'center',
+        padding: '4px 10px',
+        border: '1px solid var(--dsw-alias-border-l2)',
+        borderRadius: '6px',
+        fontSize: '12px',
+        color: 'var(--dsw-alias-label-tertiary)',
+        fontFamily: 'ui-monospace, SFMono-Regular, Consolas, monospace',
+      },
       input: {
         flex: '1 1 260px',
         minWidth: '160px',
@@ -505,11 +528,17 @@ window.__ModuleLoader__.load({
       ];
     }
 
-    function splitKeys(text) {
-      return [...new Set(String(text)
-        .split(/[\s,;，；]+/u)
-        .map((value) => value.trim().replace(/^['"`]|['"`]$/gu, ''))
-        .filter((value) => value.length > 0))];
+    function keyRowsFor(reference, credentials) {
+      const refs = keyRefsFor(reference);
+      const rows = refs
+        .filter((candidate) => credentials?.[candidate]?.configured === true)
+        .map((candidate) => ({
+          ref: candidate,
+          masked: typeof credentials[candidate].masked === 'string' ? credentials[candidate].masked : '',
+          value: '',
+        }));
+      if (rows.length === 0) rows.push({ ref: null, masked: '', value: '' });
+      return rows;
     }
 
     function findNamespace(value) {
@@ -592,7 +621,7 @@ window.__ModuleLoader__.load({
       const { t } = props;
       const [state, setState] = React.useState({ status: 'loading' });
       const [draft, setDraft] = React.useState({});
-      const [keyDrafts, setKeyDrafts] = React.useState({});
+      const [keyRows, setKeyRows] = React.useState({});
       const [keyMessages, setKeyMessages] = React.useState({});
       const [revealed, setRevealed] = React.useState({});
       const [confirmClear, setConfirmClear] = React.useState(undefined);
@@ -621,11 +650,16 @@ window.__ModuleLoader__.load({
           String(ns.value?.[provider.refKey] ?? '').trim() || provider.defaultRef,
         ));
         const credentialsResult = await safeCall(() => props.ctx.remote.credentials.describe(refs));
+        const credentials = isOk(credentialsResult) ? credentialsResult.value : {};
+        setKeyRows(Object.fromEntries(PROVIDERS.map((provider) => {
+          const reference = String(ns.value?.[provider.refKey] ?? '').trim() || provider.defaultRef;
+          return [provider.id, keyRowsFor(reference, credentials)];
+        })));
         setState({
           status: 'ready',
           ns,
           writable: settingsResult.value.writable !== false,
-          credentials: isOk(credentialsResult) ? credentialsResult.value : {},
+          credentials,
           credentialsError: !isOk(credentialsResult),
         });
         if (resetDraft) setDraft(configDraft(ns));
@@ -646,34 +680,68 @@ window.__ModuleLoader__.load({
       };
 
       const saveKey = async (provider, ref) => {
-        const values = splitKeys(keyDrafts[provider.id] ?? '');
-        if (values.length === 0) {
+        const rows = keyRows[provider.id] ?? [];
+        const pending = rows.filter((row) => row.value.trim().length > 0);
+        if (pending.length === 0) {
           noteKey(provider, t('enterKey'), true);
-          return;
-        }
-        if (values.length > MAX_KEY_REFS) {
-          noteKey(provider, t('tooManyKeys'), true);
           return;
         }
         setBusy(true);
         const refs = keyRefsFor(ref);
+        const occupied = new Set(rows.filter((row) => row.ref !== null).map((row) => row.ref));
         let failed = false;
-        for (let index = 0; index < values.length; index += 1) {
-          const result = await safeCall(() => props.ctx.remote.credentials.set(refs[index], values[index]));
+        for (const row of pending) {
+          let target = row.ref;
+          if (target === null) {
+            target = refs.find((candidate) => !occupied.has(candidate) && state.credentials?.[candidate]?.configured !== true);
+          }
+          if (target === undefined) {
+            failed = true;
+            break;
+          }
+          occupied.add(target);
+          const result = await safeCall(() => props.ctx.remote.credentials.set(target, row.value.trim()));
           if (!isOk(result)) {
             failed = true;
             break;
           }
         }
         if (!failed) {
-          for (let index = values.length; index < refs.length; index += 1) {
-            if (state.credentials?.[refs[index]]?.configured === true) {
-              await safeCall(() => props.ctx.remote.credentials.unset(refs[index]));
-            }
-          }
-          setKeyDrafts((current) => ({ ...current, [provider.id]: '' }));
           setRevealed((current) => ({ ...current, [provider.id]: false }));
           noteKey(provider, t('savedKey', { name: provider.label }));
+          await refresh(false);
+        } else {
+          noteKey(provider, t('saveFailed'), true);
+        }
+        setBusy(false);
+      };
+
+      const addKeyRow = (provider) => {
+        const rows = keyRows[provider.id] ?? [];
+        if (rows.length >= MAX_KEY_REFS) {
+          noteKey(provider, t('tooManyKeys'), true);
+          return;
+        }
+        setKeyRows((current) => ({
+          ...current,
+          [provider.id]: [...(current[provider.id] ?? []), { ref: null, masked: '', value: '' }],
+        }));
+      };
+
+      const removeKeyRow = async (provider, index) => {
+        const row = (keyRows[provider.id] ?? [])[index];
+        if (row === undefined) return;
+        if (row.ref === null) {
+          setKeyRows((current) => ({
+            ...current,
+            [provider.id]: (current[provider.id] ?? []).filter((_, position) => position !== index),
+          }));
+          return;
+        }
+        setBusy(true);
+        const result = await safeCall(() => props.ctx.remote.credentials.unset(row.ref));
+        if (isOk(result)) {
+          noteKey(provider, t('clearedKey', { name: provider.label }));
           await refresh(false);
         } else {
           noteKey(provider, t('saveFailed'), true);
@@ -848,17 +916,50 @@ window.__ModuleLoader__.load({
               }),
               h('span', { style: { ...styles.badge, ...(configured && !state.credentialsError ? styles.badgeOn : styles.badgeOff) } },
                 statusText))),
+          h('div', { style: styles.keyList },
+            (keyRows[provider.id] ?? []).map((row, rowIndex) => h('div', {
+              key: row.ref ?? `new-${rowIndex}`,
+              style: styles.keyRow,
+            },
+            row.ref === null
+              ? h('input', {
+                style: { ...styles.input, ...(!writable || busy ? styles.disabled : {}) },
+                type: shown ? 'text' : 'password',
+                autoComplete: 'new-password',
+                'aria-label': t('apiKeyLabel', { name: provider.label }),
+                placeholder: t('keyPlaceholder'),
+                value: row.value,
+                disabled: !writable || busy,
+                onChange: (event) => {
+                  const value = event.target.value;
+                  setKeyRows((current) => ({
+                    ...current,
+                    [provider.id]: (current[provider.id] ?? []).map((entry, position) => (
+                      position === rowIndex ? { ...entry, value } : entry
+                    )),
+                  }));
+                },
+              })
+              : h('span', { style: styles.keyValue }, row.masked || t('savedKeyMasked')),
+            h('button', {
+              type: 'button',
+              style: { ...styles.button, ...((busy || !writable) ? styles.disabled : {}) },
+              'aria-label': t('removeKeyLabel', { name: provider.label, index: rowIndex + 1 }),
+              disabled: busy || !writable,
+              onClick: () => { void removeKeyRow(provider, rowIndex); },
+            }, t('removeKey')))),
+            h('button', {
+              type: 'button',
+              style: {
+                ...styles.button,
+                alignSelf: 'flex-start',
+                ...((busy || !writable || (keyRows[provider.id] ?? []).length >= MAX_KEY_REFS) ? styles.disabled : {}),
+              },
+              'aria-label': t('addKeyLabel', { name: provider.label }),
+              disabled: busy || !writable || (keyRows[provider.id] ?? []).length >= MAX_KEY_REFS,
+              onClick: () => addKeyRow(provider),
+            }, t('addKey'))),
           h('div', { style: styles.keyRow },
-            h('input', {
-              style: { ...styles.input, ...(!writable || busy ? styles.disabled : {}) },
-              type: shown ? 'text' : 'password',
-              autoComplete: 'new-password',
-              'aria-label': t('apiKeyLabel', { name: provider.label }),
-              placeholder: configured ? (keyCount > 1 ? t('savedPlaceholder') : t('savedPlaceholderOne')) : t('keyPlaceholder'),
-              value: keyDrafts[provider.id] ?? '',
-              disabled: !writable || busy,
-              onChange: (event) => setKeyDrafts((current) => ({ ...current, [provider.id]: event.target.value })),
-            }),
             h('button', {
               type: 'button',
               style: { ...styles.button, ...((busy || !writable) ? styles.disabled : {}) },
@@ -873,8 +974,8 @@ window.__ModuleLoader__.load({
             }, busy ? t('testing') : t('test')),
             h('button', {
               type: 'button',
-              style: { ...styles.button, ...styles.primary, ...((busy || !writable || (keyDrafts[provider.id] ?? '').trim().length === 0) ? styles.disabled : {}) },
-              disabled: busy || !writable || (keyDrafts[provider.id] ?? '').trim().length === 0,
+              style: { ...styles.button, ...styles.primary, ...((busy || !writable || !(keyRows[provider.id] ?? []).some((row) => row.value.trim().length > 0)) ? styles.disabled : {}) },
+              disabled: busy || !writable || !(keyRows[provider.id] ?? []).some((row) => row.value.trim().length > 0),
               onClick: () => { void saveKey(provider, ref); },
             }, t('save')),
             h('button', {
