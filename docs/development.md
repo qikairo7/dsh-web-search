@@ -28,6 +28,7 @@ pnpm check
 | `pnpm check` | 语法检查 + `docs:check` + 单测，提交前门禁 |
 | `pnpm docs:check` | 只跑文档层级、链接、配置覆盖和预算检查 |
 | `node --test --test-isolation=none test/<name>.test.js` | 跑单个测试文件 |
+| `node scripts/check-pr-gate.mjs --body-file <path>` | 校验 PR 正文门禁（章节结构、证据、徽章） |
 | `pnpm benchmark:preflight` | 先验证凭据与各后端连通性 |
 | `pnpm benchmark` | live 基准；自动加载 gitignored `.env`，需要 `AS_KEY`、`TV_KEY`、`FC_KEY`、`ZH_KEY`、`SF_KEY`、`DS_TOKEN` |
 | `pnpm benchmark:refresh` | 刷新基准 fixture |
