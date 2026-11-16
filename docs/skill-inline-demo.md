@@ -1,3 +1,3 @@
 # Skill inline demo
 
-This link is intentionally broken: [missing](missing.md)
+This link points to an existing document: [AGENTS](../AGENTS.md)
