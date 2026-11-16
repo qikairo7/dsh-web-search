@@ -4,6 +4,8 @@ English | [中文](CONTRIBUTING.zh.md)
 
 This repository is a DSH plugin maintained as an open-source product. Issues and pull requests are welcome. Behavior changes are recorded in [CHANGELOG.md](CHANGELOG.md).
 
+By participating, you agree to follow the [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
 Before you start, read these in order:
 
 1. [AGENTS.md](AGENTS.md): standing rules and entry points.
