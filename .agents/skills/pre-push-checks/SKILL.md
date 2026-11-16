@@ -21,5 +21,5 @@ description: 在 dsh-web-search 推送分支前使用：按改动面选最小够
 
 - 汇报只写**实际跑过的**命令与结果（同 PR 正文 Evidence 纪律）。
 - 全量 `pnpm check` 在推送前至少过一次（.githooks/pre-push 也会兜底）；中途多笔提交只跑语法门。
-- 基准（`pnpm benchmark`）永远手动：调外部 API，噪声大，不做门禁；微基准 floor 已在 `test/bench.test.js` 随 check 跑。
+- 基准（`pnpm benchmark`）永远手动：调外部 API，噪声大，不做门禁；性能无自动门禁。
 - CI 才负责三平台矩阵、CodeQL、穷尽覆盖；本地不重复排练。

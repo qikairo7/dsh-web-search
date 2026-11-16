@@ -10,6 +10,10 @@
 | R-002 | 分类判据须对每个错误来源核对真实字段名 | 读不到状态落 unknown，白名单收窄后回退立即中止 | PR#34 errors.js:97 读不到 providers/http.js status 与 anysearch httpStatus | 1 | open |
 | R-003 | 规则正文写当前状态，不嵌决策日期或变更史 | 执行规则不需要日期，决策史已有 ADR 与 notes 专属位置 | PR#43 pr-gate.md:53 行内嵌（判断/执行分离，2026-11-17） | 1 | open |
 | R-004 | 改钩子/门禁行为须同步 README 与 development.md | 文档与实现矛盾误导贡献者，自动检查拦不住 | PR#44 README.md:175 仍写 pre-commit 跑 pnpm check | 1 | open |
+| R-007 | 非发版不得上调 doc-budgets 让门禁变绿 | 成文政策要发版才重定基线，增量应压缩或迁移 | PR#49 doc-budgets.json AGENTS.md 2000→2100，head 实测 2071 | 1 | open |
+| R-008 | skill 引用的测试或脚本必须真实存在 | 虚构守护测试让读者误以为已有自动门禁 | PR#49 pre-push-checks:24 引 test/bench.test.js 不存在 | 1 | open |
+| R-009 | 流程细节不复制成文文档，链接权威来源 | 复制必漂移，一个事实只有一个家 | PR#49 pr-description/SKILL.md 大段复制 pr-gate.md 且已漂移 | 1 | open |
+| R-010 | PR 正文 Evidence 只写实际验证过的结果 | 不实证据误导审查与合并决策 | PR#49 正文称仓库不带流程知识，base 已有 docs/pr-gate.md | 1 | open |
 
 字段说明：
 

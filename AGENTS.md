@@ -36,6 +36,5 @@ Node `22.19+` 或 `24+`，只用 pnpm。DSH 沙箱报 `spawn EPERM` 时，改用
 - 写码/Review：`CODING_STANDARDS.md`；artifact 细节 `docs/defensive-patterns.md`。
 - 决策记录：`.agents/notes/`，格式见目录 README。
 - 术语与 ADR：`GLOSSARY.md`、`docs/adr/`；导航 `docs/agents/domain.md`。
-- Issue/PR：[流程](docs/agents/issue-tracker.md)、[PR 正文 skill](.agents/skills/pr-description/SKILL.md)、[门禁](docs/pr-gate.md)。
-- 推分支前：[pre-push-checks skill](.agents/skills/pre-push-checks/SKILL.md)（按改动面选检查）。
+- Issue/PR：[流程](docs/agents/issue-tracker.md)、[门禁](docs/pr-gate.md)；PR 正文与推前检查 skill 在 `.agents/skills/`。
 - 基准：`docs/benchmarks/`、`scripts/public-benchmark.mjs`。
