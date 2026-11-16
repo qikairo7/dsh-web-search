@@ -1,5 +1,7 @@
 # @qikairo7/dsh-web-search
 
+[![Release](https://img.shields.io/github/v/release/qikairo7/dsh-web-search?label=release&color=111111)](https://github.com/qikairo7/dsh-web-search/releases) [![License](https://img.shields.io/badge/license-MIT-111111)](LICENSE) [![Node](https://img.shields.io/badge/node-22.19%2B%20%7C%2024%2B-339933?logo=node.js&logoColor=white)](package.json)
+
 English | [中文](README.zh.md)
 
 Self-contained multi-backend web search and fetch providers for DeepSeek Harness (DSH). The bundle replaces the paid official web providers while keeping the first-party `dsh-tool-web` tool layer. The model still calls `web_search` and `web_fetch`; only the backends change, with optional AnySearch / Tavily / AIHOT advanced tools. The plugin does not call the DeepSeek Search or Fetch APIs.
@@ -7,6 +9,8 @@ Self-contained multi-backend web search and fetch providers for DeepSeek Harness
 Non-goals: the paid DeepSeek Search/Fetch APIs, an MCP server, and third-party DSH plugins.
 
 > Status: pre-1.0. Behavior, defaults, and provider support can change between minor versions. Review [SAFETY.md](SAFETY.md) before use.
+
+![Provider keys feed a router that serves web search and web fetch](docs/preview.svg)
 
 ## Why this exists
 
