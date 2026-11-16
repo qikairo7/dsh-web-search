@@ -6,6 +6,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- Keyless Bing search floor (ADR-0011): Bing's public HTML SERP answers between the free stack and the paid tail without a key or metered quota; empty or unrelated SERPs hand over to the next provider. New settings: `bingEnabled`, `bingBaseURL`, `bingMarket`.
 - `fallbackFailureClasses` config: provider failures are classified as quota / auth / bot-wall / transient / invalid-response / unknown, and the field decides which classes may fall back to the next provider (default all six; an explicit empty list stops at the first failure). Empty-content failures (Tavily/AnySearch extract, HTTP SPA shells) now throw `WEB_INVALID_RESPONSE`.
 - GitHub Releases now attach an installable `.tgz` package.
 

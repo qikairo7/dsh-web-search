@@ -80,6 +80,22 @@ test('dereferences volatile config references', () => {
   assert.equal(settings.tavily.apiKeyEnv, 'CUSTOM_TAVILY_KEY');
 });
 
+test('resolves the bing keyless settings with defaults and overrides', () => {
+  assert.deepEqual(resolveSettings().bing, {
+    enabled: true,
+    baseURL: 'https://www.bing.com',
+    market: '',
+  });
+  const settings = resolveSettings({
+    bingEnabled: false,
+    bingBaseURL: 'https://cn.bing.com',
+    bingMarket: 'zh-CN',
+  });
+  assert.equal(settings.bing.enabled, false);
+  assert.equal(settings.bing.baseURL, 'https://cn.bing.com');
+  assert.equal(settings.bing.market, 'zh-CN');
+});
+
 test('Config contains every spec field with its default, role, and volatility', () => {
   assert.deepEqual(
     Object.keys(Config.dict),

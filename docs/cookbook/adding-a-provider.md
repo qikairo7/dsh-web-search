@@ -5,7 +5,7 @@
 ## 1. 确定能力与 id
 
 - 搜索、抓取还是两者都支持。
-- 选一个唯一的 provider id；标准集合是 `keenable`、`anysearch`、`exa`、`tavily`、`firecrawl`、`zhihu`、`zhihu-site`、`aihot`、`http`、`auto`。
+- 选一个唯一的 provider id；标准集合是 `keenable`、`anysearch`、`exa`、`bing`、`tavily`、`firecrawl`、`zhihu`、`zhihu-site`、`aihot`、`http`、`auto`。
 - 新 id 或新能力缝先写 ADR，放在 `docs/adr/`。
 
 ## 2. 建立 provider 文件

@@ -17,8 +17,8 @@ The settings page is generated from the plugin's `Config` schema. All fields are
 | `officialDocsEnabled` | `true` | Add a domain-restricted Tavily search only when free results miss known official docs |
 | `newsFreshnessEnabled` | `true` | Add one Tavily news search for non-AI news queries when fewer than 3 free results are dated within 7 days |
 | `aihotEnabled` | `true` | Enable the AIHOT AI-news provider |
-| `chineseSearchOrder` | `zhihu,keenable,anysearch,exa,tavily,firecrawl` | Fast-mode search order for Han queries not caught by intent routing |
-| `defaultSearchOrder` | `keenable,anysearch,exa,tavily,firecrawl` | Fast-mode search order for other queries not caught by intent routing |
+| `chineseSearchOrder` | `zhihu,keenable,anysearch,exa,bing,tavily,firecrawl` | Fast-mode search order for Han queries not caught by intent routing |
+| `defaultSearchOrder` | `keenable,anysearch,exa,bing,tavily,firecrawl` | Fast-mode search order for other queries not caught by intent routing |
 | `fetchOrder` | `keenable,http,anysearch,exa,tavily,firecrawl` | Fast fetch fallback order |
 | `cleanFetchOrder` | `keenable,anysearch,exa,http,tavily,firecrawl` | Clean fetch order |
 | `tavilyIncludeAnswer` | `true` | Map Tavily's answer to `web_search.content` |
@@ -38,6 +38,9 @@ The settings page is generated from the plugin's `Config` schema. All fields are
 | `exaEnabled` | `true` | Enable Exa |
 | `exaApiKeyEnv` | `EXA_API_KEY` | Exa credential reference |
 | `exaBaseURL` | `https://api.exa.ai` | Exa API base |
+| `bingEnabled` | `true` | Enable the keyless Bing search floor |
+| `bingBaseURL` | `https://www.bing.com` | Bing SERP base |
+| `bingMarket` | `` | Send `mkt` only when non-empty; empty keeps Bing's own localization |
 | `tavilyEnabled` | `true` | Enable Tavily |
 | `tavilyApiKeyEnv` | `TAVILY_API_KEY` | Tavily credential reference |
 | `tavilyBaseURL` | `https://api.tavily.com` | Tavily API base |
@@ -94,8 +97,8 @@ All `*BaseURL` fields, including `anysearchBaseURL`, `tavilyBaseURL`, and `firec
 | `officialDocsEnabled` | `true` | 免费结果未命中已知官方域时，额外跑一次受限 Tavily 搜索 |
 | `newsFreshnessEnabled` | `true` | 非 AI 新闻查询的免费结果 7 天内带日期来源不足 3 条时，额外跑一次 Tavily news 搜索 |
 | `aihotEnabled` | `true` | 启用 AIHOT AI 新闻源 |
-| `chineseSearchOrder` | `zhihu,keenable,anysearch,exa,tavily,firecrawl` | fast 模式下未命中 intent 路由的含汉字查询的搜索顺序 |
-| `defaultSearchOrder` | `keenable,anysearch,exa,tavily,firecrawl` | fast 模式下未命中 intent 路由的其他查询的搜索顺序 |
+| `chineseSearchOrder` | `zhihu,keenable,anysearch,exa,bing,tavily,firecrawl` | fast 模式下未命中 intent 路由的含汉字查询的搜索顺序 |
+| `defaultSearchOrder` | `keenable,anysearch,exa,bing,tavily,firecrawl` | fast 模式下未命中 intent 路由的其他查询的搜索顺序 |
 | `fetchOrder` | `keenable,http,anysearch,exa,tavily,firecrawl` | fast 抓取回退顺序 |
 | `cleanFetchOrder` | `keenable,anysearch,exa,http,tavily,firecrawl` | clean 抓取顺序 |
 | `tavilyIncludeAnswer` | `true` | 把 Tavily 答案映射到 `web_search.content` |
@@ -115,6 +118,9 @@ All `*BaseURL` fields, including `anysearchBaseURL`, `tavilyBaseURL`, and `firec
 | `exaEnabled` | `true` | 启用 Exa |
 | `exaApiKeyEnv` | `EXA_API_KEY` | Exa 凭据引用 |
 | `exaBaseURL` | `https://api.exa.ai` | Exa API 地址 |
+| `bingEnabled` | `true` | 启用免 Key 的 Bing 兜底搜索地板 |
+| `bingBaseURL` | `https://www.bing.com` | Bing SERP 地址 |
+| `bingMarket` | `` | 非空时才发送 `mkt`；留空用 Bing 自行本地化 |
 | `tavilyEnabled` | `true` | 启用 Tavily |
 | `tavilyApiKeyEnv` | `TAVILY_API_KEY` | Tavily 凭据引用 |
 | `tavilyBaseURL` | `https://api.tavily.com` | Tavily API 地址 |

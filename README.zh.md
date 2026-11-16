@@ -21,6 +21,7 @@ DeepSeek Harness（DSH）的自包含多后端网页搜索与抓取 Provider 插
 | Keenable | 100,000 次/月（Key）；匿名 1,000 次/小时 | 默认搜索 + 干净 Markdown 抓取 |
 | AnySearch | 注册后 1000 次搜索/天；匿名也可用 | 搜索 |
 | Exa | 每月 10 美元免费额度（docs.exa.ai）+ 一次性 10 美元注册奖励 | 语义搜索 + Contents 抓取；免费深度回退 |
+| Bing | 免 Key HTML SERP，无计量配额 | 免费栈之后、付费尾之前的兜底搜索地板 |
 | 知乎 | 全网 5000 次/天 + 站内 5000 次/天 | 中文搜索 |
 | Tavily | 1000 credits/月 | 仅兜底：免费源空结果、缺官方文档、新闻时效不足、Fetch 失败链 |
 | Firecrawl | 1000 credits/月 | Fetch 最后兜底：难抓的 JS/PDF 页面 |
@@ -28,12 +29,12 @@ DeepSeek Harness（DSH）的自包含多后端网页搜索与抓取 Provider 插
 | 直连 HTTP | 无 API 成本 | 静态页面抓取 |
 | SiliconFlow | 免费额度 | BGE 重排 + embeddings |
 
-`quality` 默认只查免费源（中文：知乎 + Keenable + AnySearch；英文：Keenable + AnySearch；AI 新闻先查 AIHOT）。Exa 的每月免费额度使它成为免费栈之后的免费深度回退；Tavily / Firecrawl 是付费尾，只在免费源空结果、缺官方文档、新闻时效不足或 Fetch 失败时消耗。证据增强最多抓取前 5 个页面，优先走 Keenable、直连 HTTP 与 AnySearch；仍失败才回退 Exa/Tavily/Firecrawl。`fast` 模式同样先走免费顺序。
+`quality` 默认只查免费源（中文：知乎 + Keenable + AnySearch；英文：Keenable + AnySearch；AI 新闻先查 AIHOT）。Exa 的每月免费额度使它成为免费栈之后的免费深度回退；Bing 是免费栈与付费尾之间的免 Key 地板；Tavily / Firecrawl 是付费尾，只在免费源空结果、缺官方文档、新闻时效不足或 Fetch 失败时消耗。证据增强最多抓取前 5 个页面，优先走 Keenable、直连 HTTP 与 AnySearch；仍失败才回退 Exa/Tavily/Firecrawl。`fast` 模式同样先走免费顺序。
 
 **为什么选它，而不是别的：**
 
 - 对比 DeepSeek Search API：免费而非按次计费，公开基准上检索质量明显更好（FRAMES 证据召回 0.60 对 0.06、Answer Hit 0.50 对 0.40；n = 50，2026-11-16 运行，[完整报告](docs/benchmarks/2026-11-16-role-matrix-redesign.md)）；代价是延迟（约 4 秒对 0.4 秒），在 agent 异步工作流里无感。
-- 对比单独对接一个后端（AnySearch、Keenable 等都有自家 DSH 插件）：单后端只有一份配额、一个单点故障。本插件把八份免费额度汇成一个池，自动故障切换，再对结果做合并、去重、BGE 重排与证据增强——模型只调用一个工具，不需要关心后端是谁。
+- 对比单独对接一个后端（AnySearch、Keenable 等都有自家 DSH 插件）：单后端只有一份配额、一个单点故障。本插件把九份免费与免 Key 额度汇成一个池，自动故障切换，再对结果做合并、去重、BGE 重排与证据增强——模型只调用一个工具，不需要关心后端是谁。
 - 代价也如实说：比裸付费 API 慢；社区维护而非厂商 SLA。
 
 ## 环境要求
@@ -89,6 +90,7 @@ AnySearch 可以匿名使用；注册 Key 后额度更高。Keenable 没有 Key 
 | `anysearch` | 是 | 是 | 英文/默认搜索补充；覆盖面广 |
 | `keenable` | 是 | 是 | 免费额度首选；搜索 + 干净 Markdown 抓取 |
 | `exa` | 是 | 是 | 语义搜索 + Contents 抓取；免费栈之后的免费深度回退 |
+| `bing` | 是 | 否 | 免 Key HTML SERP 兜底；免费栈之后、付费尾之前 |
 | `tavily` | 是 | 是 | 搜索兜底；新闻时效/官方文档补充；可选生成答案；PDF Extract |
 | `firecrawl` | 是 | 是 | 仅 Fetch 最后兜底；SPA/PDF 抓取最强 |
 | `zhihu` | 是 | 否 | 中文搜索首选；全网 + 站内补充 |
@@ -99,13 +101,13 @@ AnySearch 可以匿名使用；注册 Key 后额度更高。Keenable 没有 Key 
 
 默认顺序：
 
-- 中文查询（包含任意汉字）：`zhihu → keenable → anysearch → exa → tavily → firecrawl`
-- 其他查询：`keenable → anysearch → exa → tavily → firecrawl`
+- 中文查询（包含任意汉字）：`zhihu → keenable → anysearch → exa → bing → tavily → firecrawl`
+- 其他查询：`keenable → anysearch → exa → bing → tavily → firecrawl`
 - 抓取：`keenable → http → anysearch → exa → tavily → firecrawl`
 
 bundle patch 默认固定使用 `auto`；独立 Provider 也会注册，可以在「网页搜索与抓取」设置页里单独选择。
 
-`searchMode` 默认是 **quality**（见[质量管线](#质量管线)）；Exa 占免费深度位，不进入默认 quality 并发；Tavily / Firecrawl 只做付费兜底。设为 `fast` 则使用上面的单后端优先顺序。`fetchMode` 默认是 **fast**（直连 HTTP 优先）；设为 **clean** 会按 `keenable → anysearch → exa → http → tavily → firecrawl` 的顺序，优先免费抽取，Tavily/Firecrawl 只做兜底。`tool-web` 的摘要上限由 profile 的 agent preset 决定（DSH 标准 preset 默认 **800**，bundle patch 不能覆盖 preset 内的 `tool-web` 行；提高上限的 profile 级修法见[操作指南](docs/cookbook/raising-summary-cap.md)）；Provider 的 `maxSnippetChars` 默认是 4000，但进入 `web_search` 工具后仍按该上限截断。Tavily 搜索启用 `include_raw_content`；可选的 `tavily_search` 工具支持 `include_published_date`。
+`searchMode` 默认是 **quality**（见[质量管线](#质量管线)）：中文查询查知乎 + Keenable + AnySearch，英文查询查 Keenable + AnySearch，AI 新闻查询先查 AIHOT 再查该语言组合；按 URL 去重后重排。Exa 占免费深度位，不进入默认 quality 并发；Bing 占免 Key 地板位；Tavily / Firecrawl 只做付费兜底。设为 `fast` 则使用上面的单后端优先顺序。`fetchMode` 默认是 **fast**（直连 HTTP 优先）；设为 **clean** 会按 `keenable → anysearch → exa → http → tavily → firecrawl` 的顺序，优先免费抽取，Tavily/Firecrawl 只做兜底。`tool-web` 的摘要上限由 profile 的 agent preset 决定（DSH 标准 preset 默认 **800**，bundle patch 不能覆盖 preset 内的 `tool-web` 行；提高上限的 profile 级修法见[操作指南](docs/cookbook/raising-summary-cap.md)）；Provider 的 `maxSnippetChars` 默认是 4000，但进入 `web_search` 工具后仍按该上限截断。Tavily 搜索启用 `include_raw_content`；可选的 `tavily_search` 工具支持 `include_published_date`。
 
 ### 高级工具
 

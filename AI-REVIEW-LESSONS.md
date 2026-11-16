@@ -6,6 +6,7 @@
 
 | ID | 规则 | 为什么 | 证据 | Seen | 状态 |
 |---|---|---|---|---|---|
+| R-001 | 相关性门不得让单一信号一票否决整批判 0 | 2–3 字母查询词难进 title 强词表，误杀触发付费尾接答 | PR#33 bing.js:75「go 2」配 2 条 go.dev 结果判 0 抛 WEB_PROVIDER_ERROR | 1 | open |
 | R-002 | 分类判据须对每个错误来源核对真实字段名 | 读不到状态落 unknown，白名单收窄后回退立即中止 | PR#34 errors.js:97 读不到 providers/http.js status 与 anysearch httpStatus | 1 | open |
 
 字段说明：

@@ -40,13 +40,16 @@ test('searchRole falls back to the general row for unmapped intents', () => {
   assert.equal(searchRole('en', 'chinese-community'), SEARCH_ROLES.en.general);
 });
 
-test('default orders end with the catalog paid tail and stay free before it', () => {
+test('default orders end with the catalog paid tail and stay free or keyless before it', () => {
   const paid = paidSearchFallback();
   const fetchProviders = providersWithCapability('fetch');
   for (const order of Object.values(DEFAULT_SEARCH_ORDERS)) {
     assert.deepEqual(order.slice(-paid.length), paid);
     for (const id of order.slice(0, -paid.length)) {
-      assert.equal(providerEntry(id).tier, 'free', `${id} tier before the paid tail`);
+      assert.ok(
+        ['free', 'keyless'].includes(providerEntry(id).tier),
+        `${id} tier before the paid tail`,
+      );
     }
   }
   for (const id of DEFAULT_SEARCH_ORDERS.fetchOrder) {
@@ -54,6 +57,14 @@ test('default orders end with the catalog paid tail and stay free before it', ()
   }
   for (const id of DEFAULT_SEARCH_ORDERS.cleanFetchOrder) {
     assert.ok(fetchProviders.includes(id), `${id} fetch capability`);
+  }
+});
+
+test('default search orders place bing after exa and before the paid tail (ADR-0011)', () => {
+  for (const order of [DEFAULT_SEARCH_ORDERS.chineseSearchOrder, DEFAULT_SEARCH_ORDERS.defaultSearchOrder]) {
+    assert.ok(order.indexOf('exa') < order.indexOf('bing'), 'exa before bing');
+    assert.ok(order.indexOf('bing') < order.indexOf('tavily'), 'bing before the paid tail');
+    assert.equal(order.includes('bing', order.indexOf('tavily')), false);
   }
 });
 
