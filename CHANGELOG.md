@@ -6,6 +6,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- `fallbackFailureClasses` config: provider failures are classified as quota / auth / bot-wall / transient / invalid-response / unknown, and the field decides which classes may fall back to the next provider (default all six; an explicit empty list stops at the first failure). Empty-content failures (Tavily/AnySearch extract, HTTP SPA shells) now throw `WEB_INVALID_RESPONSE`.
 - GitHub Releases now attach an installable `.tgz` package.
 
 ## 0.12.0 — 2026-11-16
