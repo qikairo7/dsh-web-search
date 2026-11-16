@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   PROVIDER_CATALOG,
   PROVIDER_IDS,
+  keylessSearchFallback,
   paidSearchFallback,
   providersWithCapability,
   settingsKeyForProvider,
@@ -20,6 +21,7 @@ test('catalog lists every standard provider in registration order', () => {
     'zhihu-site',
     'aihot',
     'exa',
+    'bing',
     'http',
   ]);
   for (const entry of PROVIDER_CATALOG) {
@@ -40,6 +42,7 @@ test('catalog exposes the search and fetch capability lists', () => {
     'zhihu-site',
     'aihot',
     'exa',
+    'bing',
   ]);
   assert.deepEqual(providersWithCapability('fetch'), [
     'anysearch',
@@ -75,8 +78,12 @@ test('catalog declares a tier and operator set for every provider', () => {
     PROVIDER_CATALOG.filter((entry) => entry.tier === 'paid').map((entry) => entry.id).sort(),
     ['firecrawl', 'tavily'],
   );
+  assert.deepEqual(
+    PROVIDER_CATALOG.filter((entry) => entry.tier === 'keyless').map((entry) => entry.id),
+    ['bing'],
+  );
   for (const entry of PROVIDER_CATALOG) {
-    assert.ok(['free', 'paid'].includes(entry.tier), `${entry.id} tier`);
+    assert.ok(['free', 'keyless', 'paid'].includes(entry.tier), `${entry.id} tier`);
     assert.ok(Array.isArray(entry.operators), `${entry.id} operators`);
     for (const operator of entry.operators) {
       assert.ok(
@@ -84,6 +91,16 @@ test('catalog declares a tier and operator set for every provider', () => {
         `${entry.id} operator ${operator}`,
       );
     }
+  }
+});
+
+test('keylessSearchFallback lists keyless search providers in the declared order', () => {
+  const fallback = keylessSearchFallback();
+  assert.deepEqual(fallback, ['bing']);
+  for (const id of fallback) {
+    const entry = PROVIDER_CATALOG.find((provider) => provider.id === id);
+    assert.equal(entry.tier, 'keyless', `${id} tier`);
+    assert.ok(entry.capabilities.includes('search'), `${id} search capability`);
   }
 });
 
