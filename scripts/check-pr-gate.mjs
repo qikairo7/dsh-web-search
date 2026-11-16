@@ -62,6 +62,7 @@ export function validatePrBody(body, options = {}) {
   const author = typeof options.author === 'string' ? options.author : '';
   const isAutomatedAuthor = /\[bot\]$/iu.test(author)
     || /^(?:dependabot|renovate)(?:\[bot\])?$/iu.test(author);
+  if (isAutomatedAuthor) return { ok: true, errors: [] };
   const errors = [];
   const cleaned = stripHtmlComments(String(body));
   if (cleaned.trim().length === 0) {
@@ -110,7 +111,7 @@ export function validatePrBody(body, options = {}) {
     errors.push('Blast Radius still contains a placeholder');
   }
 
-  if (!isAutomatedAuthor && !BADGE_LINE.test(lastNonEmptyLine(cleaned))) {
+  if (!BADGE_LINE.test(lastNonEmptyLine(cleaned))) {
     errors.push('PR body must end with the powered by dsh badge');
   }
 
