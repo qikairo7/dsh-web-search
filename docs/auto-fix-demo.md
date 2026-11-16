@@ -1,3 +1,3 @@
 # Auto-fix demo
 
-This link is intentionally broken: [missing](missing.md)
+This file intentionally references a missing document without linking it: `missing.md`
