@@ -92,6 +92,27 @@ test('multi-key provider rotates on a 401 status', async () => {
   assert.deepEqual(seen, ['first', 'second']);
 });
 
+test('multi-key provider rotates on a WEB_PROVIDER_CREDENTIAL_MISSING seam error', async () => {
+  const seen = [];
+  const wrapped = createMultiKeyProvider({
+    provider: fakeProvider(),
+    factory: (key) => ({
+      id: 'fake',
+      async search() {
+        seen.push(key);
+        if (key !== 'first') return { sources: [], truncated: false };
+        const error = new Error('credential missing');
+        error.name = 'WebError';
+        error.code = 'WEB_PROVIDER_CREDENTIAL_MISSING';
+        throw error;
+      },
+    }),
+    resolveKeys: async () => ['first', 'second'],
+  });
+  await wrapped.search({ query: 'q' }, undefined);
+  assert.deepEqual(seen, ['first', 'second']);
+});
+
 test('multi-key provider does not rotate on a fetch timeout', async () => {
   const seen = [];
   const wrapped = createMultiKeyProvider({
