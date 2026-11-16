@@ -42,7 +42,7 @@ PR 正文必须按顺序包含三个 `##` 标题：
 
 ## 徽章
 
-PR 正文末尾保留 `powered by dsh` 徽章。使用 `dsh-badge` skill 的固定 Markdown，不改颜色、文字和链接。徽章放在正文最后，不放进 `Summary`、`Evidence` 或 `Merge Danger` 小节。
+PR 正文末尾保留 `powered by dsh` 徽章。使用 `dsh-badge` skill 的固定 Markdown，不改颜色、文字和链接。徽章单独成段放在正文最后，不要写进 `Summary`、`Evidence` 或 `Merge Danger` 的正文句子；它可以位于最后一个 `##` 标题之后。
 
 ## 提交前检查
 

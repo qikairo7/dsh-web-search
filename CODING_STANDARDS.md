@@ -82,7 +82,7 @@
 
 ## 9. Review 门禁
 
-按 artifact 展开的规则见 `docs/defensive-patterns.md`；以下是必须逐项核对的总门禁。以下任一项不满足即阻塞合并。Review 时逐项核对，不只看 diff。
+按 artifact 展开的规则见 `docs/defensive-patterns.md`；以下是必须逐项核对的总门禁。以下任一项不满足即阻塞合并。第 10 节已晋升的规则同样按阻塞项核对。Review 时逐项核对，不只看 diff。
 
 1. **契约**：provider 实现 `id`、`title`、`description`、`available()`、`ready()`、`search()` / `fetch()`；`web_search` / `web_fetch` 的入参与结果形状不变；设置页仍由 `Config` 生成。
 2. **回退语义**：只有可恢复错误（网络、超时、429、5xx、凭据缺失）触发下一个 provider；取消和非法 URL 立即返回；直连 HTTP 的 404 作为结果返回；熔断只统计可恢复失败。

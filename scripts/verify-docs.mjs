@@ -9,6 +9,7 @@ const errors = [];
 const required = [
   'AGENTS.md',
   'CODING_STANDARDS.md',
+  'AI-REVIEW-LESSONS.md',
   'README.md',
   'README.zh.md',
   'GLOSSARY.md',

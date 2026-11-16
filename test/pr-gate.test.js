@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 
 import { validatePrBody } from '../scripts/check-pr-gate.mjs';
 
+const BADGE = '[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)';
+
 const validBody = `## Summary
 
 Add a real PR gate.
@@ -17,6 +19,8 @@ Add a real PR gate.
 **Door:** two-way
 
 **Blast Radius:** pull request workflow
+
+${BADGE}
 `;
 
 test('PR gate accepts a complete body', () => {
@@ -91,6 +95,12 @@ A sufficiently long summary.
     assert.equal(result.ok, false, value);
     assert.match(result.errors.join('\n'), /Door: one-way or Door: two-way/);
   }
+});
+
+test('PR gate rejects a body without the powered by dsh badge', () => {
+  const result = validatePrBody(validBody.replace(`${BADGE}\n`, ''));
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join('\n'), /powered by dsh badge/);
 });
 
 test('PR gate rejects placeholders in Summary and Blast Radius', () => {

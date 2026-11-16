@@ -46,6 +46,13 @@ function hasPlaceholder(value) {
   return /\bTODO\b|\bTBD\b|待补充|待确认/iu.test(value);
 }
 
+function lastNonEmptyLine(value) {
+  const lines = value.trimEnd().split(/\r?\n/u);
+  return lines.at(-1)?.trim() ?? '';
+}
+
+const BADGE_LINE = /^\[!\[[^\]]*\]\(https:\/\/img\.shields\.io\/badge\/powered_by-dsh-[^)]+\)\]\(https:\/\/github\.com\/deepseek-ai\/deepseek-harness\)$/u;
+
 /**
  * Validate one PR body.
  * @param {string} body
@@ -98,6 +105,10 @@ export function validatePrBody(body) {
     errors.push('Merge Danger must contain a non-empty Blast Radius:');
   } else if (hasPlaceholder(blast[1])) {
     errors.push('Blast Radius still contains a placeholder');
+  }
+
+  if (!BADGE_LINE.test(lastNonEmptyLine(cleaned))) {
+    errors.push('PR body must end with the powered by dsh badge');
   }
 
   return { ok: errors.length === 0, errors };
