@@ -163,9 +163,12 @@ window.__ModuleLoader__.load({
       show: 'Show',
       hide: 'Hide',
       unsaved: 'Unsaved changes',
-      keyPlaceholder: 'sk-…',
+      keyPlaceholder: 'Paste one key, or several separated by commas/spaces',
       apiKeyLabel: '{name} API key',
-      savedPlaceholder: 'Saved key: type a new one to replace it',
+      keysCount: '{count} keys',
+      tooManyKeys: 'Use at most 8 keys per provider.',
+      savedPlaceholderOne: 'Saved key; paste a new key to replace it',
+      savedPlaceholder: 'Saved keys; paste new keys to replace them',
       test: 'Test',
       testing: 'Testing…',
       testOk: '{name} responded in {ms} ms with {count} result(s).',
@@ -181,7 +184,7 @@ window.__ModuleLoader__.load({
       saveFailed: 'The deployment refused the write. Check the key and try again.',
       configSaveFailed: 'The deployment refused these settings. Review the values and try again.',
       enterKey: 'Enter a key first.',
-      clearConfirm: 'Clear the stored key for {name}?',
+      clearConfirm: 'Clear all stored keys for {name}?',
       configSaved: 'Settings saved.',
       configNoChanges: 'No changes to save.',
       configConflict: 'Another change landed first. The page was refreshed; review and save again.',
@@ -259,9 +262,12 @@ window.__ModuleLoader__.load({
       show: '显示',
       hide: '隐藏',
       unsaved: '有未保存的改动',
-      keyPlaceholder: 'sk-…',
+      keyPlaceholder: '输入一个 Key，或粘贴多个（逗号/空格分隔）',
       apiKeyLabel: '{name} API Key',
-      savedPlaceholder: '已保存；输入新 Key 可替换',
+      keysCount: '{count} 个 Key',
+      tooManyKeys: '每个 Provider 最多 8 个 Key。',
+      savedPlaceholderOne: '已保存 1 个 Key；粘贴新 Key 可替换',
+      savedPlaceholder: '已保存多个 Key；粘贴新 Key 可替换',
       test: '验证',
       testing: '验证中…',
       testOk: '{name} 在 {ms} ms 内返回 {count} 条结果。',
@@ -277,7 +283,7 @@ window.__ModuleLoader__.load({
       saveFailed: '部署拒绝了写入，请检查 Key 后重试。',
       configSaveFailed: '部署拒绝了这些设置，请复核后重试。',
       enterKey: '请先输入 Key。',
-      clearConfirm: '确认清除 {name} 的已保存 Key？',
+      clearConfirm: '确认清除 {name} 的全部已保存 Key？',
       configSaved: '设置已保存。',
       configNoChanges: '没有需要保存的改动。',
       configConflict: '有另一处修改先落盘，页面已刷新，请复核后重新保存。',
@@ -490,6 +496,22 @@ window.__ModuleLoader__.load({
       return result?.ok === true;
     }
 
+    const MAX_KEY_REFS = 8;
+
+    function keyRefsFor(reference) {
+      return [
+        reference,
+        ...Array.from({ length: MAX_KEY_REFS - 1 }, (_, index) => `${reference}_${index + 2}`),
+      ];
+    }
+
+    function splitKeys(text) {
+      return [...new Set(String(text)
+        .split(/[\s,;，；]+/u)
+        .map((value) => value.trim().replace(/^['"`]|['"`]$/gu, ''))
+        .filter((value) => value.length > 0))];
+    }
+
     function findNamespace(value) {
       const namespaces = Array.isArray(value?.namespaces) ? value.namespaces : [];
       return namespaces.find((entry) => entry.ns === SETTINGS_NS)
@@ -595,7 +617,9 @@ window.__ModuleLoader__.load({
           setState({ status: 'unavailable' });
           return;
         }
-        const refs = PROVIDERS.map((provider) => String(ns.value?.[provider.refKey] ?? '').trim() || provider.defaultRef);
+        const refs = PROVIDERS.flatMap((provider) => keyRefsFor(
+          String(ns.value?.[provider.refKey] ?? '').trim() || provider.defaultRef,
+        ));
         const credentialsResult = await safeCall(() => props.ctx.remote.credentials.describe(refs));
         setState({
           status: 'ready',
@@ -622,14 +646,31 @@ window.__ModuleLoader__.load({
       };
 
       const saveKey = async (provider, ref) => {
-        const value = (keyDrafts[provider.id] ?? '').trim();
-        if (value.length === 0) {
+        const values = splitKeys(keyDrafts[provider.id] ?? '');
+        if (values.length === 0) {
           noteKey(provider, t('enterKey'), true);
           return;
         }
+        if (values.length > MAX_KEY_REFS) {
+          noteKey(provider, t('tooManyKeys'), true);
+          return;
+        }
         setBusy(true);
-        const result = await safeCall(() => props.ctx.remote.credentials.set(ref, value));
-        if (isOk(result)) {
+        const refs = keyRefsFor(ref);
+        let failed = false;
+        for (let index = 0; index < values.length; index += 1) {
+          const result = await safeCall(() => props.ctx.remote.credentials.set(refs[index], values[index]));
+          if (!isOk(result)) {
+            failed = true;
+            break;
+          }
+        }
+        if (!failed) {
+          for (let index = values.length; index < refs.length; index += 1) {
+            if (state.credentials?.[refs[index]]?.configured === true) {
+              await safeCall(() => props.ctx.remote.credentials.unset(refs[index]));
+            }
+          }
           setKeyDrafts((current) => ({ ...current, [provider.id]: '' }));
           setRevealed((current) => ({ ...current, [provider.id]: false }));
           noteKey(provider, t('savedKey', { name: provider.label }));
@@ -647,8 +688,16 @@ window.__ModuleLoader__.load({
         }
         setConfirmClear(undefined);
         setBusy(true);
-        const result = await safeCall(() => props.ctx.remote.credentials.unset(ref));
-        if (isOk(result)) {
+        let failed = false;
+        for (const candidate of keyRefsFor(ref)) {
+          if (state.credentials?.[candidate]?.configured !== true) continue;
+          const result = await safeCall(() => props.ctx.remote.credentials.unset(candidate));
+          if (!isOk(result)) {
+            failed = true;
+            break;
+          }
+        }
+        if (!failed) {
           noteKey(provider, t('clearedKey', { name: provider.label }));
           await refresh(false);
         } else {
@@ -769,8 +818,11 @@ window.__ModuleLoader__.load({
       const dirty = configOperations(ns.value ?? {}, draft).length > 0;
       const providerCards = PROVIDERS.map((provider, index) => {
         const ref = String(ns.value?.[provider.refKey] ?? '').trim() || provider.defaultRef;
-        const info = state.credentials?.[ref] ?? {};
-        const configured = info.configured === true;
+        const refs = keyRefsFor(ref);
+        const configuredRefs = refs.filter((candidate) => state.credentials?.[candidate]?.configured === true);
+        const info = state.credentials?.[configuredRefs[0] ?? ref] ?? {};
+        const configured = configuredRefs.length > 0 || info.configured === true;
+        const keyCount = configuredRefs.length > 0 ? configuredRefs.length : configured ? 1 : 0;
         const writable = info.writable !== false;
         const fromEnvironment = info.source === 'environment';
         const fromStore = typeof info.masked === 'string' && info.masked.length > 0;
@@ -779,7 +831,9 @@ window.__ModuleLoader__.load({
         const sourceText = fromStore ? t('fromStore') : fromEnvironment ? t('fromEnvironment') : '';
         const statusText = state.credentialsError
           ? t('statusUnknown')
-          : configured ? (sourceText.length > 0 ? `${t('configured')} · ${sourceText}` : t('configured')) : t('notConfigured');
+          : configured
+            ? (keyCount > 1 ? `${t('configured')} · ${t('keysCount', { count: keyCount })}` : (sourceText.length > 0 ? `${t('configured')} · ${sourceText}` : t('configured')))
+            : t('notConfigured');
         return h('div', { key: provider.id, style: { ...styles.card, ...(index === 0 ? styles.cardFirst : {}) } },
           h('div', { style: styles.cardHead },
             h('div', null,
@@ -800,7 +854,7 @@ window.__ModuleLoader__.load({
               type: shown ? 'text' : 'password',
               autoComplete: 'new-password',
               'aria-label': t('apiKeyLabel', { name: provider.label }),
-              placeholder: configured ? t('savedPlaceholder') : t('keyPlaceholder'),
+              placeholder: configured ? (keyCount > 1 ? t('savedPlaceholder') : t('savedPlaceholderOne')) : t('keyPlaceholder'),
               value: keyDrafts[provider.id] ?? '',
               disabled: !writable || busy,
               onChange: (event) => setKeyDrafts((current) => ({ ...current, [provider.id]: event.target.value })),

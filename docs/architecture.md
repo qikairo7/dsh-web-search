@@ -48,7 +48,8 @@ Provider 的能力矩阵与默认顺序归 [README Providers 段](../README.md#p
 | `lib/cacheKey.js` | 缓存键：settings 指纹 + 请求 + fetch 有效顺序；search order 纯度由 `test/routing-purity.test.js` 守护 |
 | `lib/catalog.js` | Provider 元数据：能力、tier、算子支持、付费回退顺序、settingsKey、注册顺序 |
 | `lib/settings.js` | `DEFAULT_SETTINGS`、`SETTINGS_SPEC`（`path` 兼任默认值指针）、`resolveSettings()` |
-| `lib/credentials.js` | 通过 DSH credentials 与启动环境解析 API Key |
+| `lib/credentials.js` | 通过 DSH credentials 与启动环境解析 API Key；支持 `*_2`、`*_3` 多 Key 引用 |
+| `lib/keyring.js` | Provider 多 Key 包装：按顺序尝试 Key，额度/限流/鉴权失败切换到下一个 |
 | `lib/http.js` | `joinURL`、`requestJSON` / `requestText`、超时、取消与 HTTP 错误 |
 | `lib/host.js` | host 归一化与域名匹配的唯一实现 |
 | `lib/errors.js` | `WebError` 适配与 `WEB_*` 错误码；`toWebError` 保留调用方已带的 `WEB_*` code |
