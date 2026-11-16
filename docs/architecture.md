@@ -14,7 +14,7 @@ web-search-router (lib/index.js) ───────────────�
         └── AutoFetchProvider  (fetchMode: fast | clean)
                 │
                 ▼
-keenable / anysearch / exa / tavily / firecrawl / zhihu / zhihu-site / aihot / http
+keenable / anysearch / exa / bing / tavily / firecrawl / zhihu / zhihu-site / aihot / http
                 │
                 ▼
         external search / fetch services
@@ -40,13 +40,13 @@ Provider 的能力矩阵与默认顺序归 [README Providers 段](../README.md#p
 | `lib/providers/router.js` | `AutoSearchProvider` / `AutoFetchProvider`：模式分流、routing 注解、缓存回退；fetch 支持显式 order |
 | `lib/providerRunner.js` | 搜索/抓取共用的资格判定、熔断、attempt 与有序回退 |
 | `lib/routing.js` | routing 事实的唯一家：`routingFacts` 注记构造与 `resolveRouting` 缺省推导（intent / syntax / language） |
-| `lib/roles.js` | 路由角色单一表：quality 组合、fast 免费前缀、settings 级默认顺序 |
+| `lib/roles.js` | 路由角色单一表：quality 组合、fast 免费前缀、settings 级默认顺序（拼 keyless 地板与付费尾） |
 | `lib/quality.js` | `QualityEngine`：单入口编排合并、去重、重排降级、权威排序、证据增强与官方文档补充 |
 | `lib/enrich.js` | Evidence enrichment：抓取、HTML 清洗、技术/普通摘要；有界性在模块内兜底 |
 | `lib/cache.js` | TTL + LRU 机制层（`TtlLruCache`）与按能力的策略层（`ResultCache`：TTL / 容量 / 写条件） |
 | `lib/realtime.js` | 天气/汇率实时 |
 | `lib/cacheKey.js` | 缓存键：settings 指纹 + 请求 + fetch 有效顺序；search order 纯度由 `test/routing-purity.test.js` 守护 |
-| `lib/catalog.js` | Provider 元数据：能力、tier、算子支持、付费回退顺序、settingsKey、注册顺序 |
+| `lib/catalog.js` | Provider 元数据：能力、tier（free / keyless / paid）、算子支持、keyless 地板与付费回退顺序、settingsKey、注册顺序 |
 | `lib/settings.js` | `DEFAULT_SETTINGS`、`SETTINGS_SPEC`（`path` 兼任默认值指针）、`resolveSettings()` |
 | `lib/credentials.js` | 通过 DSH credentials 与启动环境解析 API Key；支持 `*_2`、`*_3` 多 Key 引用 |
 | `lib/keyring.js` | Provider 多 Key 包装：按顺序尝试 Key，额度/限流/鉴权失败切换到下一个 |

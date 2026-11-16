@@ -4,7 +4,7 @@
 
 English | [中文](README.zh.md)
 
-Self-contained multi-backend web search and fetch providers for DeepSeek Harness (DSH). The bundle replaces the paid official web providers while keeping the first-party `dsh-tool-web` tool layer. The model still calls `web_search` and `web_fetch`; only the backends change, with optional AnySearch / Tavily / AIHOT advanced tools. The plugin does not call the DeepSeek Search or Fetch APIs.
+Self-contained multi-backend web search and fetch providers for DeepSeek Harness (DSH). The bundle replaces the paid official web providers while keeping the first-party `dsh-tool-web` tool layer. The model still calls `web_search` and `web_fetch`; only the backends change, with optional AnySearch / Tavily / AIHOT advanced tools.
 
 Non-goals: the paid DeepSeek Search/Fetch APIs, an MCP server, and third-party DSH plugins.
 
@@ -21,6 +21,7 @@ The legacy `deepseek-official` search runs a full model turn for every search. T
 | Keenable | 100,000/month (key); 1,000/hour anonymous | Default search + Markdown fetch |
 | AnySearch | 1000 searches/day with a registered key; anonymous access also works | Search |
 | Exa | $10 free credits/month (docs.exa.ai); one-time $10 onboarding bonus | Semantic search + Contents fetch; free depth |
+| Bing | Keyless HTML SERP; no metered quota | Keyless search floor before the paid tail |
 | Zhihu | 5000 global + 5000 site searches/day | Chinese search |
 | Tavily | 1000 credits/month | Fallback only: empty free search, missing official docs, stale news, fetch failure chain |
 | Firecrawl | 1000 credits/month | Last-resort fetch for hard JS/PDF pages |
@@ -28,12 +29,12 @@ The legacy `deepseek-official` search runs a full model turn for every search. T
 | Direct HTTP | No API cost | Static-page fetch |
 | SiliconFlow | Free allowance | BGE rerank + embeddings |
 
-`quality` mode queries free sources by default (Chinese: Zhihu + Keenable + AnySearch; English: Keenable + AnySearch; AI news adds AIHOT first). Exa's monthly free allowance makes it the free depth hop after the default free stack; Tavily and Firecrawl are the paid tail, spent only on empty results, missing official docs, stale news, or fetch failures. Evidence enrichment prefers Keenable/HTTP/AnySearch, then Exa/Tavily/Firecrawl. `fast` uses the free order first.
+`quality` mode queries free sources by default (Chinese: Zhihu + Keenable + AnySearch; English: Keenable + AnySearch; AI news adds AIHOT first). Exa's monthly free allowance makes it the free depth hop after the default free stack; Bing adds the keyless floor before the paid tail; Tavily and Firecrawl spend credits only on empty results, missing official docs, stale news, or fetch failures. Evidence enrichment prefers Keenable/HTTP/AnySearch, then Exa/Tavily/Firecrawl. `fast` uses the free order first.
 
 **Why this over the alternatives:**
 
 - Over the DeepSeek Search API: free, not per-request billing, measurably better retrieval on [FRAMES](docs/benchmarks/2026-11-16-role-matrix-redesign.md) (n = 50, 2026-11-16: evidence recall 0.60 vs 0.06, answer hit 0.50 vs 0.40). The trade is latency (~4 s vs 0.4 s), invisible inside async agent turns.
-- Over wiring one backend directly (AnySearch, Keenable, and friends ship their own DSH plugins): one backend is one quota and one point of failure. This bundle pools eight free allowances behind automatic failover, then merges, dedupes, reranks (BGE), and enriches the results — the model calls one tool and stops thinking about backends.
+- Over wiring one backend directly (AnySearch, Keenable, and friends ship their own DSH plugins): one backend is one quota and one point of failure. This bundle pools nine free and keyless allowances behind automatic failover, then merges, dedupes, reranks (BGE), and enriches results — the model calls one tool.
 - The costs, stated plainly: slower than a raw paid API, and community-maintained rather than a vendor SLA.
 
 ## Requirements
@@ -62,7 +63,7 @@ Or install the checkout directory with the Plugin Manager. Restart DSH after ins
 
 After install, open **Settings → Search and fetch settings**, or **Plugins → Installed plugins → Web search router → Configuration**, to fill provider API keys, enable or disable backends, and set search and fetch modes. Keys are written to the DSH credential store and never read back into the page.
 
-Use **Test** on a provider card to send one real search request and confirm the saved key works. The settings page shows documented free allowances; Tavily and Firecrawl can return live remaining values, while SiliconFlow balance stays in its console. Keenable reports `credits_remaining` on each search/fetch, so **Refresh quota** makes one minimal Keenable search to read the latest value. **Pull models** loads the SiliconFlow rerank and embedding model lists. Distribution is from this repository; each release attaches an installable tarball. The package is not published to npm.
+Use **Test** on a provider card to send one real search request and confirm the saved key works. The settings page shows documented free allowances; Tavily and Firecrawl return live remaining values; SiliconFlow balance stays in its console. Keenable reports `credits_remaining` per search/fetch, so **Refresh quota** runs one minimal search to read the latest value. **Pull models** loads the SiliconFlow rerank and embedding model lists. Releases attach installable tarballs; the package is not published to npm.
 
 ## Credentials
 
@@ -89,6 +90,7 @@ For multiple keys, use **Add key** in the provider card to add one row per key. 
 | `anysearch` | yes | yes | English/default search supplement; broad coverage |
 | `keenable` | yes | yes | Free-quota first; search + clean Markdown fetch |
 | `exa` | yes | yes | Semantic search + Contents fetch; free depth after the default free stack |
+| `bing` | yes | no | Keyless HTML SERP floor before the paid tail |
 | `tavily` | yes | yes | Search fallback; news-freshness and official-docs supplements; optional generated answer; PDF Extract |
 | `firecrawl` | yes | yes | Fetch last-resort only; strong Scrape for SPA/PDF |
 | `zhihu` | yes | no | Chinese search first; global search + site supplement |
@@ -99,13 +101,13 @@ For multiple keys, use **Add key** in the provider card to add one row per key. 
 
 Default orders:
 
-- Chinese query (at least one Han character): `zhihu → keenable → anysearch → exa → tavily → firecrawl`
-- Other query: `keenable → anysearch → exa → tavily → firecrawl`
+- Chinese query (at least one Han character): `zhihu → keenable → anysearch → exa → bing → tavily → firecrawl`
+- Other query: `keenable → anysearch → exa → bing → tavily → firecrawl`
 - Fetch: `keenable → http → anysearch → exa → tavily → firecrawl`
 
-The default `auto` provider is pinned by the bundle patch. Individual providers are also registered and can be selected in the Web search and fetch settings page.
+The bundle patch pins the default `auto` provider; individual providers are also registered and selectable in the settings page.
 
-`searchMode` defaults to **quality**: the router queries the language's free providers (Chinese: Zhihu + Keenable + AnySearch; English: Keenable + AnySearch; AI news: AIHOT first, plus the language set), merges and deduplicates by URL, then reranks with SiliconFlow `BAAI/bge-reranker-v2-m3`. Exa holds the free depth position and is not in the default quality fan-out; Tavily and Firecrawl are fallback-only. `fetchMode` defaults to **fast**; `clean` uses `keenable → anysearch → exa → http → tavily → firecrawl`, preferring free extraction and keeping Tavily/Firecrawl as fallback. The `tool-web` summary cap comes from the agent preset (standard 800; a bundle patch cannot override it; see [the cookbook](docs/cookbook/raising-summary-cap.md) for the profile-level fix); provider `maxSnippetChars` is 4000 but `web_search` truncates to that cap. Tavily search uses `include_raw_content`; the optional `tavily_search` tool supports `include_published_date`.
+`searchMode` defaults to **quality**: the router queries the language's free providers (Chinese: Zhihu + Keenable + AnySearch; English: Keenable + AnySearch; AI news: AIHOT first, plus the language set), merges and deduplicates by URL, then reranks with SiliconFlow `BAAI/bge-reranker-v2-m3`. Exa holds the free depth position and stays out of the default quality fan-out; Bing is the keyless floor; Tavily and Firecrawl are fallback-only. `fetchMode` defaults to **fast**; `clean` uses `keenable → anysearch → exa → http → tavily → firecrawl`, preferring free extraction and keeping Tavily/Firecrawl as fallback. The `tool-web` summary cap comes from the agent preset (standard 800; bundle patches cannot override it — see [the cookbook](docs/cookbook/raising-summary-cap.md)); provider `maxSnippetChars` is 4000 but `web_search` truncates to that cap. Tavily search uses `include_raw_content`; the optional `tavily_search` tool supports `include_published_date`.
 
 ### Advanced tools
 
@@ -119,7 +121,7 @@ The default `auto` provider is pinned by the bundle patch. Individual providers 
 | `aihot_latest` | AIHOT today/week curated AI news, anonymous and free |
 | `aihot_hot` | AIHOT current hot topics, anonymous and free |
 
-`anysearchMaxRenderedContentChars` caps how much result content `anysearch_search` / `anysearch_batch_search` render to the model per call; default 12000 characters.
+`anysearchMaxRenderedContentChars` caps the result content `anysearch_search` / `anysearch_batch_search` render to the model per call; default 12000 characters.
 
 ## Behavior
 
@@ -135,11 +137,11 @@ The default `auto` provider is pinned by the bundle patch. Individual providers 
 ### Quality pipeline
 
 - **Quality search**: `searchMode: quality` queries the language's free providers in parallel (Chinese: Zhihu + Keenable + AnySearch; English: Keenable + AnySearch; AI news: AIHOT + the language set), merges by URL, removes near-duplicates with `BAAI/bge-m3` embeddings, then reranks with `BAAI/bge-reranker-v2-m3` and adds a domain-authority prior (official docs, MDN, GitHub, StackOverflow first). AnySearch page bodies are compressed into an 800–1500 character query-aware extract. If the reranker or embedding service is unavailable, the merged provider order is returned.
-- **Live weather/FX**: queries classified as weather or currency-rate use Open-Meteo (weather) or ExchangeRate-API/Frankfurter (FX) first and return one dated source with live values; if those APIs fail, normal search takes over. No API key is needed.
+- **Live weather/FX**: queries classified as weather or currency-rate use Open-Meteo (weather) or ExchangeRate-API/Frankfurter (FX) first and return one dated source with live values; if those APIs fail, normal search takes over. No key needed.
 - **Evidence enrichment**: the top 5 sources are fetched through the default fetch path and their summaries are regenerated at 800–1500 characters. Technical and official-doc pages prefer API signatures, parameters, examples, and code blocks.
 - **Official docs supplement**: for technical queries with known official domains (`deepseek-harness.github.io`, `api-docs.deepseek.com`, `nodejs.org`, `developer.mozilla.org`, `react.dev`, `docs.python.org`, `go.dev`, `rust-lang.org`, plus known vendor domains for Docker, Kubernetes, AWS, Azure, GitHub, TypeScript, Java, and NVIDIA), quality mode runs one extra Tavily search restricted to those domains only when free results miss every official domain, drops archived Node.js `/download/release/` docs and old release blogs, and merges the results.
 - **Tavily answer**: when `tavilyIncludeAnswer` is on (default), Tavily's generated answer becomes the optional `web_search` `content`. Turn it off to return sources only.
-- **Zhihu metadata**: when `zhihuIncludeMetadata` is on (default), each summary starts with `作者：…；赞同 …；评论 …`, giving the model a quality signal without extending the provider-neutral source shape.
+- **Zhihu metadata**: when `zhihuIncludeMetadata` is on (default), each summary starts with `作者：…；赞同 …；评论 …`, giving the model a quality signal inside the provider-neutral source shape.
 
 ### Fetch and fallback
 
@@ -153,7 +155,7 @@ The default `auto` provider is pinned by the bundle patch. Individual providers 
 
 Search results are cached for 5 minutes (200 entries); fetch results for 10 minutes (100 entries). A provider with 3 consecutive recoverable failures is skipped for 5 minutes.
 
-- **Overall deadline**: one search (realtime answer, quality pipeline, or fast fallback) is capped at 3 × `requestTimeoutMs`, so a hanging stage cannot outlive the caller's tool deadline.
+- **Overall deadline**: one search (realtime answer, quality pipeline, or fast fallback) is capped at 3 × `requestTimeoutMs`, so a hanging stage cannot outlive the tool deadline.
 
 ## Configuration
 
