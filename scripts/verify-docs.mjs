@@ -9,6 +9,7 @@ const errors = [];
 const required = [
   'AGENTS.md',
   'CODING_STANDARDS.md',
+  'AI-REVIEW-LESSONS.md',
   'README.md',
   'README.zh.md',
   'GLOSSARY.md',
@@ -122,6 +123,7 @@ const chineseDocs = new Set([
   'README.zh.md',
   'AGENTS.md',
   'CODING_STANDARDS.md',
+  'AI-REVIEW-LESSONS.md',
   'CONTRIBUTING.md',
   'BENCHMARK.md',
   'docs/AGENTS.md',

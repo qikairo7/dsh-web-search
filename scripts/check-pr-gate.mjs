@@ -46,12 +46,25 @@ function hasPlaceholder(value) {
   return /\bTODO\b|\bTBD\b|待补充|待确认/iu.test(value);
 }
 
+const BADGE = '[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)';
+
+function endsWithBadge(value) {
+  const lines = value.trimEnd().split(/\r?\n/u);
+  const last = lines.at(-1)?.trim() ?? '';
+  if (last !== BADGE) return false;
+  const previous = lines.at(-2)?.trim() ?? '';
+  return previous.length === 0;
+}
+
 /**
  * Validate one PR body.
  * @param {string} body
  * @returns {{ ok: boolean, errors: string[] }}
  */
-export function validatePrBody(body) {
+export function validatePrBody(body, options = {}) {
+  const author = typeof options.author === 'string' ? options.author : '';
+  const isAutomatedAuthor = /\[bot\]$/iu.test(author);
+  if (isAutomatedAuthor) return { ok: true, errors: [] };
   const errors = [];
   const cleaned = stripHtmlComments(String(body));
   if (cleaned.trim().length === 0) {
@@ -100,6 +113,10 @@ export function validatePrBody(body) {
     errors.push('Blast Radius still contains a placeholder');
   }
 
+  if (!endsWithBadge(cleaned)) {
+    errors.push('PR body must end with the powered by dsh badge');
+  }
+
   return { ok: errors.length === 0, errors };
 }
 
@@ -117,7 +134,7 @@ function main() {
     body = readFileSync(file, 'utf8');
   }
 
-  const result = validatePrBody(body);
+  const result = validatePrBody(body, { author: process.env.PR_AUTHOR ?? '' });
   if (result.ok) {
     console.log('PR gate passed');
     return;

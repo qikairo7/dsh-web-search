@@ -78,11 +78,11 @@
 - 分支名用 2 到 3 个短词、连字符分隔，如 `fix-router-fallback`；不要 `feat/` 之类前缀。
 - 提交信息和 PR 标题用 `type(scope): summary`；`type` 取 `feat`、`fix`、`docs`、`chore`、`refactor`、`test`，`scope` 可选。
 - Issue、子任务和 PR 流程：`docs/agents/issue-tracker.md`。
-- PR 正文按 [docs/pr-gate.md](docs/pr-gate.md)：固定顺序为 `pr` → `tech-doc-style-chinese` → `humanizer-zh`；必须包含 `## Summary`、`## Evidence`、`## Merge Danger`；运行 `node scripts/check-pr-gate.mjs --body-file <path>` 通过后才能提交。
+- PR 正文按 [docs/pr-gate.md](docs/pr-gate.md)：固定顺序为 `pr` → `tech-doc-style-chinese` → `humanizer-zh`；必须包含 `## Summary`、`## Evidence`、`## Merge Danger`；正文末尾的 `powered by dsh` 徽章要求也见该文件；运行 `node scripts/check-pr-gate.mjs --body-file <path>` 通过后才能提交。
 
 ## 9. Review 门禁
 
-按 artifact 展开的规则见 `docs/defensive-patterns.md`；以下是必须逐项核对的总门禁。以下任一项不满足即阻塞合并。Review 时逐项核对，不只看 diff。
+按 artifact 展开的规则见 `docs/defensive-patterns.md`；以下是必须逐项核对的总门禁。以下任一项不满足即阻塞合并。第 10 节已晋升的规则同样按阻塞项核对。Review 时逐项核对，不只看 diff。
 
 1. **契约**：provider 实现 `id`、`title`、`description`、`available()`、`ready()`、`search()` / `fetch()`；`web_search` / `web_fetch` 的入参与结果形状不变；设置页仍由 `Config` 生成。
 2. **回退语义**：只有可恢复错误（网络、超时、429、5xx、凭据缺失）触发下一个 provider；取消和非法 URL 立即返回；直连 HTTP 的 404 作为结果返回；熔断只统计可恢复失败。
@@ -92,3 +92,9 @@
 6. **测试与文档**：新行为在映射层和路由层都有覆盖；测试测真实实现、不复制实现逻辑；去掉实现后测试会失败；两份 README、`docs/configuration.md` 的配置表、默认值、配额说明一致；契约变化有 ADR。
 7. **边界与依赖**：`AGENTS.md` 的硬边界全部满足，无未说明的新依赖；`lib/index.js` → `lib/providers/*` → `lib/*` 的依赖方向不被反转。
 8. **实现克制**：除会被测试直接复用的 `mapXxxSearch()` 外，一次性逻辑没有被抽成函数；`try/catch` 只出现在错误边界；没有为未经确认的推测性复杂度增加代码。
+
+## 10. Review 错题本
+
+- 每个 P0/P1 finding 都要记录到 `AI-REVIEW-LESSONS.md`，包括规则、原因、证据和 `Seen` 次数。
+- 同一规则出现 3 次后，晋升到本文件；晋升后的规则在后续 review 中逐项检查。
+- 证据写实际观察到的输出、失败或代码位置；不写推测，不写未运行的验证。
