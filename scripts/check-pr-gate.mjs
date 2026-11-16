@@ -46,12 +46,15 @@ function hasPlaceholder(value) {
   return /\bTODO\b|\bTBD\b|待补充|待确认/iu.test(value);
 }
 
-function lastNonEmptyLine(value) {
-  const lines = value.trimEnd().split(/\r?\n/u);
-  return lines.at(-1)?.trim() ?? '';
-}
+const BADGE = '[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)';
 
-const BADGE_LINE = /^\[!\[[^\]]*\]\(https:\/\/img\.shields\.io\/badge\/powered_by-dsh-[^)]+\)\]\(https:\/\/github\.com\/deepseek-ai\/deepseek-harness\)$/u;
+function endsWithBadge(value) {
+  const lines = value.trimEnd().split(/\r?\n/u);
+  const last = lines.at(-1)?.trim() ?? '';
+  if (last !== BADGE) return false;
+  const previous = lines.at(-2)?.trim() ?? '';
+  return previous.length === 0;
+}
 
 /**
  * Validate one PR body.
@@ -60,8 +63,7 @@ const BADGE_LINE = /^\[!\[[^\]]*\]\(https:\/\/img\.shields\.io\/badge\/powered_b
  */
 export function validatePrBody(body, options = {}) {
   const author = typeof options.author === 'string' ? options.author : '';
-  const isAutomatedAuthor = /\[bot\]$/iu.test(author)
-    || /^(?:dependabot|renovate)(?:\[bot\])?$/iu.test(author);
+  const isAutomatedAuthor = /\[bot\]$/iu.test(author);
   if (isAutomatedAuthor) return { ok: true, errors: [] };
   const errors = [];
   const cleaned = stripHtmlComments(String(body));
@@ -111,7 +113,7 @@ export function validatePrBody(body, options = {}) {
     errors.push('Blast Radius still contains a placeholder');
   }
 
-  if (!BADGE_LINE.test(lastNonEmptyLine(cleaned))) {
+  if (!endsWithBadge(cleaned)) {
     errors.push('PR body must end with the powered by dsh badge');
   }
 

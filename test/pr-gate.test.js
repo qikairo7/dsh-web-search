@@ -103,9 +103,22 @@ test('PR gate rejects a body without the powered by dsh badge', () => {
   assert.match(result.errors.join('\n'), /powered by dsh badge/);
 });
 
+test('PR gate rejects a modified badge and a badge not in its own paragraph', () => {
+  const wrongColor = validBody.replace(
+    'powered_by-dsh-4D6BFE',
+    'powered_by-dsh-000000',
+  );
+  assert.equal(validatePrBody(wrongColor).ok, false);
+
+  const glued = validBody.replace(`**Blast Radius:** pull request workflow\n\n${BADGE}`, `**Blast Radius:** pull request workflow\n${BADGE}`);
+  assert.equal(validatePrBody(glued).ok, false);
+});
+
 test('PR gate skips all body checks for automated PRs', () => {
   const result = validatePrBody('Bump actions/checkout from 4 to 7.', { author: 'dependabot[bot]' });
   assert.deepEqual(result, { ok: true, errors: [] });
+  const bare = validatePrBody('Bump actions/checkout from 4 to 7.', { author: 'dependabot' });
+  assert.equal(bare.ok, false);
 });
 
 test('PR gate rejects placeholders in Summary and Blast Radius', () => {
