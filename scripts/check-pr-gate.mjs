@@ -10,6 +10,22 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
 }
 
+function stripHtmlComments(text) {
+  let output = '';
+  let index = 0;
+  while (index < text.length) {
+    if (text.startsWith('<!--', index)) {
+      const end = text.indexOf('-->', index + 4);
+      if (end === -1) break;
+      index = end + 3;
+      continue;
+    }
+    output += text[index];
+    index += 1;
+  }
+  return output;
+}
+
 function sectionOf(body, name) {
   const heading = new RegExp(`^##\\s+${escapeRegExp(name)}\\s*$`, 'mu');
   const match = heading.exec(body);
@@ -26,7 +42,7 @@ function sectionOf(body, name) {
  */
 export function validatePrBody(body) {
   const errors = [];
-  const cleaned = String(body).replace(/<!--[\s\S]*?-->/gu, '');
+  const cleaned = stripHtmlComments(String(body));
   if (cleaned.trim().length === 0) {
     return { ok: false, errors: ['PR body is empty'] };
   }
