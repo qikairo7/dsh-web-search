@@ -6,6 +6,7 @@
 
 | ID | 规则 | 为什么 | 证据 | Seen | 状态 |
 |---|---|---|---|---|---|
+| R-001 | 新改 Markdown 的相对链接必须指向真实文件 | 失效链接让 pnpm check 的 docs:check 失败 | PR#26 verify-docs 输出 broken relative link: no-such-file.md，exit 1 | 1 | open |
 
 字段说明：
 
