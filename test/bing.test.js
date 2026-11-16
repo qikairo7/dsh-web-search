@@ -62,6 +62,11 @@ test('mapBingSearch rejects an unrelated cache-page batch as zero sources', () =
   assert.deepEqual(mapBingSearch(html, 'deepseek harness plugin', 4000), { sources: [], truncated: false });
 });
 
+test('mapBingSearch keeps a short-token batch whose hits live outside titles', () => {
+  const html = `<ol>${serpBlock({ href: ckHref('https://go.dev/blog/generics'), title: 'Dev Blog generics', snippet: 'Notes on generics' })}${serpBlock({ href: ckHref('https://go.dev/doc/2'), title: 'The Programming Language', snippet: 'What is new in 2' })}</ol>`;
+  assert.equal(mapBingSearch(html, 'go 2', 4000).sources.length, 2);
+});
+
 function bingSettings(bing = {}) {
   return {
     ...resolveSettings(),
