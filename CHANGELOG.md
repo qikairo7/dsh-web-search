@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver. Releases before 0.8.0 have no tags — see the git history.
 
+## 0.12.0 — 2026-11-16
+
+### Added
+
+- Keenable quota: cache `credits_remaining` from search/fetch responses; **Refresh quota** makes one minimal Keenable search to read the latest value.
+- Provider key editor: masked rows with per-key **Delete** and **Add key**, up to eight keys per provider.
+
 ## 0.11.0 — 2026-11-16
 
 ### Added
