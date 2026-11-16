@@ -10,7 +10,7 @@
 
 ## 2. 建立 provider 文件
 
-在 `lib/providers/` 新增 `<name>.js`，保持现有三段式：
+以 `lib/providers/aihot.js`（142 行，无凭据、三段式最简）为复制起点，在 `lib/providers/` 新增 `<name>.js`，保持现有三段式：
 
 - 导出 `XXX_PROVIDER_ID` 常量。
 - 导出 `mapXxxSearch()` 纯映射；只做数据转换和 envelope 校验，坏条目丢弃。
