@@ -34,7 +34,7 @@ test('advanced search validates tags, params, and result bounds', () => {
   assert.deepEqual({ ...parsed.request.params }, { year: 2026, peer_reviewed: true });
   assert.equal(parsed.includeContent, true);
 
-  assert.throws(() => parseAdvancedSearchArgs({ query: 'x', maxResults: 21 }), /1 to 20/);
+  assert.throws(() => parseAdvancedSearchArgs({ query: 'x', maxResults: 11 }), /1 to 10/);
   assert.throws(() => parseAdvancedSearchArgs({ query: 'x', params: { bad: null } }), /string, finite number, or boolean/);
 });
 
