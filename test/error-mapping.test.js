@@ -32,6 +32,15 @@ test('toWebError preserves any WEB_* code from non-seam errors', () => {
   assert.equal(error.cause, cause);
 });
 
+test('toWebError preserves WEB_INVALID_RESPONSE from empty-content failures', () => {
+  const cause = new Error('extract response has no content');
+  cause.code = 'WEB_INVALID_RESPONSE';
+  const error = toWebError(cause, 'Tavily', 'fetch', { fetch: true });
+  assert.equal(error.code, 'WEB_INVALID_RESPONSE');
+  assert.equal(error.message, 'Tavily fetch failed: extract response has no content');
+  assert.equal(error.cause, cause);
+});
+
 test('toWebError keeps a WEB_FETCH_TIMEOUT code even without the fetch flag', () => {
   const cause = new Error('Keenable Keenable fetch timed out after 20 ms');
   cause.code = 'WEB_FETCH_TIMEOUT';

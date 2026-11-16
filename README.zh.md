@@ -105,7 +105,7 @@ AnySearch 可以匿名使用；注册 Key 后额度更高。Keenable 没有 Key 
 
 bundle patch 默认固定使用 `auto`；独立 Provider 也会注册，可以在「网页搜索与抓取」设置页里单独选择。
 
-`searchMode` 默认是 **quality**：中文查询查知乎 + Keenable + AnySearch，英文查询查 Keenable + AnySearch，AI 新闻查询先查 AIHOT 再查该语言组合；按 URL 去重后重排。Exa 占免费深度位，不进入默认 quality 并发；Tavily / Firecrawl 只做付费兜底。设为 `fast` 则使用上面的单后端优先顺序。`fetchMode` 默认是 **fast**（直连 HTTP 优先）；设为 **clean** 会按 `keenable → anysearch → exa → http → tavily → firecrawl` 的顺序，优先免费抽取，Tavily/Firecrawl 只做兜底。`tool-web` 的摘要上限由 profile 的 agent preset 决定（DSH 标准 preset 默认 **800**，bundle patch 不能覆盖 preset 内的 `tool-web` 行；提高上限的 profile 级修法见[操作指南](docs/cookbook/raising-summary-cap.md)）；Provider 的 `maxSnippetChars` 默认是 4000，但进入 `web_search` 工具后仍按该上限截断。Tavily 搜索启用 `include_raw_content`；可选的 `tavily_search` 工具支持 `include_published_date`。
+`searchMode` 默认是 **quality**（见[质量管线](#质量管线)）；Exa 占免费深度位，不进入默认 quality 并发；Tavily / Firecrawl 只做付费兜底。设为 `fast` 则使用上面的单后端优先顺序。`fetchMode` 默认是 **fast**（直连 HTTP 优先）；设为 **clean** 会按 `keenable → anysearch → exa → http → tavily → firecrawl` 的顺序，优先免费抽取，Tavily/Firecrawl 只做兜底。`tool-web` 的摘要上限由 profile 的 agent preset 决定（DSH 标准 preset 默认 **800**，bundle patch 不能覆盖 preset 内的 `tool-web` 行；提高上限的 profile 级修法见[操作指南](docs/cookbook/raising-summary-cap.md)）；Provider 的 `maxSnippetChars` 默认是 4000，但进入 `web_search` 工具后仍按该上限截断。Tavily 搜索启用 `include_raw_content`；可选的 `tavily_search` 工具支持 `include_published_date`。
 
 ### 高级工具
 
@@ -144,7 +144,7 @@ bundle patch 默认固定使用 `auto`；独立 Provider 也会注册，可以�
 ### 抓取与回退
 
 - **直连 HTTP**：匿名抓取，最多 5 跳重定向（允许跨域），5 MB 响应上限，只接受 HTML/text/JSON/XML。PDF 和二进制会抛 `WEB_UNSUPPORTED_CONTENT_TYPE`，由路由回退到 API 抓取。小型 SPA 空壳由 `minDirectHtmlChars`（默认 2048）识别并触发回退。
-- **回退边界**：只对可恢复错误回退：网络错误、超时、429、5xx、缺少凭据。用户取消和无效 URL 立即返回。直连 HTTP 的 404 是结果，不触发回退。
+- **回退边界**：失败分为 quota / auth / bot-wall / transient / invalid-response / unknown 六类，`fallbackFailureClasses`（默认六类全开）决定哪些类别可以尝试下一后端，显式置空表示任何失败立即中止。用户取消和无效 URL 立即返回。直连 HTTP 的 404 是结果，不触发回退。
 - **干净抓取**：`fetchMode: clean` 把顺序改为 `keenable → anysearch → exa → http → tavily → firecrawl`，优先免费抽取，Tavily/Firecrawl 只做兜底。
 - **正文清洗**：API 抓取结果会去掉常见的导航、登录、页脚、面包屑、仓库导航和头像行，再返回 Markdown。
 - **不限制内网**：直连 HTTP 可以访问回环地址和私有网段，与官方 `dsh-web-fetch-http` 行为一致。

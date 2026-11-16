@@ -40,6 +40,22 @@ test('coerces order lists and rejects unknown enum values', () => {
   assert.deepEqual(settings.fetchOrder, DEFAULT_SETTINGS.fetchOrder);
 });
 
+test('resolves fallback failure classes as a tri-state field', () => {
+  const all = ['quota', 'auth', 'bot-wall', 'transient', 'invalid-response', 'unknown'];
+  assert.deepEqual(resolveSettings().fallbackFailureClasses, all);
+  assert.deepEqual(resolveSettings({ fallbackFailureClasses: null }).fallbackFailureClasses, all);
+  assert.deepEqual(resolveSettings({ fallbackFailureClasses: [] }).fallbackFailureClasses, []);
+  assert.deepEqual(
+    resolveSettings({ fallbackFailureClasses: ['auth', 'quota', 'auth', 'nonsense'] }).fallbackFailureClasses,
+    ['auth', 'quota'],
+  );
+  assert.deepEqual(
+    resolveSettings({ fallbackFailureClasses: 'auth, quota' }).fallbackFailureClasses,
+    ['auth', 'quota'],
+  );
+  assert.deepEqual(resolveSettings({ fallbackFailureClasses: 'nonsense' }).fallbackFailureClasses, all);
+});
+
 test('keeps numeric coercion rules for each number kind', () => {
   const settings = resolveSettings({
     requestTimeoutMs: '45000',
