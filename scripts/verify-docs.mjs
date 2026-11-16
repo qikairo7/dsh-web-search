@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
 import { readFile, readdir } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -63,14 +64,30 @@ async function sourceFiles(dir) {
   return files;
 }
 
+const gitIgnoreCache = new Set();
+function isGitIgnored(relPath) {
+  if (gitIgnoreCache.size === 0) {
+    const result = spawnSync('git', ['ls-files', '--ignored', '--exclude-standard', '--others', '--directory'], { cwd: root, encoding: 'utf8' });
+    if (result.status === 0) {
+      for (const line of result.stdout.split('\n')) {
+        const trimmed = line.replace(/\/$/u, '');
+        if (trimmed) gitIgnoreCache.add(trimmed);
+      }
+    }
+  }
+  return [...gitIgnoreCache].some((ignored) => relPath === ignored || relPath.startsWith(`${ignored}/`));
+}
+
 async function markdownFiles(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
   const files = [];
   for (const entry of entries) {
     if (['.git', 'node_modules', '.research'].includes(entry.name)) continue;
     const fullPath = path.join(dir, entry.name);
+    const rel = path.relative(root, fullPath).replaceAll('\\', '/');
+    if (isGitIgnored(rel)) continue;
     if (entry.isDirectory()) files.push(...(await markdownFiles(fullPath)));
-    else if (entry.name.endsWith('.md')) files.push(path.relative(root, fullPath).replaceAll('\\', '/'));
+    else if (entry.name.endsWith('.md')) files.push(rel);
   }
   return files;
 }
