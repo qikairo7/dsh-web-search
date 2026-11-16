@@ -39,7 +39,7 @@ test('sortByAuthority adds the domain prior to the rerank score', () => {
 });
 
 test('rust official docs stay consistent across supplement domains, authority boost, and doc-host checks', () => {
-  assert.ok(officialDomainsForQuery('rust').includes('doc.rust-lang.org'));
+  assert.ok(officialDomainsForQuery('rust').some((domain) => domain === 'doc.rust-lang.org'));
   assert.ok(authorityBoost('https://doc.rust-lang.org/book/') > 0);
   assert.equal(authorityBoost('https://doc.rust-lang.org/book/'), 0.2);
   assert.equal(isOfficialDocHost('doc.rust-lang.org'), true);

@@ -142,6 +142,27 @@ test('Zhihu maps metadata into the summary text', () => {
   assert.equal(result.sources[0].publishedAt, '2023-11-14T22:13:20.000Z');
 });
 
+test('Zhihu strips nested tag fragments and decodes entities once', () => {
+  const result = mapZhihuSearch(
+    {
+      Code: 0,
+      Data: {
+        Items: [
+          {
+            Title: '<scr<script>ipt>alert(1)</script >',
+            Url: 'https://example.com/1',
+            ContentText: '&amp;lt; &amp;amp;',
+          },
+        ],
+      },
+    },
+    200,
+    false,
+  );
+  assert.equal(result.sources[0].title, 'alert(1)');
+  assert.equal(result.sources[0].snippet, '&lt; &amp;');
+});
+
 test('Zhihu preserves the rate-limit code from the API envelope', () => {
   assert.throws(
     () => mapZhihuSearch({ Code: 30001, Message: 'too many requests' }),
