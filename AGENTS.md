@@ -11,12 +11,12 @@ DSH 插件：实现 `ctx.web` 的搜索/抓取 Provider，用免费后端替换�
 ```sh
 pnpm install
 pnpm docs:check   # 文档层级、链接、模块地图、配置覆盖与预算
-pnpm check        # 全量语法检查 + docs:check + node --test
+pnpm check        # 全量语法检查 + 文档代码块 + docs:check + node --test
 pnpm benchmark:preflight # 先验证凭据与各后端连通性
 pnpm benchmark    # live 基准；自动加载 gitignored 的 .env（AS_KEY/TV_KEY/FC_KEY/ZH_KEY/SF_KEY/DS_TOKEN/KEENABLE_API_KEY/EXA_API_KEY）
 ```
 
-Node `22.19+` 或 `24+`，只用 pnpm。DSH 沙箱报 `spawn EPERM` 时，改用 `node scripts/check-syntax.mjs && node --test --test-isolation=none`。
+Node `22.19+` 或 `24+`，只用 pnpm。DSH 沙箱报 `spawn EPERM` 时，改用 [docs/development.md](docs/development.md) 的单进程等价命令。
 
 ## 硬边界
 

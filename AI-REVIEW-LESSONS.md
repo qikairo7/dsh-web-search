@@ -8,8 +8,9 @@
 |---|---|---|---|---|---|
 | R-001 | 相关性门不得让单一信号一票否决整批判 0 | 2–3 字母查询词难进 title 强词表，误杀触发付费尾接答 | PR#33 bing.js:75「go 2」配 2 条 go.dev 结果判 0 抛 WEB_PROVIDER_ERROR | 1 | open |
 | R-002 | 分类判据须对每个错误来源核对真实字段名 | 读不到状态落 unknown，白名单收窄后回退立即中止 | PR#34 errors.js:97 读不到 providers/http.js status 与 anysearch httpStatus | 1 | open |
-| R-003 | 规则正文写当前状态，不嵌决策日期或变更史 | 执行规则不需要日期，决策史已有 ADR 与 notes 专属位置 | PR#43 pr-gate.md:53 行内嵌（判断/执行分离，2026-11-17） | 1 | open |
-| R-004 | 改钩子/门禁行为须同步 README 与 development.md | 文档与实现矛盾误导贡献者，自动检查拦不住 | PR#44 README.md:175 仍写 pre-commit 跑 pnpm check | 1 | open |
+| R-003 | 规则正文写当前状态，不嵌决策日期或变更史 | 执行规则不需要日期，决策史已有 ADR 与 notes 专属位置 | PR#43 pr-gate.md:53 行内嵌（判断/执行分离，2026-11-17） | 2 | open |
+| R-004 | 改钩子/门禁行为须同步 README 与 development.md | 文档与实现矛盾误导贡献者，自动检查拦不住 | PR#48 check 加 check-doc-code 后 AGENTS.md:14 等 4 处仍写旧三段 | 3 | promoted |
+| R-006 | 门禁 spawnSync 外部 checker 须分流 result.error | 进程没跑成会被误报成内容语法失败，掩盖环境问题 | PR#48 check-doc-code.mjs:54 ENOENT 时 status=null 被判失败报 parse error | 1 | open |
 
 字段说明：
 

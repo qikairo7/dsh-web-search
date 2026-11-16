@@ -26,6 +26,12 @@ function checkerFor(lang) {
   return { cmd: 'bash', args: (file) => ['-n', file], suffix: '.sh' };
 }
 
+/** Distinguish "the checker never ran" (spawn error) from "the block failed to parse". */
+export function failureMessage(result, cmd, label) {
+  if (result.error) return `${label}: checker '${cmd}' unavailable (${result.error.code})`;
+  return `${label}: ${(result.stderr || 'parse error').split('\n').slice(0, 3).join(' | ')}`;
+}
+
 async function collectMarkdown() {
   const found = new Set();
   for (const pattern of FILES) {
@@ -51,8 +57,8 @@ if (isMain) {
         const tmp = join(dir, `block-${index}${suffix}`);
         await writeFile(tmp, body, 'utf8');
         const result = spawnSync(cmd, args(tmp), { encoding: 'utf8' });
-        if (result.status !== 0) {
-          failures.push(`${file} (${lang} block #${index}): ${(result.stderr || 'parse error').split('\n').slice(0, 3).join(' | ')}`);
+        if (result.error || result.status !== 0) {
+          failures.push(failureMessage(result, cmd, `${file} (${lang} block #${index})`));
         }
       }
     }
