@@ -6,6 +6,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- Keyless Bing search floor (ADR-0011): Bing's public HTML SERP answers between the free stack and the paid tail without a key or metered quota; empty or unrelated SERPs hand over to the next provider. New settings: `bingEnabled`, `bingBaseURL`, `bingMarket`.
 - GitHub Releases now attach an installable `.tgz` package.
 
 ## 0.12.0 — 2026-11-16
