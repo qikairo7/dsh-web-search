@@ -8,6 +8,11 @@ test('htmlToText removes scripts and tags', () => {
   assert.equal(htmlToText(html), 'Title\nBody & text.');
 });
 
+test('htmlToText decodes entities once and handles spaced script end tags', () => {
+  const html = '<script>bad()</script ><p>&amp;lt; &amp;amp;</p>';
+  assert.equal(htmlToText(html), '&lt; &amp;');
+});
+
 test('cleanMarkdown removes common navigation lines and collapses blank lines', () => {
   const input = [
     '[Skip to content](#start-of-content)',
