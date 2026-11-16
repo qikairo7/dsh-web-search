@@ -10,6 +10,7 @@
 | R-002 | 分类判据须对每个错误来源核对真实字段名 | 读不到状态落 unknown，白名单收窄后回退立即中止 | PR#34 errors.js:97 读不到 providers/http.js status 与 anysearch httpStatus | 1 | open |
 | R-003 | 规则正文写当前状态，不嵌决策日期或变更史 | 执行规则不需要日期，决策史已有 ADR 与 notes 专属位置 | PR#43 pr-gate.md:53 行内嵌（判断/执行分离，2026-11-17） | 1 | open |
 | R-004 | 改钩子/门禁行为须同步 README 与 development.md | 文档与实现矛盾误导贡献者，自动检查拦不住 | PR#44 README.md:175 仍写 pre-commit 跑 pnpm check | 1 | open |
+| R-007 | 版本文档声称的门禁/断言须在合并目标分支逐项核实 | 把计划或未合并的门写成已有，贡献者误信 CI 会拦 | PR#50 0.13.0.md:27 称架构方向门与性能下限断言，origin/main 均无 | 1 | open |
 
 字段说明：
 
