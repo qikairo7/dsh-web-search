@@ -17,8 +17,8 @@ The settings page is generated from the plugin's `Config` schema. All fields are
 | `officialDocsEnabled` | `true` | Add a domain-restricted Tavily search only when free results miss known official docs |
 | `newsFreshnessEnabled` | `true` | Add one Tavily news search for non-AI news queries when fewer than 3 free results are dated within 7 days |
 | `aihotEnabled` | `true` | Enable the AIHOT AI-news provider |
-| `chineseSearchOrder` | `zhihu,keenable,anysearch,exa,tavily,firecrawl` | Fast-mode search order for Han queries not caught by intent routing |
-| `defaultSearchOrder` | `keenable,anysearch,exa,tavily,firecrawl` | Fast-mode search order for other queries not caught by intent routing |
+| `chineseSearchOrder` | `zhihu,keenable,anysearch,exa,bing,tavily,firecrawl` | Fast-mode search order for Han queries not caught by intent routing |
+| `defaultSearchOrder` | `keenable,anysearch,exa,bing,tavily,firecrawl` | Fast-mode search order for other queries not caught by intent routing |
 | `fetchOrder` | `keenable,http,anysearch,exa,tavily,firecrawl` | Fast fetch fallback order |
 | `cleanFetchOrder` | `keenable,anysearch,exa,http,tavily,firecrawl` | Clean fetch order |
 | `tavilyIncludeAnswer` | `true` | Map Tavily's answer to `web_search.content` |
@@ -38,6 +38,9 @@ The settings page is generated from the plugin's `Config` schema. All fields are
 | `exaEnabled` | `true` | Enable Exa |
 | `exaApiKeyEnv` | `EXA_API_KEY` | Exa credential reference |
 | `exaBaseURL` | `https://api.exa.ai` | Exa API base |
+| `bingEnabled` | `true` | Enable the keyless Bing search floor |
+| `bingBaseURL` | `https://www.bing.com` | Bing SERP base |
+| `bingMarket` | `` | Send `mkt` only when non-empty; empty keeps Bing's own localization |
 | `tavilyEnabled` | `true` | Enable Tavily |
 | `tavilyApiKeyEnv` | `TAVILY_API_KEY` | Tavily credential reference |
 | `tavilyBaseURL` | `https://api.tavily.com` | Tavily API base |
@@ -73,6 +76,7 @@ The settings page is generated from the plugin's `Config` schema. All fields are
 | `searchCacheMaxEntries` | `200` | Search cache entry cap |
 | `fetchCacheTtlMs` | `600000` | Fetch cache TTL |
 | `fetchCacheMaxEntries` | `100` | Fetch cache entry cap |
+| `fallbackFailureClasses` | `quota,auth,bot-wall,transient,invalid-response,unknown` | Failure classes that may fall back to the next provider: `quota` (402/429), `auth` (401/403), `bot-wall`, `transient` (408/5xx), `invalid-response` (bad or empty content), `unknown` (other recoverable failures). An explicit empty list stops at the first failure; unset keeps all six. The gate applies to the sequential fallback chain; quality parallel fan-out is unaffected |
 | `breakerFailureThreshold` | `3` | Consecutive failures before cooldown |
 | `breakerCooldownMs` | `300000` | Provider cooldown |
 
@@ -93,8 +97,8 @@ All `*BaseURL` fields, including `anysearchBaseURL`, `tavilyBaseURL`, and `firec
 | `officialDocsEnabled` | `true` | 免费结果未命中已知官方域时，额外跑一次受限 Tavily 搜索 |
 | `newsFreshnessEnabled` | `true` | 非 AI 新闻查询的免费结果 7 天内带日期来源不足 3 条时，额外跑一次 Tavily news 搜索 |
 | `aihotEnabled` | `true` | 启用 AIHOT AI 新闻源 |
-| `chineseSearchOrder` | `zhihu,keenable,anysearch,exa,tavily,firecrawl` | fast 模式下未命中 intent 路由的含汉字查询的搜索顺序 |
-| `defaultSearchOrder` | `keenable,anysearch,exa,tavily,firecrawl` | fast 模式下未命中 intent 路由的其他查询的搜索顺序 |
+| `chineseSearchOrder` | `zhihu,keenable,anysearch,exa,bing,tavily,firecrawl` | fast 模式下未命中 intent 路由的含汉字查询的搜索顺序 |
+| `defaultSearchOrder` | `keenable,anysearch,exa,bing,tavily,firecrawl` | fast 模式下未命中 intent 路由的其他查询的搜索顺序 |
 | `fetchOrder` | `keenable,http,anysearch,exa,tavily,firecrawl` | fast 抓取回退顺序 |
 | `cleanFetchOrder` | `keenable,anysearch,exa,http,tavily,firecrawl` | clean 抓取顺序 |
 | `tavilyIncludeAnswer` | `true` | 把 Tavily 答案映射到 `web_search.content` |
@@ -114,6 +118,9 @@ All `*BaseURL` fields, including `anysearchBaseURL`, `tavilyBaseURL`, and `firec
 | `exaEnabled` | `true` | 启用 Exa |
 | `exaApiKeyEnv` | `EXA_API_KEY` | Exa 凭据引用 |
 | `exaBaseURL` | `https://api.exa.ai` | Exa API 地址 |
+| `bingEnabled` | `true` | 启用免 Key 的 Bing 兜底搜索地板 |
+| `bingBaseURL` | `https://www.bing.com` | Bing SERP 地址 |
+| `bingMarket` | `` | 非空时才发送 `mkt`；留空用 Bing 自行本地化 |
 | `tavilyEnabled` | `true` | 启用 Tavily |
 | `tavilyApiKeyEnv` | `TAVILY_API_KEY` | Tavily 凭据引用 |
 | `tavilyBaseURL` | `https://api.tavily.com` | Tavily API 地址 |
@@ -149,6 +156,7 @@ All `*BaseURL` fields, including `anysearchBaseURL`, `tavilyBaseURL`, and `firec
 | `searchCacheMaxEntries` | `200` | 搜索缓存条数上限 |
 | `fetchCacheTtlMs` | `600000` | 抓取缓存 TTL |
 | `fetchCacheMaxEntries` | `100` | 抓取缓存条数上限 |
+| `fallbackFailureClasses` | `quota,auth,bot-wall,transient,invalid-response,unknown` | 允许回退到下一后端的失败类别：`quota`（402/429 配额限流）、`auth`（401/403 鉴权）、`bot-wall`（目标站点拦截）、`transient`（408/5xx 超时与服务端错误）、`invalid-response`（坏响应或空内容）、`unknown`（其余可恢复失败）。显式置空表示任何失败立即中止；未设置保持六类全开。该门禁作用于顺序回退链；quality 并行扇出不受影响 |
 | `breakerFailureThreshold` | `3` | 连续失败多少次后冷却 |
 | `breakerCooldownMs` | `300000` | 后端冷却时长 |
 

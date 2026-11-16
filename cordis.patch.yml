@@ -34,7 +34,7 @@
         enrichSummaryMaxChars: 1500
         keenableEnabled: true
         exaEnabled: true
-        chineseSearchOrder: zhihu,keenable,anysearch,exa,tavily,firecrawl
-        defaultSearchOrder: keenable,anysearch,exa,tavily,firecrawl
+        chineseSearchOrder: zhihu,keenable,anysearch,exa,bing,tavily,firecrawl
+        defaultSearchOrder: keenable,anysearch,exa,bing,tavily,firecrawl
         fetchOrder: keenable,http,anysearch,exa,tavily,firecrawl
         cleanFetchOrder: keenable,anysearch,exa,http,tavily,firecrawl

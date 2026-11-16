@@ -172,6 +172,63 @@ test('Tavily fetch truncates extracted content at maxFetchChars', async () => {
   );
 });
 
+test('Tavily fetch maps empty content to WEB_INVALID_RESPONSE', async () => {
+  await withFetch(
+    {
+      body: {
+        results: [{ url: 'https://example.com/', raw_content: '' }],
+        failed_results: [{ url: 'https://example.com/', error: 'Extraction failed' }],
+      },
+    },
+    async () => {
+      const provider = new TavilyProvider({
+        settings: () => ({
+          requestTimeoutMs: 5_000,
+          maxFetchChars: 10_000,
+          maxSnippetChars: 800,
+          tavily: {
+            enabled: true,
+            apiKeyEnv: 'TAVILY_API_KEY',
+            baseURL: 'https://api.tavily.com',
+            includeAnswer: false,
+          },
+        }),
+        resolveKey: async () => 'key',
+      });
+      await assert.rejects(
+        () => provider.fetch({ url: 'https://example.com/' }),
+        (error) => error.code === 'WEB_INVALID_RESPONSE' && /Extraction failed/.test(error.message),
+      );
+    },
+  );
+});
+
+test('AnySearch fetch maps empty content to WEB_INVALID_RESPONSE', async () => {
+  await withFetch(
+    {
+      body: { code: 0, data: { content: '' } },
+    },
+    async () => {
+      const provider = new AnySearchProvider({
+        settings: () => ({
+          requestTimeoutMs: 5_000,
+          maxFetchChars: 10_000,
+          anysearch: {
+            enabled: true,
+            apiKeyEnv: 'ANYSEARCH_API_KEY',
+            baseURL: 'https://api.anysearch.com',
+          },
+        }),
+        resolveKey: async () => undefined,
+      });
+      await assert.rejects(
+        () => provider.fetch({ url: 'https://example.com/' }),
+        (error) => error.code === 'WEB_INVALID_RESPONSE',
+      );
+    },
+  );
+});
+
 test('AnySearch fetch truncates extracted content at maxFetchChars', async () => {
   await withFetch(
     {

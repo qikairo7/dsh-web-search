@@ -40,6 +40,22 @@ test('coerces order lists and rejects unknown enum values', () => {
   assert.deepEqual(settings.fetchOrder, DEFAULT_SETTINGS.fetchOrder);
 });
 
+test('resolves fallback failure classes as a tri-state field', () => {
+  const all = ['quota', 'auth', 'bot-wall', 'transient', 'invalid-response', 'unknown'];
+  assert.deepEqual(resolveSettings().fallbackFailureClasses, all);
+  assert.deepEqual(resolveSettings({ fallbackFailureClasses: null }).fallbackFailureClasses, all);
+  assert.deepEqual(resolveSettings({ fallbackFailureClasses: [] }).fallbackFailureClasses, []);
+  assert.deepEqual(
+    resolveSettings({ fallbackFailureClasses: ['auth', 'quota', 'auth', 'nonsense'] }).fallbackFailureClasses,
+    ['auth', 'quota'],
+  );
+  assert.deepEqual(
+    resolveSettings({ fallbackFailureClasses: 'auth, quota' }).fallbackFailureClasses,
+    ['auth', 'quota'],
+  );
+  assert.deepEqual(resolveSettings({ fallbackFailureClasses: 'nonsense' }).fallbackFailureClasses, all);
+});
+
 test('keeps numeric coercion rules for each number kind', () => {
   const settings = resolveSettings({
     requestTimeoutMs: '45000',
@@ -62,6 +78,22 @@ test('dereferences volatile config references', () => {
   assert.equal(settings.searchMode, 'fast');
   assert.equal(settings.enrichTopN, 2);
   assert.equal(settings.tavily.apiKeyEnv, 'CUSTOM_TAVILY_KEY');
+});
+
+test('resolves the bing keyless settings with defaults and overrides', () => {
+  assert.deepEqual(resolveSettings().bing, {
+    enabled: true,
+    baseURL: 'https://www.bing.com',
+    market: '',
+  });
+  const settings = resolveSettings({
+    bingEnabled: false,
+    bingBaseURL: 'https://cn.bing.com',
+    bingMarket: 'zh-CN',
+  });
+  assert.equal(settings.bing.enabled, false);
+  assert.equal(settings.bing.baseURL, 'https://cn.bing.com');
+  assert.equal(settings.bing.market, 'zh-CN');
 });
 
 test('Config contains every spec field with its default, role, and volatility', () => {

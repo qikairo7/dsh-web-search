@@ -42,6 +42,7 @@ test('fast order applies intent routing only when enabled', () => {
     'keenable',
     'anysearch',
     'exa',
+    'bing',
     'tavily',
     'firecrawl',
   ]);
@@ -50,6 +51,7 @@ test('fast order applies intent routing only when enabled', () => {
     'keenable',
     'anysearch',
     'exa',
+    'bing',
     'tavily',
     'firecrawl',
   ]);
@@ -57,6 +59,7 @@ test('fast order applies intent routing only when enabled', () => {
     'keenable',
     'anysearch',
     'exa',
+    'bing',
     'tavily',
     'firecrawl',
   ]);
@@ -66,7 +69,7 @@ test('fast order applies intent routing only when enabled', () => {
   );
 });
 
-test('fast orders end with the paid fallback and quality pairs stay free', () => {
+test('fast orders end with the paid fallback; free and keyless stay before it', () => {
   const paidTail = paidSearchFallback();
   const settings = {
     intentRouting: true,
@@ -89,9 +92,10 @@ test('fast orders end with the paid fallback and quality pairs stay free', () =>
       const order = fastOrder(query, routing, intent);
       assert.deepEqual(order.slice(-paidTail.length), paidTail, `${query} paid tail`);
       for (const id of order.slice(0, -paidTail.length)) {
-        assert.equal(
-          PROVIDER_CATALOG.find((provider) => provider.id === id).tier,
-          'free',
+        assert.ok(
+          ['free', 'keyless'].includes(
+            PROVIDER_CATALOG.find((provider) => provider.id === id).tier,
+          ),
           `${query} keeps ${id} before the paid tail`,
         );
       }
