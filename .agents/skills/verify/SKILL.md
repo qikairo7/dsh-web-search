@@ -30,4 +30,4 @@ description: 在 dsh-web-search 里提交/交付前做端到端冒烟时使用�
 ## 边界
 
 - 不在 CI 跑（外部 API 抖动会教坏 agent"重跑代替修复"——flaky 纪律）；pre-push 手动跑。
-- 差分场景（重构前后对比）用 `pnpm benchmark` 的对照表，不在此范围。
+- 差分场景（重构前后对比）用 `pnpm benchmark` 的对照表——它就是差分测试的现成形态（固定题集 FRAMES/WebWalkerQA 当 oracle，新旧版本同题对比），不需要另建框架。
