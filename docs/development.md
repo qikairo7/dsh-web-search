@@ -2,6 +2,10 @@
 
 面向贡献者的安装、日常命令、CI 和排错。实现规则见 [CODING_STANDARDS](../CODING_STANDARDS.md)，文档规则见 [docs/AGENTS.md](AGENTS.md)，架构地图见 [docs/architecture.md](architecture.md)。
 
+## 查证顺序
+
+回答「X 是怎么工作的」类问题时，按此顺序取证据：**先看运行时实际行为**（跑命令观察输出、读当前代码、用 codegraph 查调用关系），**再看本文档**；文档可能落后于代码，以代码为准。两者都不足以确认时，在产出里明确写「未验证」，不把推测当事实。
+
 ## 环境要求
 
 - Node.js `22.19+` 或 `24+`。
