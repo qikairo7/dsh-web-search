@@ -29,6 +29,11 @@ test('unwrapBingUrl decodes the u parameter and keeps undecodable or non-http li
   assert.equal(unwrapBingUrl(junk), junk);
 });
 
+test('unwrapBingUrl accepts custom Bing bases such as cn.bing.com', () => {
+  const cnCk = `https://cn.bing.com/ck/a?FORM=QBLH&u=a1${Buffer.from('https://example.com/cn').toString('base64url')}&ntb=1`;
+  assert.equal(unwrapBingUrl(cnCk), 'https://example.com/cn');
+});
+
 test('mapBingSearch maps b_algo blocks, dedupes by URL, and truncates snippets', () => {
   const html = `<ol>${serpBlock({
     href: ckHref('https://a.example/one'),

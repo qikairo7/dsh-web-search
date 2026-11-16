@@ -21,7 +21,7 @@ DeepSeek Harness（DSH）的自包含多后端网页搜索与抓取 Provider 插
 | Keenable | 100,000 次/月（Key）；匿名 1,000 次/小时 | 默认搜索 + 干净 Markdown 抓取 |
 | AnySearch | 注册后 1000 次搜索/天；匿名也可用 | 搜索 |
 | Exa | 每月 10 美元免费额度（docs.exa.ai）+ 一次性 10 美元注册奖励 | 语义搜索 + Contents 抓取；免费深度回退 |
-| Bing | 免 Key HTML SERP，不限量 | 免费栈之后、付费尾之前的兜底搜索地板 |
+| Bing | 免 Key HTML SERP，无计量配额 | 免费栈之后、付费尾之前的兜底搜索地板 |
 | 知乎 | 全网 5000 次/天 + 站内 5000 次/天 | 中文搜索 |
 | Tavily | 1000 credits/月 | 仅兜底：免费源空结果、缺官方文档、新闻时效不足、Fetch 失败链 |
 | Firecrawl | 1000 credits/月 | Fetch 最后兜底：难抓的 JS/PDF 页面 |
