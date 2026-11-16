@@ -2,11 +2,12 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver. Releases before 0.8.0 have no tags — see the git history.
 
-## Unreleased
+## 0.11.0 — 2026-11-16
 
 ### Added
 
-- Web settings page on the bundle page: provider keys, provider switches, and search/fetch modes in one form.
+- Web settings page: provider keys, switches, and search/fetch modes.
+- Settings page: multi-key rotation and Zhihu quota display.
 - `pnpm probe` (`scripts/daily-probe.mjs`): daily per-provider health probe with news/official-domain signals, a 7-day aggregate, and PASS/FAIL; heavy benchmarks stay release-time validation.
 - `pnpm probe --full`: direct checks for every backend, including ones the routed probe skips; costs a few paid credits, for weekly use.
 - Cookbook: [raising the web_search summary cap](docs/cookbook/raising-summary-cap.md), the profile-level fix for the 800-character preset default.
