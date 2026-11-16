@@ -27,6 +27,15 @@ jobs:
           fetch-depth: 0
           ref: ${{ inputs.tag || github.ref }}
 
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.28.5
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
       - name: Check tag and package version
         id: version
         shell: bash
@@ -60,11 +69,26 @@ jobs:
             exit 1
           fi
 
+      - name: Pack installable tarball
+        id: pack
+        shell: bash
+        run: |
+          mkdir -p dist
+          pnpm pack --pack-destination dist
+          TARBALL=$(find dist -maxdepth 1 -name '*.tgz' -print -quit)
+          if [[ -z "$TARBALL" ]]; then
+            echo "pnpm pack produced no tarball" >&2
+            exit 1
+          fi
+          echo "tarball=$TARBALL" >> "$GITHUB_OUTPUT"
+          ls -l "$TARBALL"
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "${{ steps.version.outputs.tag }}" \
+            "${{ steps.pack.outputs.tarball }}" \
             --title "${{ steps.version.outputs.tag }}" \
             --notes-file notes.md \
             --verify-tag

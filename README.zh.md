@@ -52,11 +52,17 @@ cd dsh-web-search
 dsh plugin --profile desktop add "."
 ```
 
+也可以安装 Release 里的 tarball：
+
+```sh
+dsh plugin --profile desktop add path/to/dsh-web-search-<version>.tgz
+```
+
 也可以用 Plugin Manager 安装该目录。安装后重启 DSH。
 
 安装后打开 **设置 → 搜索与抓取设置**，或 **插件 → 已安装插件 → 网页搜索路由器 → 配置**，填写各后端 API Key、启用或停用后端、设置搜索与抓取模式。Key 写入 DSH 凭据库，页面不会回显原值。
 
-在 Provider 卡片点击 **验证** 会真实发起一次搜索，用来确认已保存的 Key 可用。设置页会显示文档中的免费额度；Tavily 和 Firecrawl 可查询实时剩余值，SiliconFlow 余额请到其控制台查看。Keenable 每次搜索/抓取会返回 `credits_remaining`，因此 **刷新额度** 会发起一次最小的 Keenable 搜索来读取最新值。**拉取模型** 会加载 SiliconFlow 的重排与嵌入模型列表。本插件仅从本仓库分发，不发布到 npm。
+在 Provider 卡片点击 **验证** 会真实发起一次搜索，用来确认已保存的 Key 可用。设置页会显示文档中的免费额度；Tavily 和 Firecrawl 可查询实时剩余值，SiliconFlow 余额请到其控制台查看。Keenable 每次搜索/抓取会返回 `credits_remaining`，因此 **刷新额度** 会发起一次最小的 Keenable 搜索来读取最新值。**拉取模型** 会加载 SiliconFlow 的重排与嵌入模型列表。本插件仅从本仓库分发，每个 Release 附带可安装的 tarball，不发布到 npm。
 
 ## 凭据
 

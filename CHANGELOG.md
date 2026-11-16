@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver. Releases before 0.8.0 have no tags — see the git history.
 
+## Unreleased
+
+### Added
+
+- GitHub Releases now attach an installable `.tgz` package.
+
 ## 0.12.0 — 2026-11-16
 
 ### Added
