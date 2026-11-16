@@ -112,6 +112,12 @@ export function validatePrBody(body, options = {}) {
   } else if (hasPlaceholder(blast[1])) {
     errors.push('Blast Radius still contains a placeholder');
   }
+  const revert = /Revert[ \t]*:[ \t]*(?:\*\*)?[ \t]*([^\n]*)/iu.exec(danger);
+  if (revert === null || revert[1].trim().length === 0) {
+    errors.push('Merge Danger must contain a non-empty Revert: (how to undo this change)');
+  } else if (hasPlaceholder(revert[1])) {
+    errors.push('Revert: still contains a placeholder');
+  }
 
   if (!endsWithBadge(cleaned)) {
     errors.push('PR body must end with the powered by dsh badge');
