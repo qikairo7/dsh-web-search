@@ -113,6 +113,7 @@ window.__ModuleLoader__.load({
       configured: 'Configured',
       notConfigured: 'Not configured',
       fromEnvironment: 'From environment',
+      fromStore: 'Credential store',
       statusUnknown: 'Status unknown',
       loading: 'Loading settings…',
       retry: 'Retry',
@@ -185,6 +186,7 @@ window.__ModuleLoader__.load({
       configured: '已配置',
       notConfigured: '未配置',
       fromEnvironment: '来自环境变量',
+      fromStore: '凭据库',
       statusUnknown: '状态未知',
       loading: '正在加载设置…',
       retry: '重试',
@@ -646,11 +648,13 @@ window.__ModuleLoader__.load({
         const configured = info.configured === true;
         const writable = info.writable !== false;
         const fromEnvironment = info.source === 'environment';
+        const fromStore = typeof info.masked === 'string' && info.masked.length > 0;
         const shown = revealed[provider.id] === true;
         const keyMessage = keyMessages[provider.id];
+        const sourceText = fromStore ? t('fromStore') : fromEnvironment ? t('fromEnvironment') : '';
         const statusText = state.credentialsError
           ? t('statusUnknown')
-          : configured ? (fromEnvironment ? t('fromEnvironment') : t('configured')) : t('notConfigured');
+          : configured ? (sourceText.length > 0 ? `${t('configured')} · ${sourceText}` : t('configured')) : t('notConfigured');
         return h('div', { key: provider.id, style: { ...styles.card, ...(index === 0 ? styles.cardFirst : {}) } },
           h('div', { style: styles.cardHead },
             h('div', null,
