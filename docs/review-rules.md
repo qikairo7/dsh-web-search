@@ -14,6 +14,7 @@
 | R8 | WHEN findings 涉及并发/边界/极端场景 → THEN 要求完整因果链与现实可达性举证，证不出不得阻塞 → BECAUSE 反仪式原则；ChatLab AGENTS 同款（缺证据不阻塞）。 |
 | R9 | WHEN PR 体积大（diff > 400 行手写代码）→ THEN 标记「建议拆分」（require_can_be_split 同款），列出可独立成立的子变更 → BECAUSE 大 PR 审查质量随体积下降，OpenViking 用审查优先级激励小 PR。 |
 | R10 | WHEN diff 含 pnpm-lock.yaml / 生成物 / 第三方 vendor → THEN 这些文件不逐行审（确认来源合理性即可），行号表标注「生成物」 → BECAUSE 人类不审的文件 AI 也不审（OpenViking ignore 同款）。 |
+| R14 | WHEN diff 触及网络输入解析、shell/命令构造、凭据读写或新 HTTP 端点 → THEN 增派独立安全视角子代理专审（攻击者能拿它做什么、暴露什么数据），与三轴并行 → BECAUSE Tessl security lens 实证：专审能抓到通才视角漏掉的未授权数据暴露；本仓库安全面小，按 trigger 走避免全员四轴的仪式成本。 |
 
 ## 维护
 
