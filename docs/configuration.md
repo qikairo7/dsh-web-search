@@ -76,6 +76,7 @@ The settings page is generated from the plugin's `Config` schema. All fields are
 | `searchCacheMaxEntries` | `200` | Search cache entry cap |
 | `fetchCacheTtlMs` | `600000` | Fetch cache TTL |
 | `fetchCacheMaxEntries` | `100` | Fetch cache entry cap |
+| `fallbackFailureClasses` | `quota,auth,bot-wall,transient,invalid-response,unknown` | Failure classes that may fall back to the next provider: `quota` (402/429), `auth` (401/403), `bot-wall`, `transient` (408/5xx), `invalid-response` (bad or empty content), `unknown` (other recoverable failures). An explicit empty list stops at the first failure; unset keeps all six. The gate applies to the sequential fallback chain; quality parallel fan-out is unaffected |
 | `breakerFailureThreshold` | `3` | Consecutive failures before cooldown |
 | `breakerCooldownMs` | `300000` | Provider cooldown |
 
@@ -155,6 +156,7 @@ All `*BaseURL` fields, including `anysearchBaseURL`, `tavilyBaseURL`, and `firec
 | `searchCacheMaxEntries` | `200` | 搜索缓存条数上限 |
 | `fetchCacheTtlMs` | `600000` | 抓取缓存 TTL |
 | `fetchCacheMaxEntries` | `100` | 抓取缓存条数上限 |
+| `fallbackFailureClasses` | `quota,auth,bot-wall,transient,invalid-response,unknown` | 允许回退到下一后端的失败类别：`quota`（402/429 配额限流）、`auth`（401/403 鉴权）、`bot-wall`（目标站点拦截）、`transient`（408/5xx 超时与服务端错误）、`invalid-response`（坏响应或空内容）、`unknown`（其余可恢复失败）。显式置空表示任何失败立即中止；未设置保持六类全开。该门禁作用于顺序回退链；quality 并行扇出不受影响 |
 | `breakerFailureThreshold` | `3` | 连续失败多少次后冷却 |
 | `breakerCooldownMs` | `300000` | 后端冷却时长 |
 

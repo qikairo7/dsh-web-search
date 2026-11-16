@@ -79,7 +79,7 @@ test('HTTP fetch detects a small SPA shell and asks for fallback', async () => {
       const provider = new HttpFetchProvider({ settings: httpSettings });
       await assert.rejects(
         () => provider.fetch({ url: 'https://spa.example/' }),
-        (error) => error.code === 'WEB_PROVIDER_ERROR' && /app shell/.test(error.message),
+        (error) => error.code === 'WEB_INVALID_RESPONSE' && /app shell/.test(error.message),
       );
     },
   );
@@ -146,7 +146,7 @@ test('HTTP fetch throws on a server error', async () => {
       const provider = new HttpFetchProvider({ settings: httpSettings });
       await assert.rejects(
         () => provider.fetch({ url: 'https://example.com/error' }),
-        (error) => error.code === 'WEB_PROVIDER_ERROR',
+        (error) => error.code === 'WEB_PROVIDER_ERROR' && error.status === 500,
       );
     },
   );

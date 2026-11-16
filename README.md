@@ -107,7 +107,7 @@ Default orders:
 
 The bundle patch pins the default `auto` provider; individual providers are also registered and selectable in the settings page.
 
-`searchMode` defaults to **quality**: the router queries the language's free providers (Chinese: Zhihu + Keenable + AnySearch; English: Keenable + AnySearch; AI news: AIHOT first, plus the language set), merges and deduplicates by URL, then reranks with SiliconFlow `BAAI/bge-reranker-v2-m3`. Exa holds the free depth position and stays out of the default quality fan-out; Bing is the keyless floor; Tavily and Firecrawl are fallback-only. `fetchMode` defaults to **fast**; `clean` uses `keenable → anysearch → exa → http → tavily → firecrawl`, preferring free extraction and keeping Tavily/Firecrawl as fallback. The `tool-web` summary cap comes from the agent preset (standard 800; bundle patches cannot override it — see [the cookbook](docs/cookbook/raising-summary-cap.md)); provider `maxSnippetChars` is 4000 but `web_search` truncates to that cap. Tavily search uses `include_raw_content`; the optional `tavily_search` tool supports `include_published_date`.
+`searchMode` defaults to **quality** (see [Quality pipeline](#quality-pipeline)); Exa holds the free depth position and is not in the default quality fan-out; Bing is the keyless floor; Tavily and Firecrawl are fallback-only. `fetchMode` defaults to **fast**; `clean` uses `keenable → anysearch → exa → http → tavily → firecrawl`, preferring free extraction and keeping Tavily/Firecrawl as fallback. The `tool-web` summary cap comes from the agent preset (standard 800; bundle patches cannot override it — see [the cookbook](docs/cookbook/raising-summary-cap.md)); provider `maxSnippetChars` is 4000 but `web_search` truncates to that cap. Tavily search uses `include_raw_content`; the optional `tavily_search` tool supports `include_published_date`.
 
 ### Advanced tools
 
@@ -146,7 +146,7 @@ The bundle patch pins the default `auto` provider; individual providers are also
 ### Fetch and fallback
 
 - **Direct HTTP**: anonymous; up to 5 redirects (cross-origin allowed), 5 MB response cap, HTML/text/JSON/XML only. PDFs and other binary content throw `WEB_UNSUPPORTED_CONTENT_TYPE` so the router falls back to an API provider. Small client-rendered app shells are detected by `minDirectHtmlChars` (default 2048) and also trigger a fallback.
-- **Fallback**: only recoverable failures trigger the next provider: network errors, timeouts, 429, 5xx, and missing credentials. Caller cancellation and invalid URLs return immediately. A 404 from direct HTTP is returned as a result, not a fallback trigger.
+- **Fallback**: failures are classified as quota, auth, bot-wall, transient, invalid-response, or unknown; `fallbackFailureClasses` (default: all six) decides which classes may try the next provider, and an explicit empty list stops at the first failure. Caller cancellation and invalid URLs return immediately. A 404 from direct HTTP is returned as a result, not a fallback trigger.
 - **Clean fetch**: `fetchMode: clean` changes the order to `keenable → anysearch → exa → http → tavily → firecrawl`, preferring free extraction and keeping Tavily/Firecrawl as fallback.
 - **Content cleaning**: API fetch providers strip common navigation, sign-in, footer, breadcrumb, repository-navigation, and avatar lines from Markdown before returning it.
 - **No private-network blocking**: direct HTTP can reach loopback and private-network hosts, matching the shipped `dsh-web-fetch-http` behavior.

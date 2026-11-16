@@ -53,6 +53,89 @@ test('multi-key provider does not rotate on ordinary provider errors', async () 
   assert.deepEqual(seen, ['first']);
 });
 
+test('multi-key provider rotates on a WEB_RATE_LIMITED seam error', async () => {
+  const seen = [];
+  const wrapped = createMultiKeyProvider({
+    provider: fakeProvider(),
+    factory: (key) => ({
+      id: 'fake',
+      async search() {
+        seen.push(key);
+        if (key !== 'first') return { sources: [], truncated: false };
+        const error = new Error('rate limited');
+        error.name = 'WebError';
+        error.code = 'WEB_RATE_LIMITED';
+        throw error;
+      },
+    }),
+    resolveKeys: async () => ['first', 'second'],
+  });
+  await wrapped.search({ query: 'q' }, undefined);
+  assert.deepEqual(seen, ['first', 'second']);
+});
+
+test('multi-key provider rotates on a 401 status', async () => {
+  const seen = [];
+  const wrapped = createMultiKeyProvider({
+    provider: fakeProvider(),
+    factory: (key) => ({
+      id: 'fake',
+      async search() {
+        seen.push(key);
+        if (key !== 'first') return { sources: [], truncated: false };
+        throw Object.assign(new Error('HTTP 401'), { status: 401 });
+      },
+    }),
+    resolveKeys: async () => ['first', 'second'],
+  });
+  await wrapped.search({ query: 'q' }, undefined);
+  assert.deepEqual(seen, ['first', 'second']);
+});
+
+test('multi-key provider rotates on a WEB_PROVIDER_CREDENTIAL_MISSING seam error', async () => {
+  const seen = [];
+  const wrapped = createMultiKeyProvider({
+    provider: fakeProvider(),
+    factory: (key) => ({
+      id: 'fake',
+      async search() {
+        seen.push(key);
+        if (key !== 'first') return { sources: [], truncated: false };
+        const error = new Error('credential missing');
+        error.name = 'WebError';
+        error.code = 'WEB_PROVIDER_CREDENTIAL_MISSING';
+        throw error;
+      },
+    }),
+    resolveKeys: async () => ['first', 'second'],
+  });
+  await wrapped.search({ query: 'q' }, undefined);
+  assert.deepEqual(seen, ['first', 'second']);
+});
+
+test('multi-key provider does not rotate on a fetch timeout', async () => {
+  const seen = [];
+  const wrapped = createMultiKeyProvider({
+    provider: fakeProvider(),
+    factory: (key) => ({
+      id: 'fake',
+      async search() {
+        seen.push(key);
+        const error = new Error('timed out');
+        error.name = 'WebError';
+        error.code = 'WEB_FETCH_TIMEOUT';
+        throw error;
+      },
+    }),
+    resolveKeys: async () => ['first', 'second'],
+  });
+  await assert.rejects(
+    () => wrapped.search({ query: 'q' }, undefined),
+    (error) => error.code === 'WEB_FETCH_TIMEOUT',
+  );
+  assert.deepEqual(seen, ['first']);
+});
+
 test('key resolver reads numbered key references in order', async () => {
   const previous = { base: process.env.DSH_TEST_KEY, second: process.env.DSH_TEST_KEY_2 };
   process.env.DSH_TEST_KEY = 'first';
