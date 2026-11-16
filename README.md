@@ -52,7 +52,7 @@ Or install the checkout directory with the Plugin Manager. Restart DSH after ins
 
 After install, open **Settings → Search and fetch settings**, or **Plugins → Installed plugins → Web search router → Configuration**, to fill provider API keys, enable or disable backends, and set search and fetch modes. Keys are written to the DSH credential store and never read back into the page.
 
-Use **Test** on a provider card to send one real search request and confirm the saved key works. The settings page shows documented free allowances; Tavily and Firecrawl can return live remaining values, while SiliconFlow balance stays in its console. **Pull models** loads the SiliconFlow rerank and embedding model lists. Distribution is from this repository; the package is not published to npm.
+Use **Test** on a provider card to send one real search request and confirm the saved key works. The settings page shows documented free allowances; Tavily and Firecrawl can return live remaining values, while SiliconFlow balance stays in its console. Keenable reports `credits_remaining` on each search/fetch, so **Refresh quota** makes one minimal Keenable search to read the latest value. **Pull models** loads the SiliconFlow rerank and embedding model lists. Distribution is from this repository; the package is not published to npm.
 
 ## Credentials
 

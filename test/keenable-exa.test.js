@@ -11,11 +11,13 @@ test('Keenable maps results and preserves publication dates', () => {
       { title: 'K', url: 'https://k.example/', snippet: 'line\nline', published_at: '2026-11-01T00:00:00Z' },
       { title: 'bad', url: 'ftp://bad.example/' },
     ],
+    usage: { credits_remaining: 123, sku: 'search.pro', paid: false },
   }, 20);
   assert.equal(result.sources.length, 1);
   assert.equal(result.sources[0].title, 'K');
   assert.equal(result.sources[0].snippet, 'line line');
   assert.equal(result.sources[0].publishedAt, '2026-11-01T00:00:00Z');
+  assert.equal(result.usage.credits_remaining, 123);
 });
 
 test('Exa maps highlights and publishedDate', () => {
