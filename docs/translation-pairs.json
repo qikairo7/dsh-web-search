@@ -2,70 +2,70 @@
   "README.md": {
     "0": {
       "heading": "(preamble)",
-      "en": "4b24e5e73b58eb0c",
-      "zh": "798221ab3f0174f2"
+      "en": "1217ecbec38cd4e3",
+      "zh": "34905bbb709fb652"
     },
     "1": {
-      "heading": "Why this exists\r",
-      "en": "ae40c3769ce4882e",
-      "zh": "75a40e5c0372a5ff"
+      "heading": "Why this exists",
+      "en": "3193a16228151fc8",
+      "zh": "8d05e675214e8b6b"
     },
     "2": {
-      "heading": "Requirements\r",
-      "en": "0480f542b9230cee",
-      "zh": "ba5cd0e9558c959b"
+      "heading": "Requirements",
+      "en": "cd670f0e6b9742d3",
+      "zh": "7b7f7ab822be2cdc"
     },
     "3": {
-      "heading": "Install\r",
-      "en": "8bdb98232297a60a",
-      "zh": "835c3f85aabee44b"
+      "heading": "Install",
+      "en": "b87b498f52d9ce89",
+      "zh": "04b149f12a898adc"
     },
     "4": {
-      "heading": "Credentials\r",
-      "en": "a43a925cacb78c65",
-      "zh": "72396eca30fc7717"
+      "heading": "Credentials",
+      "en": "400cf545158eae47",
+      "zh": "f3f10334f381346e"
     },
     "5": {
-      "heading": "Providers\r",
-      "en": "c3d56df7d01d9e8d",
-      "zh": "68c8b5d33c5ab37f"
+      "heading": "Providers",
+      "en": "bbc06ba8c7ca38bc",
+      "zh": "acb7758d9307db8f"
     },
     "6": {
-      "heading": "Behavior\r",
-      "en": "689ca4bd0a1914d5",
-      "zh": "77bfae5dcded16ff"
+      "heading": "Behavior",
+      "en": "f9a169dc54543493",
+      "zh": "bd44abea91cd1a9d"
     },
     "7": {
-      "heading": "Configuration\r",
-      "en": "bf5893340c69515b",
-      "zh": "de001b8134b6974e"
+      "heading": "Configuration",
+      "en": "25ec5eca0786a93a",
+      "zh": "e78a8e6b936723bd"
     },
     "8": {
-      "heading": "Development\r",
-      "en": "940a66c4d5fd3545",
-      "zh": "e002a53c2eaa203b"
+      "heading": "Development",
+      "en": "2293c866f8b8a079",
+      "zh": "dbb4a8b536359b33"
     },
     "9": {
-      "heading": "Community and support\r",
-      "en": "2c1a4b9495c8c928",
-      "zh": "c744a6904c913488"
+      "heading": "Community and support",
+      "en": "c219c56639513426",
+      "zh": "6762ff6d733e4a23"
     },
     "10": {
-      "heading": "Documentation\r",
-      "en": "d74765f32c2ce1a8",
-      "zh": "82884ee770337368"
+      "heading": "Documentation",
+      "en": "59255ae4d5ad46c4",
+      "zh": "8411de4f7c628eec"
     },
     "11": {
-      "heading": "License\r",
-      "en": "5c9c4f0d834b9910",
-      "zh": "ede859450fc7c739"
+      "heading": "License",
+      "en": "2d241f8d20274d29",
+      "zh": "aa73b97dc3b756bb"
     }
   },
   "docs/DETAIL.md": {
     "0": {
       "heading": "(preamble)",
-      "en": "9e9cca8268dbcb14",
-      "zh": "15073a249295f116"
+      "en": "6912c326052fbe29",
+      "zh": "eb1ef80e179ce0aa"
     }
   }
 }

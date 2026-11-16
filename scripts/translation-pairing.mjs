@@ -37,7 +37,7 @@ export function splitSections(text) {
 }
 
 export function sectionHash(section) {
-  const normalized = section.body.join('\n').replace(/\s+/gu, ' ').trim();
+  const normalized = `${section.heading}\n${section.body.join('\n')}`.replace(/\s+/gu, ' ').trim();
   return createHash('sha256').update(normalized).digest('hex').slice(0, 16);
 }
 

@@ -106,3 +106,9 @@ test('check fails on a one-sided heading rename', (t) => {
   assert.equal(r.status, 1, `expected failure, got stdout: ${r.stdout}`);
   assert.match(r.stderr, /heading changed since record/);
 });
+
+test('R-013 title half: retitled heading changes the hash', () => {
+  const before = sectionHash({ heading: 'A', body: ['one'] });
+  const after = sectionHash({ heading: 'Renamed', body: ['one'] });
+  assert.notEqual(before, after, 'retitling must alter the hash so single-side title drift is caught');
+});
