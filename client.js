@@ -83,6 +83,26 @@ window.__ModuleLoader__.load({
       { key: 'enrichEnabled', labelKey: 'enrichEnabled' },
     ];
 
+    const MODEL_FIELDS = [
+      { key: 'siliconflowRerankModel', labelKey: 'rerankModel', kind: 'rerank' },
+      { key: 'siliconflowEmbeddingModel', labelKey: 'embeddingModel', kind: 'embedding' },
+    ];
+
+    const MODEL_DEFAULTS = {
+      siliconflowRerankModel: 'BAAI/bge-reranker-v2-m3',
+      siliconflowEmbeddingModel: 'BAAI/bge-m3',
+    };
+
+    const QUOTA_FIELDS = [
+      { id: 'keenable', label: 'Keenable', freeKey: 'quotaKeenable' },
+      { id: 'anysearch', label: 'AnySearch', freeKey: 'quotaAnysearch' },
+      { id: 'exa', label: 'Exa', freeKey: 'quotaExa' },
+      { id: 'tavily', label: 'Tavily', freeKey: 'quotaTavily' },
+      { id: 'firecrawl', label: 'Firecrawl', freeKey: 'quotaFirecrawl' },
+      { id: 'zhihu', label: '知乎 / Zhihu', freeKey: 'quotaZhihu' },
+      { id: 'siliconflow', label: 'SiliconFlow', freeKey: 'quotaSiliconflow' },
+    ];
+
     const BOOLEAN_DEFAULTS = {
       intentRouting: true,
       languageRouting: true,
@@ -102,6 +122,29 @@ window.__ModuleLoader__.load({
       providersKey: 'Key required',
       providersTitle: 'Providers',
       modesTitle: 'Search behavior',
+      modelsTitle: 'Rerank and embedding models',
+      modelsHint: 'Pull the model roster from SiliconFlow, then choose the models used by quality mode.',
+      rerankModel: 'Rerank model',
+      embeddingModel: 'Embedding model',
+      fetchModels: 'Pull models',
+      modelsLoading: 'Loading models…',
+      modelsLoaded: 'Loaded {count} model(s).',
+      modelsFailed: 'Could not load models. Save a valid SiliconFlow key first.',
+      quotaTitle: 'Remaining allowance',
+      quotaHint: 'Documented free allowance; providers that expose an account endpoint show live remaining values.',
+      refreshQuota: 'Refresh allowance',
+      quotaLoading: 'Refreshing…',
+      quotaRemaining: '{value} remaining',
+      quotaConsole: 'Check provider console',
+      quotaUnavailable: 'No quota endpoint',
+      quotaFailed: 'Could not query allowance.',
+      quotaKeenable: '100,000 requests/month with a key; 1,000/hour anonymous',
+      quotaAnysearch: '1,000 searches/day with a key; anonymous access also works',
+      quotaExa: '$10 free credits/month plus a one-time $10 bonus',
+      quotaTavily: '1,000 credits/month',
+      quotaFirecrawl: '1,000 credits/month',
+      quotaZhihu: '5,000 global + 5,000 site searches/day',
+      quotaSiliconflow: 'Free allowance for BGE rerank and embeddings',
       advancedTitle: 'Advanced',
       searchMode: 'Search mode',
       fetchMode: 'Fetch mode',
@@ -175,6 +218,29 @@ window.__ModuleLoader__.load({
       providersKey: '需要 Key',
       providersTitle: '后端开关',
       modesTitle: '搜索行为',
+      modelsTitle: '重排与嵌入模型',
+      modelsHint: '从 SiliconFlow 拉取模型列表，再选择质量模式使用的重排与嵌入模型。',
+      rerankModel: '重排模型',
+      embeddingModel: 'Embedding 模型',
+      fetchModels: '拉取模型',
+      modelsLoading: '正在加载模型…',
+      modelsLoaded: '已加载 {count} 个模型。',
+      modelsFailed: '无法加载模型，请先保存有效的 SiliconFlow Key。',
+      quotaTitle: '剩余额度',
+      quotaHint: '这里显示文档中的免费额度；提供账户查询接口的 Provider 会显示实时剩余值。',
+      refreshQuota: '刷新额度',
+      quotaLoading: '正在刷新…',
+      quotaRemaining: '剩余 {value}',
+      quotaConsole: '请在 Provider 控制台查看',
+      quotaUnavailable: '无额度查询接口',
+      quotaFailed: '额度查询失败。',
+      quotaKeenable: '有 Key 时 100,000 次/月；匿名 1,000 次/小时',
+      quotaAnysearch: '有 Key 时 1,000 次搜索/天；匿名也可用',
+      quotaExa: '每月 10 美元免费额度 + 一次性 10 美元奖励',
+      quotaTavily: '1,000 credits/月',
+      quotaFirecrawl: '1,000 credits/月',
+      quotaZhihu: '全网 5,000 次/天 + 站内 5,000 次/天',
+      quotaSiliconflow: 'BGE 重排与 embeddings 的免费额度',
       advancedTitle: '高级',
       searchMode: '搜索模式',
       fetchMode: '抓取模式',
@@ -443,6 +509,12 @@ window.__ModuleLoader__.load({
       const draft = {
         searchMode: value.searchMode === 'fast' ? 'fast' : 'quality',
         fetchMode: value.fetchMode === 'clean' ? 'clean' : 'fast',
+        siliconflowRerankModel: typeof value.siliconflowRerankModel === 'string' && value.siliconflowRerankModel.length > 0
+          ? value.siliconflowRerankModel
+          : MODEL_DEFAULTS.siliconflowRerankModel,
+        siliconflowEmbeddingModel: typeof value.siliconflowEmbeddingModel === 'string' && value.siliconflowEmbeddingModel.length > 0
+          ? value.siliconflowEmbeddingModel
+          : MODEL_DEFAULTS.siliconflowEmbeddingModel,
       };
       for (const field of SWITCHES) draft[field.key] = truthy(value[field.key], BOOLEAN_DEFAULTS[field.key] !== false);
       for (const provider of PROVIDERS) draft[provider.toggleKey] = truthy(value[provider.toggleKey], true);
@@ -455,6 +527,7 @@ window.__ModuleLoader__.load({
       const keys = [
         'searchMode',
         'fetchMode',
+        ...MODEL_FIELDS.map((field) => field.key),
         ...SWITCHES.map((field) => field.key),
         ...PROVIDERS.map((provider) => provider.toggleKey),
         ...EXTRA_TOGGLES.map((toggle) => toggle.key),
@@ -464,7 +537,9 @@ window.__ModuleLoader__.load({
           ? (current.searchMode === 'fast' ? 'fast' : 'quality')
           : key === 'fetchMode'
             ? (current.fetchMode === 'clean' ? 'clean' : 'fast')
-            : truthy(current[key], BOOLEAN_DEFAULTS[key] !== false);
+            : key in MODEL_DEFAULTS
+              ? (typeof current[key] === 'string' && current[key].length > 0 ? current[key] : MODEL_DEFAULTS[key])
+              : truthy(current[key], BOOLEAN_DEFAULTS[key] !== false);
         if (before !== draft[key]) operations.push({ op: 'set', path: [key], value: draft[key] });
       }
       return operations;
@@ -500,6 +575,12 @@ window.__ModuleLoader__.load({
       const [revealed, setRevealed] = React.useState({});
       const [confirmClear, setConfirmClear] = React.useState(undefined);
       const [busy, setBusy] = React.useState(false);
+      const [models, setModels] = React.useState({ rerank: [], embedding: [] });
+      const [modelsBusy, setModelsBusy] = React.useState(false);
+      const [modelMessage, setModelMessage] = React.useState('');
+      const [quota, setQuota] = React.useState({});
+      const [quotaBusy, setQuotaBusy] = React.useState(false);
+      const [quotaMessage, setQuotaMessage] = React.useState('');
       const [message, setMessage] = React.useState('');
       const [messageError, setMessageError] = React.useState(false);
 
@@ -599,6 +680,50 @@ window.__ModuleLoader__.load({
           noteKey(provider, t('testFailed'), true);
         } finally {
           setBusy(false);
+        }
+      };
+
+      const loadModels = async () => {
+        setModelsBusy(true);
+        setModelMessage(t('modelsLoading'));
+        try {
+          const next = { rerank: [], embedding: [] };
+          for (const kind of ['rerank', 'embedding']) {
+            const response = await fetch('/dsh-web-search/models', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ kind }),
+            });
+            const data = await response.json();
+            if (data?.ok !== true) throw new Error(data?.message ?? 'models failed');
+            next[kind] = Array.isArray(data.models) ? data.models : [];
+          }
+          setModels(next);
+          const count = next.rerank.length + next.embedding.length;
+          setModelMessage(t('modelsLoaded', { count }));
+        } catch {
+          setModelMessage(t('modelsFailed'));
+        } finally {
+          setModelsBusy(false);
+        }
+      };
+
+      const loadQuotas = async () => {
+        setQuotaBusy(true);
+        setQuotaMessage('');
+        try {
+          const response = await fetch('/dsh-web-search/quotas', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ providerIds: QUOTA_FIELDS.map((item) => item.id) }),
+          });
+          const data = await response.json();
+          if (data?.ok !== true) throw new Error(data?.message ?? 'quota failed');
+          setQuota(data.providers ?? {});
+        } catch {
+          setQuotaMessage(t('quotaFailed'));
+        } finally {
+          setQuotaBusy(false);
         }
       };
 
@@ -724,6 +849,23 @@ window.__ModuleLoader__.load({
       const anonymousCount = PROVIDERS.filter((provider) => provider.anonymous === true).length;
       const anonymousCards = providerCards.slice(0, anonymousCount);
       const keyCards = providerCards.slice(anonymousCount);
+      const modelOptions = (field) => [...new Set([
+        draft[field.key],
+        ...(models[field.kind] ?? []),
+        MODEL_DEFAULTS[field.key],
+      ].filter((value) => typeof value === 'string' && value.length > 0))];
+      const quotaRows = QUOTA_FIELDS.map((item) => {
+        const value = quota[item.id];
+        const live = value?.ok === true && typeof value.remaining === 'number';
+        const display = live
+          ? t('quotaRemaining', { value: `${String(value.remaining)}${value.currency === 'CNY' ? ' CNY' : ''}` })
+          : t('quotaConsole');
+        return h('div', { key: item.id, style: styles.fieldRow },
+          h('div', null,
+            h('span', { style: styles.fieldLabel }, item.label),
+            h('p', { style: styles.hint }, t(item.freeKey))),
+          h('span', { style: styles.hint }, display));
+      });
 
       return h('section', { style: styles.section },
         h('h3', { style: styles.heading }, t('title')),
@@ -770,6 +912,38 @@ window.__ModuleLoader__.load({
               onChange: (event) => setDraft((current) => ({ ...current, fetchMode: event.target.value })),
             }, h('option', { value: 'fast' }, t('fast')), h('option', { value: 'clean' }, t('clean')))),
           h('p', { style: styles.hint }, t('fetchModeHint'))),
+        h('div', { style: styles.group },
+          h('h4', { style: styles.groupTitle }, t('modelsTitle')),
+          h('p', { style: styles.hint }, t('modelsHint')),
+          ...MODEL_FIELDS.map((field) => h('div', { key: field.key, style: styles.fieldRow },
+            h('span', { style: styles.fieldLabel }, t(field.labelKey)),
+            h('select', {
+              style: { ...styles.select, ...(readOnly || busy ? styles.disabled : {}) },
+              'aria-label': t(field.labelKey),
+              value: draft[field.key],
+              disabled: readOnly || busy,
+              onChange: (event) => setDraft((current) => ({ ...current, [field.key]: event.target.value })),
+            }, ...modelOptions(field).map((model) => h('option', { key: model, value: model }, model))))),
+          h('div', { style: styles.keyRow },
+            h('button', {
+              type: 'button',
+              style: { ...styles.button, ...(readOnly || busy || modelsBusy ? styles.disabled : {}) },
+              disabled: readOnly || busy || modelsBusy,
+              onClick: () => { void loadModels(); },
+            }, modelsBusy ? t('modelsLoading') : t('fetchModels')),
+            modelMessage.length === 0 ? null : h('span', { role: 'status', style: styles.message }, modelMessage))),
+        h('div', { style: styles.group },
+          h('h4', { style: styles.groupTitle }, t('quotaTitle')),
+          h('p', { style: styles.hint }, t('quotaHint')),
+          ...quotaRows,
+          h('div', { style: styles.keyRow },
+            h('button', {
+              type: 'button',
+              style: { ...styles.button, ...(quotaBusy ? styles.disabled : {}) },
+              disabled: quotaBusy,
+              onClick: () => { void loadQuotas(); },
+            }, quotaBusy ? t('quotaLoading') : t('refreshQuota')),
+            quotaMessage.length === 0 ? null : h('span', { role: 'status', style: { ...styles.message, ...styles.error } }, quotaMessage))),
         h('div', { style: styles.group },
           h('h4', { style: styles.groupTitle }, t('advancedTitle')),
           ...SWITCHES.map((field) => h('div', { key: field.key, style: styles.fieldRow },

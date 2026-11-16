@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { registerSearchHealthRoute } from '../lib/health.js';
+import { registerProviderManagementRoutes, registerSearchHealthRoute } from '../lib/health.js';
 
 function fakeServer() {
   let route;
@@ -80,4 +80,28 @@ test('health route rejects unknown providers without throwing', async () => {
   const body = JSON.parse(res.body);
   assert.equal(body.ok, false);
   assert.equal(body.code, 'WEB_PROVIDER_UNAVAILABLE');
+});
+
+test('provider management routes register model and quota endpoints', () => {
+  const routes = [];
+  const ctx = {
+    inject(names, callback) {
+      assert.deepEqual(names, ['webServer']);
+      callback({
+        webServer: {
+          register(route) {
+            routes.push(route);
+            return () => {};
+          },
+        },
+      });
+    },
+  };
+  registerProviderManagementRoutes(ctx, {
+    settings: () => ({
+      siliconflow: { enabled: true, apiKeyEnv: 'SILICONFLOW_API_KEY', baseURL: 'https://api.siliconflow.cn/v1' },
+    }),
+    resolveKey: async () => 'key',
+  });
+  assert.deepEqual(routes.map((route) => route.path), ['/dsh-web-search/models', '/dsh-web-search/quotas']);
 });
