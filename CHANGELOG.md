@@ -7,13 +7,14 @@ All notable changes to this project are documented here. The format follows [Kee
 ### Added
 
 - Web settings page on the bundle page: provider keys, provider switches, and search/fetch modes in one form.
-- `pnpm probe` (`scripts/daily-probe.mjs`): daily live probe over the fixed query set with per-provider telemetry, news/official-domain list-health signals, a rolling 7-day aggregate, and PASS/FAIL verdicts. Daily live evidence moves from the heavy FRAMES/WebWalkerQA run to this probe; the benchmark stays release-time validation.
-- `pnpm probe --full`: direct health checks against every backend, including the ones the routed probe never reaches on a healthy day (exa, tavily, firecrawl, zhihu-site, http). Costs a handful of paid credits; meant for weekly or on-suspicion use.
+- `pnpm probe` (`scripts/daily-probe.mjs`): daily per-provider health probe with news/official-domain signals, a 7-day aggregate, and PASS/FAIL; heavy benchmarks stay release-time validation.
+- `pnpm probe --full`: direct checks for every backend, including ones the routed probe skips; costs a few paid credits, for weekly use.
 - Cookbook: [raising the web_search summary cap](docs/cookbook/raising-summary-cap.md), the profile-level fix for the 800-character preset default.
 - This changelog.
 
 ### Fixed
 
+- AnySearch: `maxResults` capped at 10; 55s HTTP deadline floor; Extract timeouts map to `WEB_FETCH_TIMEOUT`; warns when the profile lacks `@deepseek-ai/dsh-tool-web`; client id follows the package version.
 - Direct HTTP fetch enforces the 5 MB cap while reading and decodes the declared charset.
 - Advanced tools respect the provider `*Enabled` switches instead of spending quota after a provider is disabled.
 - Quality mode no longer returns wrong-language news, misreads "go" as Go docs, or treats `AUD` inside "audit" as a currency.

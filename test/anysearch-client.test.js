@@ -1,9 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { AnySearchClient, AnySearchClientError } from '../lib/providers/anysearchClient.js';
-import { anySearchErrorCode } from '../lib/providers/anysearch.js';
+import { createRequire } from 'node:module';
+
+import {
+  AnySearchClient,
+  AnySearchClientError,
+  ANYSEARCH_DSH_CLIENT_ID,
+  ANYSEARCH_HTTP_TIMEOUT_MS,
+} from '../lib/providers/anysearchClient.js';
+import { AnySearchProvider, anySearchErrorCode } from '../lib/providers/anysearch.js';
 import { withFetch } from './helpers/withFetch.js';
+
+const { version } = createRequire(import.meta.url)('../package.json');
 
 test('AnySearchClient sends versioned client headers and bearer auth', async () => {
   let seen;
@@ -29,8 +38,9 @@ test('AnySearchClient sends versioned client headers and bearer auth', async () 
       const result = await client.search({ query: 'q' });
       assert.equal(result.results.length, 0);
       assert.equal(seen.url, 'https://api.anysearch.com/v1/search');
-      assert.equal(seen.headers['x-anysearch-client'], 'dsh/0.7.2');
-      assert.equal(seen.headers['user-agent'], 'dsh/0.7.2');
+      assert.equal(ANYSEARCH_DSH_CLIENT_ID, `dsh/${version}`);
+      assert.equal(seen.headers['x-anysearch-client'], ANYSEARCH_DSH_CLIENT_ID);
+      assert.equal(seen.headers['user-agent'], ANYSEARCH_DSH_CLIENT_ID);
       assert.equal(seen.headers.authorization, 'Bearer as_test');
     },
   );
@@ -71,6 +81,29 @@ test('AnySearch business error codes map to seam codes', () => {
   assert.equal(anySearchErrorCode(rateLimited), 'WEB_RATE_LIMITED');
   const fetchTimeout = new AnySearchClientError('timeout', { kind: 'timeout', operation: 'fetch' });
   assert.equal(anySearchErrorCode(fetchTimeout), 'WEB_FETCH_TIMEOUT');
+  const extractTimeout = new AnySearchClientError('timeout', { kind: 'timeout', operation: 'extract' });
+  assert.equal(anySearchErrorCode(extractTimeout), 'WEB_FETCH_TIMEOUT');
+});
+
+test('AnySearchProvider keeps the official 55s HTTP deadline floor', () => {
+  const provider = new AnySearchProvider({
+    settings: () => ({
+      anysearch: { enabled: true, apiKeyEnv: 'ANYSEARCH_API_KEY', baseURL: 'https://api.anysearch.com' },
+      requestTimeoutMs: 30_000,
+    }),
+    resolveKey: async () => undefined,
+  });
+  assert.equal(provider.client(provider.settings()).timeoutMs, ANYSEARCH_HTTP_TIMEOUT_MS);
+  assert.equal(ANYSEARCH_HTTP_TIMEOUT_MS, 55_000);
+
+  const longer = new AnySearchProvider({
+    settings: () => ({
+      anysearch: { enabled: true, apiKeyEnv: 'ANYSEARCH_API_KEY', baseURL: 'https://api.anysearch.com' },
+      requestTimeoutMs: 60_000,
+    }),
+    resolveKey: async () => undefined,
+  });
+  assert.equal(longer.client(longer.settings()).timeoutMs, 60_000);
 });
 
 test('AnySearchClient keeps valid results when a malformed result lacks a title', async () => {

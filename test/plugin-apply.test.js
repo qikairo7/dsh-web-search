@@ -42,6 +42,26 @@ test('apply registers every catalog provider and the allowlisted tools', () => {
   assert.ok(PROVIDER_CATALOG.length > 0);
 });
 
+test('apply warns when the profile does not declare the tool-web bundle', () => {
+  const { ctx } = fakeContext();
+  const warnings = [];
+  ctx.get = (name) => (name === 'profileContext' ? { startedBundles: ['custom-bundle'] } : undefined);
+  ctx.logger = (name) => ({ warn(message) { warnings.push({ name, message }); } });
+  apply(ctx, {});
+  assert.equal(warnings.length, 1);
+  assert.equal(warnings[0].name, 'web-search-router');
+  assert.match(warnings[0].message, /dsh-tool-web/);
+});
+
+test('apply stays quiet when a standard bundle provides the tool layer', () => {
+  const { ctx } = fakeContext();
+  const warnings = [];
+  ctx.get = (name) => (name === 'profileContext' ? { startedBundles: ['@deepseek-ai/dsh-base'] } : undefined);
+  ctx.logger = () => ({ warn(message) { warnings.push(message); } });
+  apply(ctx, {});
+  assert.deepEqual(warnings, []);
+});
+
 test('constructed providers are keyed exactly like the catalog order', () => {
   const providers = createProviders({
     settings: () => resolveSettings(),
