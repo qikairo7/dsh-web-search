@@ -170,6 +170,7 @@ pnpm benchmark
 
 - Report bugs and request features in [GitHub Issues](https://github.com/qikairo7/dsh-web-search/issues).
 - Read [CONTRIBUTING.md](CONTRIBUTING.md) before you open a pull request.
+- Follow the [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) in all community spaces.
 - Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
 
 ## Documentation

@@ -170,6 +170,7 @@ pnpm benchmark
 
 - Bug 和功能请求请提交到 [GitHub Issues](https://github.com/qikairo7/dsh-web-search/issues)。
 - 开 PR 前先读 [CONTRIBUTING.zh.md](CONTRIBUTING.zh.md)。
+- 参与社区时请遵守 [CODE_OF_CONDUCT.zh.md](CODE_OF_CONDUCT.zh.md)。
 - 安全漏洞按 [SECURITY.zh.md](SECURITY.zh.md) 私下报告。
 
 ## 文档
