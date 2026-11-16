@@ -50,4 +50,4 @@ PR 正文末尾保留 `powered by dsh` 徽章。使用 `dsh-badge` skill 的固�
 - PR 正文通过：
   `node scripts/check-pr-gate.mjs --body-file <path>`
 - 行为变化已同步 `README.md`、`README.zh.md`，用户可见变化已写入 `CHANGELOG.md`。
-- PR 开出时不合并、不发布；合并与发版归终审链——主账号终审 approve 后由 bot 执行 squash merge 与 tag 推送（判断/执行分离，2026-11-17），release 工作流收 tag 后自动发布。
+- 主账号终审 approve 前不合并、不发布；approve 后由 bot 执行 squash merge 与 tag 推送，release 工作流收 tag 后自动发布。
