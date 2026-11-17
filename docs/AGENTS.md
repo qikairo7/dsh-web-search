@@ -29,6 +29,7 @@
 | `CHANGELOG.md` | 面向用户的版本变化公告，每个已发版一条 | 实现细节、决策理由、未发版的重构 |
 | `BENCHMARK.md` | 基准入口、运行规则和指标说明 | 历史报告数据 |
 | `docs/AGENTS.md` | 本文件：文档结构、写作、预算、检查 | 实现规则 |
+| `.agents/skills/` | 仓库内 skill |
 
 ## 改代码时改哪份文档
 
@@ -76,7 +77,7 @@
 
 ```sh
 pnpm docs:check
-pnpm check        # 语法 + docs:check + node --test
+pnpm check        # 语法 + 架构 + order-doc 同步 + docs:check + node --test
 ```
 
 `pnpm check` 是提交门禁；`docs:check` 可以单独快速运行。不要通过修改 `doc-budgets.json` 或跳过检查来让门禁变绿。
