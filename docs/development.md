@@ -8,7 +8,7 @@
 
 ## 新增机械门禁的节奏
 
-往 `pnpm check` 加新门（verify-* / check-* 脚本）时：先以 **observe 模式**跑一轮（只打印会拦什么，不设退出码），确认没有误伤再转为 enforce。直接 enforce 的新门可能在合法提交上误红，教坏贡献者绕检查。
+往 `pnpm check` 加新门禁脚本（任意命名，如 verify-docs、translation-pairing）时：先以 **observe 模式**跑一轮（只打印会拦什么，不设退出码），确认没有误伤再转为 enforce。直接 enforce 的新门可能在合法提交上误红，教坏贡献者绕检查。
 
 ## 环境要求
 
