@@ -9,7 +9,7 @@
 - `lib/**/*.js` 是唯一随包发布的 JS；新增运行时文件放在 `lib/`，否则同步修改 `package.json#files`。
 - `package.json` 的 `scripts` 是命令的唯一来源；仓库没有 `dev` / `build` / `lint` / `typecheck` 脚本。
 - 基准结果写 `.research/`（gitignored），不提交；临时脚本同样不提交。
-- 依赖方向：`lib/index.js` → `lib/providers/*` → `lib/*` 共用模块；共用模块不得 import `providers/` 或 `index.js`，反向 import 是架构缺陷。
+- 依赖方向：`lib/index.js` → `lib/providers/*` → `lib/*` 共用模块；共用模块不得 import `providers/` 或 `index.js`，反向 import 是架构缺陷。`lib/tools/` 视同 provider 层。
 
 ## 2. 实现原则
 
@@ -92,7 +92,7 @@
 4. **输入健壮性**：入口对空响应、字段类型错误、超大响应、非 HTML/JSON 内容类型做一次校验或归一化；内部层不重复判型，不因单条坏数据丢掉整批结果。
 5. **配置**：每个字段经 `resolveSettings` 校验并有默认值；没有藏在代码里的开关常量。
 6. **测试与文档**：新行为在映射层和路由层都有覆盖；测试测真实实现、不复制实现逻辑；去掉实现后测试会失败；两份 README、`docs/configuration.md` 的配置表、默认值、配额说明一致；契约变化有 ADR。
-7. **边界与依赖**：根 `AGENTS.md` 的硬边界与本文件 §1、§3 的边界规则全部满足，无未说明的新依赖；依赖方向不被反转。
+7. **边界与依赖**：根 `AGENTS.md` 的硬边界与本文件 §1、§3 的边界规则全部满足，无未说明的新依赖；依赖方向不被反转（`scripts/check-architecture.mjs` 机械检查，并入 `pnpm check`）。
 8. **实现克制**：除会被测试直接复用的 `mapXxxSearch()` 外，一次性逻辑没有被抽成函数；`try/catch` 只出现在错误边界；没有为未经确认的推测性复杂度增加代码。
 
 ## 10. Review 错题本
