@@ -26,14 +26,14 @@ pnpm docs:check
 pnpm check
 ```
 
-`pnpm check` 依次运行语法检查、架构检查、order-doc 同步门禁、文档门禁和单测；pre-commit hook 只运行语法检查，pre-push hook 在推送前运行一次全量 `pnpm check`。
+`pnpm check` 依次运行语法检查、架构检查、order-doc 同步门禁、文档代码块检查、文档门禁和单测；pre-commit hook 只运行语法检查，pre-push hook 在推送前运行一次全量 `pnpm check`。
 
 ## 日常命令
 
 | 命令 | 用途 |
 |---|---|
 | `pnpm test` | 只跑 `node --test` |
-| `pnpm check` | 语法检查 + 架构检查 + order-doc 同步 + `docs:check` + 单测，提交前门禁 |
+| `pnpm check` | 语法检查 + 架构检查 + order-doc 同步 + 文档代码块 + `docs:check` + 单测，提交前门禁 |
 | `pnpm docs:check` | 只跑文档层级、链接、配置覆盖和预算检查 |
 | `node --test --test-isolation=none test/<name>.test.js` | 跑单个测试文件 |
 | `node scripts/check-pr-gate.mjs --body-file <path>` | 校验 PR 正文门禁（章节结构、证据、徽章） |
@@ -50,7 +50,7 @@ pnpm check
 DSH 沙箱会拦截 Node 测试运行器的子进程，`node --test` 可能报 `spawn EPERM`。这时改用：
 
 ```sh
-node scripts/check-syntax.mjs && node scripts/check-architecture.mjs && node scripts/check-order-sync.mjs && node --test --test-isolation=none
+node scripts/check-syntax.mjs && node scripts/check-architecture.mjs && node scripts/check-order-sync.mjs && node scripts/check-doc-code.mjs && node --test --test-isolation=none
 ```
 
 单文件同理：`node --test --test-isolation=none test/<name>.test.js`。`pnpm docs:check` 不启动子进程，可以直接运行。
@@ -69,6 +69,7 @@ node scripts/check-syntax.mjs && node scripts/check-architecture.mjs && node scr
 
 - **测试报 `spawn EPERM`**：这是 DSH 沙箱限制，不是测试失败；按上面的单进程命令重跑。
 - **文档检查失败**：看 `pnpm docs:check` 的 `- <file>: ...` 行；常见原因是相对链接失效、README 配置字段缺失、预算超标或 Agent Note 缺章节。
+- **文档代码块检查失败**：看 `doc code-block check failed:` 之后的 `- <file> (<lang> block #<N>)` 行；示例不可解析时修文档；显示 `checker ... unavailable` 是本机缺 node 或 bash，不是文档问题。
 - **Provider 未就绪**：Tavily、Firecrawl 或知乎缺少对应 Key 时会被路由器跳过；这不是代码错误。
 - **基准没有网络**：fixture 优先；需要 live 数据时再设置 `.env` 和 `SAMPLE_SIZE`，先跑 `pnpm benchmark:preflight`。
 
