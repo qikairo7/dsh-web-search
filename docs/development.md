@@ -28,6 +28,8 @@ pnpm check
 
 `pnpm check` 依次运行语法检查、架构检查、order-doc 同步门禁、文档代码块检查、翻译配对门禁、文档门禁和单测；pre-commit hook 只运行语法检查，pre-push hook 在推送前运行一次全量 `pnpm check`。
 
+翻译配对门禁按节校验 `README.md`/`README.zh.md` 与 `docs/DETAIL.md`/`docs/DETAIL.zh.md` 的基线哈希；双语同步编辑后须运行 `node scripts/translation-pairing.mjs --record` 重录基线并随改动提交。
+
 ## 日常命令
 
 | 命令 | 用途 |

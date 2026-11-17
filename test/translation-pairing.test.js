@@ -29,9 +29,9 @@ test('one-sided change reports drift with fix hint', () => {
   assert.ok(drift.includes('--record'));
 });
 
-test('both-sides change and no-change stay silent', () => {
+test('both-sides change demands --record; no change stays silent', () => {
   const record = { heading: 'A', en: 'e1', zh: 'z1' };
-  assert.equal(driftFor('A', record, 'e2', 'z2'), null);
+  assert.ok(driftFor('A', record, 'e2', 'z2')?.includes('both sides changed'));
   assert.equal(driftFor('A', record, 'e1', 'z1'), null);
 });
 

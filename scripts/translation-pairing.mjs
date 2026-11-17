@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 /** Translation-pairing gate (lightweight .i18n.yaml counterpart): README.md
  * and README.zh.md are paired section-by-section (Nth `##` section to Nth).
- * A recorded hash per section detects one-sided drift — the English section
- * changed while its Chinese pair (or vice versa) did not — and fails the
- * check until both sides move together; `--record` re-baselines after an
- * intentional synchronized edit. Pairing basis is section ordinal, because
+ * A recorded hash per section detects drift — one side changed without its
+ * pair, or both changed without re-recording — and fails the check until
+ * `--record` re-baselines after an intentional synchronized edit. Pairing basis is section ordinal, because
  * structural symmetry (heading count) is already enforced by verify-docs.
  * Outside record mode the recorded count and headings are re-verified, so a
  * structural edit that skipped `--record` fails loudly instead of mis-pairing. */
@@ -41,11 +40,14 @@ export function sectionHash(section) {
   return createHash('sha256').update(normalized).digest('hex').slice(0, 16);
 }
 
-/** Report one-sided drift between recorded and current section hashes. */
+/** Report drift between recorded and current section hashes. */
 export function driftFor(heading, record, nowEn, nowZh) {
   const enChanged = record.en !== nowEn;
   const zhChanged = record.zh !== nowZh;
-  if (enChanged === zhChanged) return null;
+  if (enChanged && zhChanged) {
+    return `section "${heading}": both sides changed since record — run \`node scripts/translation-pairing.mjs --record\` to re-baseline`;
+  }
+  if (!enChanged && !zhChanged) return null;
   const changed = enChanged ? 'English' : 'Chinese';
   const stale = enChanged ? 'Chinese' : 'English';
   return `section "${heading}": ${changed} side changed but ${stale} pair did not — translate the pair, then run \`node scripts/translation-pairing.mjs --record\` to re-baseline`;
