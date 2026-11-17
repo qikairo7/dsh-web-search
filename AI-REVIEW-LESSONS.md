@@ -15,6 +15,7 @@
 | R-009 | 流程细节不复制成文文档，链接权威来源 | 复制必漂移，一个事实只有一个家 | PR#49 pr-description/SKILL.md 大段复制 pr-gate.md 且已漂移 | 1 | open |
 | R-010 | PR 正文 Evidence 只写实际验证过的结果 | 不实证据误导审查与合并决策 | PR#49 正文称仓库不带流程知识，base 已有 docs/pr-gate.md | 1 | open |
 | R-011 | 版本文档声称的门禁/断言须在合并目标分支逐项核实 | 把计划或未合并的门写成已有，贡献者误信 CI 会拦 | PR#50 0.13.0.md:27 称架构方向门与性能下限断言，origin/main 均无 | 1 | open |
+| R-016 | 分支 merge main 后须重跑 pr-gate 并按新规则补正文 | main 新门禁使旧正文过时，CI 红 | PR#50 merge 带 #62 后正文缺 Revert，pr-gate failure | 1 | open |
 
 字段说明：
 
