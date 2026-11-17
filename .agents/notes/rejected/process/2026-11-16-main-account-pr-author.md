@@ -18,4 +18,4 @@ Status: rejected — 维护者选择折中方案：commit 作者归主账号，P
 
 ## Consequences
 
-贡献图归主账号；若分支上已有旧身份提交，push 前统一 `git rebase --autostash origin/main --exec "git commit --amend --no-edit --reset-author"`。此决策路径见维护仓库 `D:\dsh-bundles\github-review-desktop\docs\DETAIL.md`（与本仓库 docs/DETAIL.md 无关）角色与权限节。
+贡献图归主账号；若分支上已有旧身份提交，push 前统一 `git rebase --autostash origin/main --exec "git commit --amend --no-edit --reset-author"`。此决策路径见维护仓库 github-review-desktop 的 docs/DETAIL.md（与本仓库 docs/DETAIL.md 无关）角色与权限节。

@@ -15,17 +15,16 @@ description: 在 dsh-web-search 里提交/交付前做端到端冒烟时使用�
 
 ## 规程（keyless 全自动，无需凭据）
 
-1. 仓库根 `pnpm pack` 产出 tgz。
-2. 重启 DSH（或新 profile）装载该 tgz。
-3. 装载后在任意 DSH 会话依次验证并记录**原始输出摘录**：
-   - `web_search`（中文查询，如「Node.js 文件读取」）——期望多来源结果，含中文信源。
-   - `web_search`（英文技术查询，如 `site:nodejs.org fs.readFile`）——期望官方文档靠前。
+冒烟范围（设置页、`web_search` 中英文、`web_fetch`）以 [docs/testing.md](../../../docs/testing.md) 的「手动冒烟」行为准；本节只补增量：
+
+1. 仓库根 `pnpm pack` 产出 tgz，装载后重启 DSH（或新 profile）。
+2. 依次验证并记录**原始输出摘录**：`web_search` 中文查询（如「Node.js 文件读取」）——期望多来源结果，含中文信源；英文技术查询（如 `site:nodejs.org fs.readFile`）——期望官方文档靠前。
 
 ## 判定与记录
 
 - 每步贴原始输出进 Evidence（不是"通过"两个字）。
 - keyless 冒烟失败 = 阻塞（P1）；带 key provider 的失败 = P2 记录并转 followup。
-- 结果追加进 PR Evidence 或发版 outcome.md。
+- 结果追加进 PR Evidence。
 
 ## 边界
 

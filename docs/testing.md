@@ -1,6 +1,6 @@
 # 测试策略
 
-本文件定义测试分层和运行时机；具体命令在 [AGENTS](../AGENTS.md) 和 [开发指南](development.md)。实现规则见 [CODING_STANDARDS](../CODING_STANDARDS.md) 的测试章节。
+本文件定义测试分层和运行时机；具体命令见 [开发指南](development.md) 的「日常命令」表。实现规则见 [CODING_STANDARDS](../CODING_STANDARDS.md) 的测试章节。
 
 ## 测试层级
 

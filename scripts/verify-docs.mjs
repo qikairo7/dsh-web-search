@@ -27,6 +27,7 @@ const required = [
   'CHANGELOG.md',
   'BENCHMARK.md',
   'docs/agents/issue-tracker.md',
+  'docs/agents/domain.md',
   'docs/cookbook/raising-summary-cap.md',
   'docs/AGENTS.md',
   'docs/architecture.md',
@@ -65,8 +66,10 @@ async function sourceFiles(dir) {
 }
 
 const gitIgnoreCache = new Set();
+let gitIgnoreLoaded = false;
 function isGitIgnored(relPath) {
-  if (gitIgnoreCache.size === 0) {
+  if (!gitIgnoreLoaded) {
+    gitIgnoreLoaded = true;
     const result = spawnSync('git', ['ls-files', '--ignored', '--exclude-standard', '--others', '--directory'], { cwd: root, encoding: 'utf8' });
     if (result.status === 0) {
       for (const line of result.stdout.split('\n')) {
@@ -75,7 +78,10 @@ function isGitIgnored(relPath) {
       }
     }
   }
-  return [...gitIgnoreCache].some((ignored) => relPath === ignored || relPath.startsWith(`${ignored}/`));
+  for (const ignored of gitIgnoreCache) {
+    if (relPath === ignored || relPath.startsWith(`${ignored}/`)) return true;
+  }
+  return false;
 }
 
 async function markdownFiles(dir) {
