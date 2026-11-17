@@ -56,7 +56,8 @@ export function driftFor(heading, record, nowEn, nowZh) {
 async function loadRecord() {
   try {
     return JSON.parse(await readFile(RECORD, 'utf8'));
-  } catch {
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
     return {};
   }
 }
