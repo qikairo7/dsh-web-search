@@ -6,6 +6,10 @@
 
 回答「X 是怎么工作的」类问题时，按此顺序取证据：**先看运行时实际行为**（跑命令观察输出、读当前代码、用 codegraph 查调用关系），**再看本文档**；文档可能落后于代码，以代码为准。两者都不足以确认时，在产出里明确写「未验证」，不把推测当事实。
 
+## 新增机械门禁的节奏
+
+往 `pnpm check` 加新门禁脚本（任意命名，如 verify-docs、translation-pairing）时：先以 **observe 模式**跑一轮（只打印会拦什么，不设退出码），确认没有误伤再转为 enforce。直接 enforce 的新门可能在合法提交上误红，教坏贡献者绕检查。
+
 ## 环境要求
 
 - Node.js `22.19+` 或 `24+`。
@@ -22,14 +26,14 @@ pnpm docs:check
 pnpm check
 ```
 
-`pnpm check` 依次运行语法检查、order-doc 同步门禁、文档门禁和单测；pre-commit hook 只运行语法检查，pre-push hook 在推送前运行一次全量 `pnpm check`。
+`pnpm check` 依次运行语法检查、架构检查、order-doc 同步门禁、文档门禁和单测；pre-commit hook 只运行语法检查，pre-push hook 在推送前运行一次全量 `pnpm check`。
 
 ## 日常命令
 
 | 命令 | 用途 |
 |---|---|
 | `pnpm test` | 只跑 `node --test` |
-| `pnpm check` | 语法检查 + order-doc 同步 + `docs:check` + 单测，提交前门禁 |
+| `pnpm check` | 语法检查 + 架构检查 + order-doc 同步 + `docs:check` + 单测，提交前门禁 |
 | `pnpm docs:check` | 只跑文档层级、链接、配置覆盖和预算检查 |
 | `node --test --test-isolation=none test/<name>.test.js` | 跑单个测试文件 |
 | `node scripts/check-pr-gate.mjs --body-file <path>` | 校验 PR 正文门禁（章节结构、证据、徽章） |
@@ -46,7 +50,7 @@ pnpm check
 DSH 沙箱会拦截 Node 测试运行器的子进程，`node --test` 可能报 `spawn EPERM`。这时改用：
 
 ```sh
-node scripts/check-syntax.mjs && node scripts/check-order-sync.mjs && node --test --test-isolation=none
+node scripts/check-syntax.mjs && node scripts/check-architecture.mjs && node scripts/check-order-sync.mjs && node --test --test-isolation=none
 ```
 
 单文件同理：`node --test --test-isolation=none test/<name>.test.js`。`pnpm docs:check` 不启动子进程，可以直接运行。

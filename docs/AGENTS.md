@@ -21,7 +21,7 @@
 | `docs/adr/` | 已接受的契约级决策；一条决策一份，历史记录不改写 | 当前行为说明、迁移计划 |
 | `.agents/notes/` | 需要保留「为什么、放弃了什么」的决策记录；格式见目录 README | 当前行为说明、任务清单、测试走读 |
 | `GLOSSARY.md` | 项目术语的唯一写法 | 实现细节 |
-| `docs/agents/` | 代理工作流：领域文档读取、Issue 与 PR 操作 | 产品行为 |
+| `docs/agents/` | 代理工作流：领域文档、Issue/PR 操作 | 产品行为 |
 | `docs/benchmarks/` | 历史基准报告与复现命令；数字和日期不改写 | 当前配置默认值 |
 | `CONTRIBUTING.md` / `CONTRIBUTING.zh.md` | 贡献入口和阅读顺序 | 详细实现规则 |
 | `SAFETY.md` / `SECURITY.md` / `TRADEMARKS.md` / `THIRD_PARTY_NOTICES.md` | 风险模型、漏洞报告、项目身份与第三方归属 | 使用教程、实现规则 |
@@ -76,7 +76,7 @@
 
 ```sh
 pnpm docs:check
-pnpm check        # 语法 + order-doc 同步 + docs:check + node --test
+pnpm check        # 语法 + 架构 + order-doc 同步 + docs:check + node --test
 ```
 
 `pnpm check` 是提交门禁；`docs:check` 可以单独快速运行。不要通过修改 `doc-budgets.json` 或跳过检查来让门禁变绿。
