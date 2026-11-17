@@ -26,14 +26,14 @@ pnpm docs:check
 pnpm check
 ```
 
-`pnpm check` 依次运行语法检查、order-doc 同步门禁、文档门禁和单测；pre-commit hook 只运行语法检查，pre-push hook 在推送前运行一次全量 `pnpm check`。
+`pnpm check` 依次运行语法检查、架构检查、order-doc 同步门禁、文档门禁和单测；pre-commit hook 只运行语法检查，pre-push hook 在推送前运行一次全量 `pnpm check`。
 
 ## 日常命令
 
 | 命令 | 用途 |
 |---|---|
 | `pnpm test` | 只跑 `node --test` |
-| `pnpm check` | 语法检查 + order-doc 同步 + `docs:check` + 单测，提交前门禁 |
+| `pnpm check` | 语法检查 + 架构检查 + order-doc 同步 + `docs:check` + 单测，提交前门禁 |
 | `pnpm docs:check` | 只跑文档层级、链接、配置覆盖和预算检查 |
 | `node --test --test-isolation=none test/<name>.test.js` | 跑单个测试文件 |
 | `node scripts/check-pr-gate.mjs --body-file <path>` | 校验 PR 正文门禁（章节结构、证据、徽章） |
@@ -50,7 +50,7 @@ pnpm check
 DSH 沙箱会拦截 Node 测试运行器的子进程，`node --test` 可能报 `spawn EPERM`。这时改用：
 
 ```sh
-node scripts/check-syntax.mjs && node scripts/check-order-sync.mjs && node --test --test-isolation=none
+node scripts/check-syntax.mjs && node scripts/check-architecture.mjs && node scripts/check-order-sync.mjs && node --test --test-isolation=none
 ```
 
 单文件同理：`node --test --test-isolation=none test/<name>.test.js`。`pnpm docs:check` 不启动子进程，可以直接运行。
