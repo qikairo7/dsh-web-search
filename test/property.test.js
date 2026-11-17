@@ -38,6 +38,19 @@ test('property: classifyFailure always lands in the six classes and is determini
     assert.ok(FAILURE_CLASSES.includes(cls), `input ${JSON.stringify(error)} classified to ${cls}`);
     assert.equal(classifyFailure(error), cls, `classification is not deterministic for ${JSON.stringify(error)}`);
   }
+  // Documented contract of lib/errors.js: exact WEB_* code first, then the
+  // status read from error.status, cause.status, or cause.httpStatus;
+  // 402/429 quota, 401/403 auth, 408/5xx transient, everything else unknown.
+  assert.equal(classifyFailure({ status: 429 }), 'quota');
+  assert.equal(classifyFailure({ cause: { status: 403 } }), 'auth');
+  assert.equal(classifyFailure({ cause: { httpStatus: 500 } }), 'transient');
+  assert.equal(classifyFailure({ status: 408 }), 'transient');
+  assert.equal(classifyFailure({ status: 999 }), 'transient');
+  assert.equal(classifyFailure({ status: 400 }), 'unknown');
+  assert.equal(classifyFailure(null), 'unknown');
+  assert.equal(classifyFailure({ code: 'WEB_PROVIDER_CREDENTIAL_MISSING', status: 500 }), 'auth');
+  assert.equal(classifyFailure({ code: 'WEB_BLOCKED_URL', status: 401 }), 'bot-wall');
+  assert.equal(classifyFailure({ code: 'WEB_RANDOM_999', status: 429 }), 'quota');
 });
 
 test('property: known codes map to their class regardless of noise', () => {
@@ -60,5 +73,19 @@ test('property: detectLanguage never throws and answers zh or en', () => {
   for (const s of samples) {
     const lang = detectLanguage(s);
     assert.ok(lang === 'zh' || lang === 'en', `detectLanguage(${JSON.stringify(s)}) => ${lang}`);
+  }
+  assert.equal(detectLanguage(''), 'en');
+});
+
+test('property: detectLanguage routes by Han presence at any position', () => {
+  const ascii = 'ascii query text 123 ';
+  for (let i = 0; i < 500; i += 1) {
+    const len = 1 + Math.floor(random() * 30);
+    let s = '';
+    for (let j = 0; j < len; j += 1) s += ascii[Math.floor(random() * ascii.length)];
+    const cut = Math.floor(random() * (s.length + 1));
+    const withHan = `${s.slice(0, cut)}字${s.slice(cut)}`;
+    assert.equal(detectLanguage(s), 'en', JSON.stringify(s));
+    assert.equal(detectLanguage(withHan), 'zh', JSON.stringify(withHan));
   }
 });
