@@ -1,18 +1,18 @@
 ## Summary
 
-- 借鉴 DSH「AGENTS.md 是路由层、流程知识活在 `.agents/skills/` 仓库内 skill 库」的架构，新增两个种子 skill：
-  - `.agents/skills/pr-description/SKILL.md`——本仓库 PR 正文写作（结构、Evidence 纪律、Closes 行、徽章、验证命令），链回权威来源。
-  - `.agents/skills/pre-push-checks/SKILL.md`——推前检查按改动面选最小集（表格化：改 providers/纯文档/门禁脚本/配置/只有测试各跑什么），不默认全量、不重复已过的检查；CI 负责穷尽覆盖。
-- `AGENTS.md` 指针节路由化：两处改为 skill 链接引用；指针节措辞压缩（事实零丢失）+ 预算 2000→2100（新增流程路由是真实内容，按预算政策"内容真实需要时提上限"）。
+- 新增 `docs/review-rules.md` 审查规则库——每条 **WHEN → THEN → BECAUSE**，BECAUSE 引用真实 PR 编号（方法论源自 OpenViking `.pr_agent.toml`）。这是「审查反馈回收」的落地：真实审查与事故 → 结构化规则 → 下轮审查按 trigger 匹配对照。
+- 覆盖 11 条：文档一致性（R1 已机械化）/ 配置三态（R2）/ 批准声明不可信（R3）/ 字符预算与 LF（R4，预算清单指向 doc-budgets.json）/ 新导出与术语（R5，方向检查注明 PR#45 状态）/ 凭据测试纪律（R6）/ 复审轻量（R7）/ 边界举证（R8）/ 大 PR 建议拆分（R9）/ 生成物不审（R10）/ 安全视角 trigger（R14，Tessl 借鉴）。R11–R13 空缺预留说明在维护节。
+- 终审 F1–F4 全处置：R4 删 PM-0006 引用改 LF 提示、R5 改条件表述、正文计数改 11 条并如实标注 6/11 带编号、docs/AGENTS.md 层级表合并登记（预算内 3499/3500）。
 
 ## Evidence
 
-- Before: 流程知识活在用户目录与外部 bundle 文档，仓库自身不带——fork/换机即丢。
-- After: `.agents/skills/` 两个 SKILL.md 落库；AGENTS.md 2071/2100；`pnpm --config.node-linker=hoisted check` 全绿（含 docs 预算门禁过）。
+- Before: 审查纪律是原则性文本，无规则锚定真实事件。
+- After: 11 条规则、6 条带 PR 编号（R1–R5、R7）；`pnpm check` 全绿；正文含 Revert 行过 pr-gate。
 
 ## Merge Danger
 
 - Door: one-way
-- Blast Radius: 纯文档与预算一行；后续新 skill 按此模式长在 `.agents/skills/` 下即可。
+- Blast Radius: 纯文档；审查纪律资源随后指向本库。
+- Revert: git revert the squash commit（删除单文件与一行登记，无其它影响）。
 
 [![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)

@@ -27,8 +27,8 @@
 | `SAFETY.md` / `SECURITY.md` / `TRADEMARKS.md` / `THIRD_PARTY_NOTICES.md` | 风险模型、漏洞报告、项目身份与第三方归属 | 使用教程、实现规则 |
 | `CHANGELOG.md` | 面向用户的版本变化公告，每个已发版一条 | 实现细节、决策理由、未发版的重构 |
 | `BENCHMARK.md` | 基准入口、运行规则和指标说明 | 历史报告数据 |
-| `docs/AGENTS.md` | 本文件：文档结构、写作、预算、检查 | 实现规则 |
-| `.agents/skills/` | 仓库内 skill |
+| `docs/AGENTS.md` | 本文件 | 实现规则 |
+| `.agents/skills/`、`docs/review-rules.md` | skill 与审查规则库 |
 
 ## 改代码时改哪份文档
 
@@ -70,7 +70,7 @@
 
 - 预算在 `scripts/doc-budgets.json`，按 Unicode 字符数计算。
 - `pnpm docs:check` 检查预算、必需文件、相对链接、代码围栏、尾随空格、`docs/configuration.md` 的 Config 字段覆盖、默认值一致性和双语结构，以及 Agent Note 的格式。
-- 发版提交时把每个预算重定基线为当前长度向上取整到千位；发布之间的增量先压缩或迁移到更合适的层级。不要通过修改 `doc-budgets.json` 或跳过检查来让门禁变绿。
+- 发版提交时把每个预算重定基线为当前长度向上取整到千位；发布之间的增量先压缩或迁移。不要通过修改 `doc-budgets.json` 或跳过检查来让门禁变绿。
 
 ## 机械检查
 
