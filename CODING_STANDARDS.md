@@ -54,6 +54,7 @@
 ## 5. 测试
 
 - 测试用 `node:test` + `node:assert/strict`；测试名写成行为句；测真实实现，不把实现逻辑复制进测试。
+- **flaky 纪律**：测试失败不许用 sleep、重试到过或条件跳过来「修复」——那是教 agent 用重跑代替修 bug。删除 flaky 测试前先在 PR 正文写明根因排查与无法修复的证据；性能类断言用数量级余量（见 `test/bench.test.js` 的 1/10 floor）而非紧阈值。
 - 用本地 stub provider；需要拦截 HTTP 的测试用 `test/helpers/withFetch.js`，不要在各测试内手写保存/恢复 `globalThis.fetch`；不引入 mock 库。
 - 新行为在映射层和路由层都有覆盖；行为改动必须有一个改动前失败、改动后通过的测试；纯文档或格式改动不需要新增测试。
 - 单文件：`node --test --test-isolation=none test/<name>.test.js`。沙箱的 `spawn EPERM` 变体见 `docs/development.md` 的 DSH 沙箱一节。
