@@ -29,7 +29,8 @@ test('bare package imports are not governed', () => {
 
 test('JSDoc import() mentions are not treated as imports (R-ghost-specifier regression)', async () => {
   const { default: fs } = await import('node:fs/promises');
-  const tmp = await fs.mkdtemp('arch-jsdoc-');
+  const { tmpdir } = await import('node:os');
+  const tmp = await fs.mkdtemp(tmpdir() + '/arch-jsdoc-');
   const f = tmp + '/probe.mjs';
   await fs.writeFile(f, "/** Docs say import('../lib/providers/x.js') works. */\nexport const a = 1;\n", 'utf8');
   const { extractSpecifiers } = await import('../scripts/check-architecture.mjs');
