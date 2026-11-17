@@ -17,3 +17,4 @@ DSH 插件：实现 `ctx.web` 的免费搜索/抓取 Provider，替换收费的 
 - 改文档：`docs/AGENTS.md`；术语：`GLOSSARY.md`。
 - 决策：`docs/adr/`、`.agents/notes/`。
 - Issue/PR：`docs/agents/issue-tracker.md`、`docs/pr-gate.md`。
+- PR 正文与推前检查：`.agents/skills/`。
