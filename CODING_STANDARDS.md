@@ -55,6 +55,7 @@
 ## 5. 测试
 
 - 测试用 `node:test` + `node:assert/strict`；测试名写成行为句；测真实实现，不把实现逻辑复制进测试。
+- **flaky 纪律**：测试失败不许用 sleep、重试到过或条件跳过来「修复」——那是教 agent 用重跑代替修 bug。删除 flaky 测试前先在 PR 正文写明根因排查与无法修复的证据；性能类断言用数量级余量（见 `test/bench.test.js` 的 1/10 floor）而非紧阈值。
 - 用本地 stub provider；需要拦截 HTTP 的测试用 `test/helpers/withFetch.js`，不要在各测试内手写保存/恢复 `globalThis.fetch`；不引入 mock 库。
 - 新行为在映射层和路由层都有覆盖；行为改动必须有一个改动前失败、改动后通过的测试；纯文档或格式改动不需要新增测试。
 - 单文件：`node --test --test-isolation=none test/<name>.test.js`。沙箱的 `spawn EPERM` 变体见 `docs/development.md` 的 DSH 沙箱一节。
@@ -101,4 +102,5 @@
 - 每个 P0/P1 finding 都要记录到 `AI-REVIEW-LESSONS.md`，包括规则、原因、证据和 `Seen` 次数。
 - 同一规则出现 3 次后，晋升到本文件；晋升后的规则在后续 review 中逐项检查。
 - 证据写实际观察到的输出、失败或代码位置；不写推测，不写未运行的验证。
+- 规则与标准正文只写当前状态，不嵌决策日期或变更史；决策史放 ADR 与 notes（晋升自 R-003）。
 - 改钩子、门禁或命令行为时，同步 README、AGENTS.md 与 `docs/development.md` 中所有枚举该行为的位置（晋升自 R-004）。
