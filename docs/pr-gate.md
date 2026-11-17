@@ -37,8 +37,9 @@ PR 正文必须按顺序包含三个 `##` 标题：
 
 - `Door:` `one-way` 或 `two-way`。
 - `Blast Radius:` 一句话说明影响范围。
+- `Revert:` 一句话说明怎么撤销（如 `git revert <squash commit>` / 关闭 `<flag>` / 回滚数据无需处理）。纯文档也写（`git revert` 即可）。
 
-必要时补充回滚方式、兼容性影响和监控要求。
+兼容性影响和监控要求按需补充。撤销路径是合并前的最后一道思考（Claude Code 同款 PR 模板三问之一）。
 
 ## 徽章
 
