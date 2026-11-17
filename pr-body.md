@@ -1,18 +1,19 @@
 ## Summary
 
-- 借鉴 DSH「AGENTS.md 是路由层、流程知识活在 `.agents/skills/` 仓库内 skill 库」的架构，新增两个种子 skill：
-  - `.agents/skills/pr-description/SKILL.md`——本仓库 PR 正文写作（结构、Evidence 纪律、Closes 行、徽章、验证命令），链回权威来源。
-  - `.agents/skills/pre-push-checks/SKILL.md`——推前检查按改动面选最小集（表格化：改 providers/纯文档/门禁脚本/配置/只有测试各跑什么），不默认全量、不重复已过的检查；CI 负责穷尽覆盖。
-- `AGENTS.md` 指针节路由化：两处改为 skill 链接引用；指针节措辞压缩（事实零丢失）+ 预算 2000→2100（新增流程路由是真实内容，按预算政策"内容真实需要时提上限"）。
+- 激活 `.agents/notes/` 决策记录体系，补落两篇当晚最重要的决策：
+  - `rejected/process/2026-11-16-main-account-pr-author.md`——「交付 PR 改回主账号作者」提案及拒绝原因（批准者=写代码者破坏分权），含三个真实备选与折中方案（`user.name`+`user.email` 双固定，贡献图按 email 关联）。
+  - `implemented/process/2026-11-17-judged-approval-bot-executed-merge.md`——判断/执行分离决策（主账号 approve、bot merge/tag），指令源三处同步（维护侧标注：图/规则/复盘均属维护仓库，仓库侧仅 pr-gate）。
+- 终审 3 项 P3 全处置：P3-1 补 `user.email`；P3-2 维护侧归属标注；P3-3 维护仓库路径写明（与本仓库 docs/DETAIL.md 区分）。
 
 ## Evidence
 
-- Before: 流程知识活在用户目录与外部 bundle 文档，仓库自身不带——fork/换机即丢。
-- After: `.agents/skills/` 两个 SKILL.md 落库；AGENTS.md 2071/2100；`pnpm --config.node-linker=hoisted check` 全绿（含 docs 预算门禁过）。
+- Before: 当晚重大决策只活在维护侧文档与会话记录，仓库决策体系零新增。
+- After: 两篇 note 按模板落库（Status+四节+真实备选）；`pnpm check` 全绿；正文含 Revert 行过 pr-gate。
 
 ## Merge Danger
 
 - Door: one-way
-- Blast Radius: 纯文档与预算一行；后续新 skill 按此模式长在 `.agents/skills/` 下即可。
+- Blast Radius: 纯文档；后续决策按此路径落 note。
+- Revert: git revert the squash commit（删除两个 note 文件，无其它影响）。
 
 [![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)

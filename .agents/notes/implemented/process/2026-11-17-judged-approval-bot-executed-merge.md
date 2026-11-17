@@ -8,7 +8,7 @@ Status: implemented
 
 ## Decision
 
-判断与执行分离：**APPROVE（判断）永远主账号**；merge / 删分支 / tag 推送（执行）交给 PR 作者 bot（低权限 PAT，随时可吊销）。同步改了三处指令源：final-review 图 act 节点、webhook 规则 spawn prompt（见 PM-0005——指令源必须全源同步）、pr-gate 文档表述（PR #43）。
+判断与执行分离：**APPROVE（判断）永远主账号**；merge / 删分支 / tag 推送（执行）交给 PR 作者 bot（低权限 PAT，随时可吊销）。同步改了三处指令源（均为维护侧：final-review 图 act 节点、webhook 规则 spawn prompt、PM-0005 复盘——见维护仓库 github-review-desktop 的 docs/postmortem/ 与 docs/DETAIL.md）；仓库侧只改了 pr-gate 表述（PR #43）。
 
 ## Alternatives considered
 
