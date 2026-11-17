@@ -1,18 +1,20 @@
 ## Summary
 
-- 新增 `docs/agents/code-review.md`：本仓库自动审查链的**贡献者/agent 视角**文档（对齐 DSH `maintaining-dsh-code-review` 模式）——此前审查链对仓库文档完全隐形。
-- 内容四节：触发与三步流程（audit 审查→主账号终审→bot 合并，含三身份分工）、PR 上会看到什么、写 PR 的配合（机械门禁清单、证据纪律、错题本从重）、人工介入路径。
-- 终审 P2/P3 全处置：F1 审查者身份改 `qikairo-audit[bot]`（含可 APPROVE 说明）；F2 门禁括注改为真实机械检查项并链接 `docs/pr-gate.md`；F4 触发条件补 `allowedAuthors`；F5 域导航入口；F6 五门/遗留清单更新。
+- 三道工程门禁一次补齐（对齐 Claude Code 验证方法论的机械校验层）：
+  - **文档代码块门禁** `scripts/check-doc-code.mjs`：提取全部 `js`/`mjs`/`sh`/`bash` 围栏逐块 `node --check` / `bash -n`——文档示例腐烂即 `pnpm check` 红。
+  - **性能数量级门禁** `test/bench.test.js`：三个热路径函数 ops/s 下限（基线 1/10：200k / 1.5M / 2.5M）——只有数量级退化才红，随 `node --test` 进 CI。
+  - **待办注释三级语义** CODING_STANDARDS §2：FIXME=发布阻塞 / 第二档=尽快 / XXX=someday。
+- 终审处置：P2-1/P3 批量转单 [#78](https://github.com/qikairo7/dsh-web-search/issues/78)（引用本 PR 与 finding）；P2-2（README R-004 回潮）经 merge main 由 #45 的修复覆盖；P2-3 冲突已解（五文件，check 链融合为七段全量）。
 
 ## Evidence
 
-- Before: 自动审查链知识只在维护侧 DETAIL.md，仓库无一处提及。
-- After: `pnpm check` 全绿（含新并 main 的五道门禁）；正文含 Revert 行过 pr-gate。
+- Before: 文档示例无机械校验、性能无回归门禁、待办注释无分级。
+- After: `pnpm check` 全绿（七段链：syntax→architecture→order-sync→doc-code→pairing→docs→tests）；正文含 Revert 行与合并指引。
 
 ## Merge Danger
 
 - Door: one-way
-- Blast Radius: 纯文档新增；审查链行为不变。
-- Revert: git revert the squash commit（删除单文件，无其它影响）。
+- Blast Radius: `pnpm check` 新增 doc-code 门 + bench 断言；写文档者需保证示例块可解析。
+- Revert: git revert the squash commit（删除两脚本一节标准，无数据影响）；七段链回退需手工编辑 package.json。
 
 [![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
