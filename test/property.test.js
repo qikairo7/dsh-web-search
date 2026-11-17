@@ -1,0 +1,64 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+
+import { classifyFailure, FAILURE_CLASSES } from '../lib/errors.js';
+import { detectLanguage } from '../lib/text.js';
+
+/** Property tests (Claude Code verification methodology, zero-dependency
+ * form): generate pseudo-random inputs with a fixed seed and assert
+ * invariants the agent that wrote the code is biased against testing. */
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const random = mulberry32(20261117);
+
+/** Build a random garbage error shape. */
+function randomError() {
+  const kind = Math.floor(random() * 5);
+  const status = [200, 301, 400, 401, 402, 403, 404, 408, 429, 500, 503, 999][Math.floor(random() * 12)];
+  if (kind === 0) return null;
+  if (kind === 1) return { status };
+  if (kind === 2) return { code: 'WEB_RATE_LIMITED' };
+  if (kind === 3) return { cause: { status } };
+  return { code: `WEB_RANDOM_${Math.floor(random() * 1000)}`, status };
+}
+
+test('property: classifyFailure always lands in the six classes and is deterministic', () => {
+  for (let i = 0; i < 2000; i += 1) {
+    const error = randomError();
+    const cls = classifyFailure(error);
+    assert.ok(FAILURE_CLASSES.includes(cls), `input ${JSON.stringify(error)} classified to ${cls}`);
+    assert.equal(classifyFailure(error), cls, `classification is not deterministic for ${JSON.stringify(error)}`);
+  }
+});
+
+test('property: known codes map to their class regardless of noise', () => {
+  for (let i = 0; i < 1000; i += 1) {
+    const noise = { status: [401, 500, 429][Math.floor(random() * 3)] };
+    assert.equal(classifyFailure({ code: 'WEB_RATE_LIMITED', ...noise }), 'quota');
+    assert.equal(classifyFailure({ code: 'WEB_BLOCKED_URL', ...noise }), 'bot-wall');
+  }
+});
+
+test('property: detectLanguage never throws and answers zh or en', () => {
+  const samples = [];
+  for (let i = 0; i < 500; i += 1) {
+    const han = random() > 0.5;
+    const len = 1 + Math.floor(random() * 30);
+    let s = '';
+    for (let j = 0; j < len; j += 1) s += han ? '搜索测试中文' : 'ascii query text 123';
+    samples.push(s.slice(0, len));
+  }
+  for (const s of samples) {
+    const lang = detectLanguage(s);
+    assert.ok(lang === 'zh' || lang === 'en', `detectLanguage(${JSON.stringify(s)}) => ${lang}`);
+  }
+});

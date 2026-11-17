@@ -19,6 +19,7 @@ Add a real PR gate.
 **Door:** two-way
 
 **Blast Radius:** pull request workflow
+**Revert:** git revert the squash commit
 
 ${BADGE}
 `;
@@ -47,6 +48,7 @@ A sufficiently long summary.
 ## Merge Danger
 
 **Blast Radius:** pull request workflow
+**Revert:** git revert the squash commit
 `);
   assert.equal(result.ok, false);
   assert.match(result.errors.join('\n'), /non-empty Before/);
@@ -60,6 +62,7 @@ test('PR gate rejects out-of-order sections', () => {
 **Door:** two-way
 
 **Blast Radius:** pull request workflow
+**Revert:** git revert the squash commit
 
 ## Summary
 
@@ -72,6 +75,13 @@ A sufficiently long summary.
 `);
   assert.equal(result.ok, false);
   assert.match(result.errors.join('\n'), /sections must appear in order/);
+});
+
+test('PR gate requires a Revert line in Merge Danger', () => {
+  const body = validBody.replace('**Revert:** git revert the squash commit\n', '');
+  const result = validatePrBody(body);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('Revert')));
 });
 
 test('PR gate requires an exact Door value', () => {
@@ -91,6 +101,7 @@ A sufficiently long summary.
 **Door:** ${value}
 
 **Blast Radius:** pull request workflow
+**Revert:** git revert the squash commit
 `);
     assert.equal(result.ok, false, value);
     assert.match(result.errors.join('\n'), /Door: one-way or Door: two-way/);
@@ -110,7 +121,7 @@ test('PR gate rejects a modified badge and a badge not in its own paragraph', ()
   );
   assert.equal(validatePrBody(wrongColor).ok, false);
 
-  const glued = validBody.replace(`**Blast Radius:** pull request workflow\n\n${BADGE}`, `**Blast Radius:** pull request workflow\n${BADGE}`);
+  const glued = validBody.replace(`**Revert:** git revert the squash commit\n\n${BADGE}`, `**Revert:** git revert the squash commit\n${BADGE}`);
   assert.equal(validatePrBody(glued).ok, false);
 });
 
