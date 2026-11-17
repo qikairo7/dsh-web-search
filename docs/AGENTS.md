@@ -76,7 +76,7 @@
 
 ```sh
 pnpm docs:check
-pnpm check        # 语法 + order-doc 同步 + docs:check + node --test
+pnpm check        # 语法 + 架构 + order-doc 同步 + docs:check + node --test
 ```
 
 `pnpm check` 是提交门禁；`docs:check` 可以单独快速运行。不要通过修改 `doc-budgets.json` 或跳过检查来让门禁变绿。
