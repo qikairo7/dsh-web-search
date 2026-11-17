@@ -1,18 +1,18 @@
 ## Summary
 
-- 借鉴 DSH「AGENTS.md 是路由层、流程知识活在 `.agents/skills/` 仓库内 skill 库」的架构，新增两个种子 skill：
-  - `.agents/skills/pr-description/SKILL.md`——本仓库 PR 正文写作（结构、Evidence 纪律、Closes 行、徽章、验证命令），链回权威来源。
-  - `.agents/skills/pre-push-checks/SKILL.md`——推前检查按改动面选最小集（表格化：改 providers/纯文档/门禁脚本/配置/只有测试各跑什么），不默认全量、不重复已过的检查；CI 负责穷尽覆盖。
-- `AGENTS.md` 指针节路由化：两处改为 skill 链接引用；指针节措辞压缩（事实零丢失）+ 预算 2000→2100（新增流程路由是真实内容，按预算政策"内容真实需要时提上限"）。
+- 新增 `docs/agents/code-review.md`：本仓库自动审查链的**贡献者/agent 视角**文档（对齐 DSH `maintaining-dsh-code-review` 模式）——此前审查链对仓库文档完全隐形。
+- 内容四节：触发与三步流程（audit 审查→主账号终审→bot 合并，含三身份分工）、PR 上会看到什么、写 PR 的配合（机械门禁清单、证据纪律、错题本从重）、人工介入路径。
+- 终审 P2/P3 全处置：F1 审查者身份改 `qikairo-audit[bot]`（含可 APPROVE 说明）；F2 门禁括注改为真实机械检查项并链接 `docs/pr-gate.md`；F4 触发条件补 `allowedAuthors`；F5 域导航入口；F6 五门/遗留清单更新。
 
 ## Evidence
 
-- Before: 流程知识活在用户目录与外部 bundle 文档，仓库自身不带——fork/换机即丢。
-- After: `.agents/skills/` 两个 SKILL.md 落库；AGENTS.md 2071/2100；`pnpm --config.node-linker=hoisted check` 全绿（含 docs 预算门禁过）。
+- Before: 自动审查链知识只在维护侧 DETAIL.md，仓库无一处提及。
+- After: `pnpm check` 全绿（含新并 main 的五道门禁）；正文含 Revert 行过 pr-gate。
 
 ## Merge Danger
 
 - Door: one-way
-- Blast Radius: 纯文档与预算一行；后续新 skill 按此模式长在 `.agents/skills/` 下即可。
+- Blast Radius: 纯文档新增；审查链行为不变。
+- Revert: git revert the squash commit（删除单文件，无其它影响）。
 
 [![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
