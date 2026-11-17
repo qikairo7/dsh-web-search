@@ -8,7 +8,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const IMPORT_RE = /(?:import|export)[\s\S]*?from\s*['"]([^'"]+)['"]|import\s*\(\s*['"]([^'"]+)['"]/g;
+const IMPORT_RE = /(?:import|export)[\s\S]*?from\s*['"]([^'"]+)['"]|import\s*\(\s*['"]([^'"]+)['"]|import\s+['"]([^'"]+)['"]/g;
 
 export function layerOf(file) {
   const rel = file.replaceAll('\\', '/');
@@ -56,11 +56,11 @@ async function collect(dir) {
   return files;
 }
 
-async function extractSpecifiers(file) {
-  const source = await readFile(file, 'utf8');
+export async function extractSpecifiers(file) {
+  const source = (await readFile(file, 'utf8')).replace(/\/\*[\s\S]*?\*\//gu, '');
   const specifiers = [];
   for (const match of source.matchAll(IMPORT_RE)) {
-    specifiers.push(match[1] ?? match[2]);
+    specifiers.push(match[1] ?? match[2] ?? match[3]);
   }
   return specifiers;
 }

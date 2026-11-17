@@ -26,3 +26,14 @@ test('providers must not import index', () => {
 test('bare package imports are not governed', () => {
   assert.deepEqual(findViolations('lib/settings.js', ['node:path', 'zod']), []);
 });
+
+test('JSDoc import() mentions are not treated as imports (R-ghost-specifier regression)', async () => {
+  const { default: fs } = await import('node:fs/promises');
+  const tmp = await fs.mkdtemp('arch-jsdoc-');
+  const f = tmp + '/probe.mjs';
+  await fs.writeFile(f, "/** Docs say import('../lib/providers/x.js') works. */\nexport const a = 1;\n", 'utf8');
+  const { extractSpecifiers } = await import('../scripts/check-architecture.mjs');
+  const specifiers = await extractSpecifiers(f);
+  assert.deepEqual(specifiers, []);
+  await fs.rm(tmp, { recursive: true, force: true });
+});
