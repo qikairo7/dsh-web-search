@@ -172,7 +172,7 @@ pnpm probe
 pnpm benchmark
 ```
 
-`pnpm check` runs the guardrail tests and the docs check; the pre-commit hook runs only the syntax check, and the pre-push hook runs the full `pnpm check` once before a push. `pnpm probe` is the daily live probe: 14 fixed queries plus 2 fetches with per-provider telemetry, list-health signals, a rolling 7-day aggregate, and PASS/FAIL verdicts (see [Testing policy](docs/testing.md)). `pnpm benchmark` loads the committed FRAMES/WebWalkerQA fixture first, then falls back to the public rows API; `SAMPLE_SIZE` sets the rows per benchmark (default 50). Run `pnpm benchmark:refresh` when the benchmark data changes. Live API verification requires the credentials above.
+`pnpm check` runs the guardrail tests, order-doc sync and the docs check; the pre-commit hook runs only the syntax check, and the pre-push hook runs the full `pnpm check` once before a push. `pnpm probe` is the daily live probe: 14 fixed queries plus 2 fetches with per-provider telemetry, list-health signals, a rolling 7-day aggregate, and PASS/FAIL verdicts (see [Testing policy](docs/testing.md)). `pnpm benchmark` loads the committed FRAMES/WebWalkerQA fixture first, then falls back to the public rows API; `SAMPLE_SIZE` sets the rows per benchmark (default 50). Run `pnpm benchmark:refresh` when the benchmark data changes. Live API verification requires the credentials above.
 
 ## Community and support
 
