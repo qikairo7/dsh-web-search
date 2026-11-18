@@ -6,17 +6,18 @@
 
 | 文件 | 职责 | 不放在这里 |
 |---|---|---|
-| `AGENTS.md` | 每次会话都需要的硬规则和入口指针，每条 1 到 3 行 | 教程、示例、可推导的细节 |
+| `AGENTS.md` | 每回合加载的硬规则与指针 | 教程、示例、可推导的细节 |
 | `CODING_STANDARDS.md` | 实现与 Review 的唯一标准：契约、实现原则、测试、完成门禁 | 当前默认值、行为说明 |
-| `AI-REVIEW-LESSONS.md` | P0/P1 错题本和晋升候选；规则正文在第 10 节 | 实现规则、行为说明 |
+| `AI-REVIEW-LESSONS.md` | 错题本与晋升候选 | 实现规则、行为说明 |
 | `README.md` / `README.zh.md` | 用户可见事实：安装、凭据、Provider、行为、配额；两份同步 | 内部实现细节、决策历史、完整配置表 |
 | `docs/configuration.md` | 完整配置字段、默认值与说明；README 链接到这里 | 行为教程、实现规则 |
-| `docs/development.md` | 贡献者安装、日常命令、CI、环境变量和排错 | 实现规则、产品行为 |
-| `docs/testing.md` | 测试层级、运行时机和真实 API 验收策略 | 具体命令清单、实现细节 |
+| `docs/development.md` | 安装、命令、CI 与排错 | 实现规则、产品行为 |
+| `docs/testing.md` | 测试层级与验收策略 | 具体命令清单、实现细节 |
 | `docs/pr-gate.md` | PR 交付门禁、正文结构和提交前检查 | 实现规则、产品行为 |
+| `docs/upgrade/` | 版本升级指南 | 迁移与决策理由 |
 | `docs/cookbook/` | 带步骤和验收清单的 how-to，例如新增 Provider | 设计理由、当前行为说明 |
 | `docs/defensive-patterns.md` | 按 artifact 展开的 Review 规则 | 决策历史、配置默认值 |
-| `docs/architecture.md` | 组合、模块职责、请求流、扩展点的有序地图 | 单函数细节、配置默认值 |
+| `docs/architecture.md` | 组合、模块与请求流地图 | 单函数细节、配置默认值 |
 | `docs/dsh-host-contract.md` | DSH 宿主契约、tool-web 渲染与 preset 作用域、内部排查路径 | 当前插件行为、配置默认值 |
 | `docs/adr/` | 已接受的契约级决策；一条决策一份，历史记录不改写 | 当前行为说明、迁移计划 |
 | `.agents/notes/` | 需要保留「为什么、放弃了什么」的决策记录；格式见目录 README | 当前行为说明、任务清单、测试走读 |
