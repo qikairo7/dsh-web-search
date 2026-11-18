@@ -1,6 +1,6 @@
 # dsh-web-search
 
-DSH 插件：实现 `ctx.web` 的免费搜索/抓取 Provider，替换收费的 DeepSeek Search/Fetch；不复制 `dsh-tool-web` 的通用工具层。
+DSH 插件：实现 `ctx.web` 的搜索/抓取 Provider，用免费后端替换官方收费的 DeepSeek Search/Fetch；通用 `web_search` / `web_fetch` 仍由第一方 `dsh-tool-web` 提供，另有可选的 AnySearch / Tavily / AIHOT 高级工具。
 
 ## 硬边界
 

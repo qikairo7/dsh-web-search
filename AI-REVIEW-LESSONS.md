@@ -19,6 +19,7 @@
 | R-011 | 版本文档声称的门禁/断言须在合并目标分支逐项核实 | 把计划或未合并的门写成已有，贡献者误信 CI 会拦 | PR#50 0.13.0.md:27 称架构方向门与性能下限断言，origin/main 均无 | 1 | open |
 | R-012 | `--record` 重建基线前须核结构对称，失败拒写盘 | 结构不对称时静默丢整对基线，此后单侧漂移不报警 | PR#51 translation-pairing.mjs:85 EN 多一节 --record 仍报 recorded: 2 files | 1 | open |
 | R-013 | 按序号配对的门禁须校验录制后节结构未变 | 插删节后 ordinal 错位、单侧改节标题逃逸，均漏报 | PR#51 translation-pairing.mjs:79 双侧插节后单侧改英文仍 exit 0 | 1 | open |
+| R-015 | 基线型门禁须拦「双改未重录」，不得静默 | 双改静默致基线陈旧，此后单侧漂移永久漏报 | PR#51 translation-pairing.mjs:48 双改未 --record 静默，后单侧改仍 exit 0 | 1 | open |
 | R-016 | 分支 merge main 后须重跑 pr-gate 并按新规则补正文 | main 新门禁使旧正文过时，CI 红 | PR#50 merge 带 #62 后正文缺 Revert，pr-gate failure | 1 | open |
 
 字段说明：
