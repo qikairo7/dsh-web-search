@@ -81,7 +81,7 @@ test('PR gate requires a Revert line in Merge Danger', () => {
   const body = validBody.replace('**Revert:** git revert the squash commit\n', '');
   const result = validatePrBody(body);
   assert.equal(result.ok, false);
-  assert.ok(result.errors.some((e) => e.includes('Revert')));
+  assert.match(result.errors.join('\n'), /must contain a non-empty Revert:/);
 });
 
 test('PR gate requires an exact Door value', () => {
@@ -132,7 +132,7 @@ test('PR gate skips all body checks for automated PRs', () => {
   assert.equal(bare.ok, false);
 });
 
-test('PR gate rejects placeholders in Summary and Blast Radius', () => {
+test('PR gate rejects placeholders in Summary, Blast Radius, and Revert', () => {
   const result = validatePrBody(`## Summary
 
 TODO TODO TODO.
@@ -147,8 +147,12 @@ TODO TODO TODO.
 **Door:** two-way
 
 **Blast Radius:** TBD
+**Revert:** TBD
+
+${BADGE}
 `);
   assert.equal(result.ok, false);
   assert.match(result.errors.join('\n'), /Summary still contains a placeholder/);
   assert.match(result.errors.join('\n'), /Blast Radius still contains a placeholder/);
+  assert.match(result.errors.join('\n'), /Revert: still contains a placeholder/);
 });

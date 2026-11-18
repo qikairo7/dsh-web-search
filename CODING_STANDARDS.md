@@ -25,7 +25,7 @@
 
 - 每个 provider 实现 `id`、`title`、`description`、`available()`、`ready()`，并按能力实现 `search()` 或 `fetch()`。
 - 默认只实现 `ctx.web` provider；例外是 `lib/tools/` 下的 AnySearch / Tavily / AIHOT 高级工具（由 ADR-0004/0005/0006 授权），通用 `web_search` / `web_fetch` 仍由 `dsh-tool-web` 提供、入参与结果形状不变。
-- 新增后端先写 ADR（`docs/adr/`）再在 `lib/catalog.js` 注册唯一 provider id；`http` id 属于本插件，不改 `cordis.patch.yml` 的 `web-fetch-http: disabled`。
+- 新增后端先写 ADR（`docs/adr/`）再在 `lib/catalog.js` 注册唯一 provider id（auto 复合路由在 `lib/providers/router.js` 注册）；`http` id 属于本插件，不改 `cordis.patch.yml` 的 `web-fetch-http: disabled`。
 - 后端 provider 固定三段式：`XXX_PROVIDER_ID` 常量、`mapXxxSearch()` 纯映射、`XxxProvider` 类。映射函数只做数据转换和 envelope 校验，类只做 IO。
 - 后端 Provider 构造函数接收 `{ settings, resolveKey }`（不需要凭据的只收 `{ settings }`）；`settings()` 是 thunk，每次操作开头读一次，不要把配置缓存到实例字段。
 - Provider 的 `description` 返回 `{ en, zh }` 双语；用户可见文案保持中英对应。

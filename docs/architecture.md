@@ -113,7 +113,7 @@ settings() thunk ──→ Provider / Router
 
 ## 不变量
 
-- 依赖方向、标准 Provider id、工具层归属和付费 API/MCP 禁例：以 `AGENTS.md` 的「依赖方向」与「硬边界」为准。
+- 依赖方向、标准 Provider id、工具层归属和付费 API/MCP 禁例：以 [CODING_STANDARDS.md](../CODING_STANDARDS.md) 第 1 节与根 [AGENTS.md](../AGENTS.md) 的「硬边界」为准。
 - Provider 边界只抛 `WEB_*` 错误；只有 `isRecoverable(error)` 为真才触发下一个 Provider，取消和非法 URL 立即返回。
 - 搜索与抓取的缓存 key 覆盖所有影响结果的设置；循环必须有界。
 

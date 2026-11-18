@@ -12,9 +12,3 @@ description: 为 dsh-web-search 写 PR 正文时使用：路由卡——结构�
 - 占位词（TODO/TBD/待补充/待确认）会被机械拒绝——写结论，不写计划。
 - 范围裁剪（何者不做、为何）写在 Summary，让审查不必猜。
 - 完成清单对照 `CODING_STANDARDS.md` §6；流程语境 `docs/agents/issue-tracker.md`。
-
-提交前验证：
-
-```sh
-node scripts/check-pr-gate.mjs --body-file <正文路径>
-```
