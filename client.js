@@ -1,7 +1,54 @@
 /** Web settings page for the dsh-web-search bundle. */
 
+// IIFE keeps this bundle's declarations out of the classic-script global lexical scope shared by sibling bundles.
+(() => {
+/** Split one pasted key box into individual keys; comma, ideographic comma and whitespace separate. */
+const splitKeyInput = (value) => String(value ?? '').split(/[\s,，]+/u).filter((key) => key.length > 0);
+
+/**
+ * Assign pasted keys to numbered credential refs. A row with an existing ref keeps its first
+ * key in that slot; the rest fill free refs in order. More keys than free refs sets overflow
+ * so the caller refuses the whole batch instead of silently truncating.
+ */
+const planKeyWrites = (rows, refs, credentials) => {
+  const occupied = new Set(rows.filter((row) => row.ref !== null).map((row) => row.ref));
+  const writes = [];
+  for (const row of rows) {
+    const keys = splitKeyInput(row.value);
+    for (let index = 0; index < keys.length; index += 1) {
+      let target = index === 0 && row.ref !== null ? row.ref : undefined;
+      if (target === undefined) {
+        target = refs.find((candidate) => !occupied.has(candidate) && credentials?.[candidate]?.configured !== true);
+      }
+      if (target === undefined) return { writes, overflow: true };
+      occupied.add(target);
+      writes.push({ ref: target, value: keys[index] });
+    }
+  }
+  return { writes, overflow: false };
+};
+
+/**
+ * Apply a key-write plan. Refuses the whole batch on overflow or an empty selection before
+ * writing anything; otherwise writes each key in order and stops on the first failure.
+ * Returns `overflow`, `empty`, `failed` or `saved`.
+ */
+const applyKeyPlan = async (plan, setCredential) => {
+  if (plan.overflow) return 'overflow';
+  if (plan.writes.length === 0) return 'empty';
+  for (const write of plan.writes) {
+    const result = await setCredential(write.ref, write.value);
+    if (result?.ok !== true) return 'failed';
+  }
+  return 'saved';
+};
+
 window.__ModuleLoader__.load({
   id: '@qikairo7/dsh-web-search',
+  // Pure helpers exposed for unit tests; the host reads only `id` and `factory`.
+  splitKeyInput,
+  planKeyWrites,
+  applyKeyPlan,
   factory(require) {
     const React = require('react');
     const h = React.createElement;
@@ -701,38 +748,22 @@ window.__ModuleLoader__.load({
       };
 
       const saveKey = async (provider, ref) => {
-        const rows = keyRows[provider.id] ?? [];
-        const pending = rows.filter((row) => row.value.trim().length > 0);
-        if (pending.length === 0) {
-          noteKey(provider, t('enterKey'), true);
-          return;
-        }
+        const plan = planKeyWrites(keyRows[provider.id] ?? [], keyRefsFor(ref), state.credentials);
         setBusy(true);
-        const refs = keyRefsFor(ref);
-        const occupied = new Set(rows.filter((row) => row.ref !== null).map((row) => row.ref));
-        let failed = false;
-        for (const row of pending) {
-          let target = row.ref;
-          if (target === null) {
-            target = refs.find((candidate) => !occupied.has(candidate) && state.credentials?.[candidate]?.configured !== true);
-          }
-          if (target === undefined) {
-            failed = true;
-            break;
-          }
-          occupied.add(target);
-          const result = await safeCall(() => props.ctx.remote.credentials.set(target, row.value.trim()));
-          if (!isOk(result)) {
-            failed = true;
-            break;
-          }
-        }
-        if (!failed) {
+        const status = await applyKeyPlan(
+          plan,
+          (target, value) => safeCall(() => props.ctx.remote.credentials.set(target, value)),
+        );
+        if (status === 'saved') {
           setRevealed((current) => ({ ...current, [provider.id]: false }));
           noteKey(provider, t('savedKey', { name: provider.label }));
           await refresh(false);
-        } else {
+        } else if (status === 'failed') {
           noteKey(provider, t('saveFailed'), true);
+        } else if (status === 'overflow') {
+          noteKey(provider, t('tooManyKeys'), true);
+        } else {
+          noteKey(provider, t('enterKey'), true);
         }
         setBusy(false);
       };
@@ -1183,3 +1214,4 @@ window.__ModuleLoader__.load({
     };
   },
 });
+})();

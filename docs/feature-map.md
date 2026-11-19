@@ -8,7 +8,7 @@
 
 | 区域 | 控件 | 操作 | 期望反馈 |
 |---|---|---|---|
-| 后端 API Key | Keenable、AnySearch（匿名可用 / Key 可选）；Exa、Tavily、Firecrawl、知乎、SiliconFlow（需要 Key） | 启用开关、每行一个 Key，最多 8 个（KEY、KEY_2…KEY_8）、显示/隐藏、添加/删除、验证（SiliconFlow 卡片不渲染）、保存、清除（二次确认） | 保存「{name} Key 已保存。」；验证「{name} 在 {ms} ms 内返回 {count} 条结果。」；徽章：已配置、未配置、来自环境变量、凭据库、状态未知 |
+| 后端 API Key | Keenable、AnySearch（匿名可用 / Key 可选）；Exa、Tavily、Firecrawl、知乎、SiliconFlow（需要 Key） | 启用开关、Key 输入框支持粘贴多个（逗号/空格分隔）自动拆分并存为编号 ref、每行一个 Key，最多 8 个（KEY、KEY_2…KEY_8）、显示/隐藏、添加/删除、验证（SiliconFlow 卡片不渲染）、保存、清除（二次确认） | 保存「{name} Key 已保存。」；验证「{name} 在 {ms} ms 内返回 {count} 条结果。」；徽章：已配置、未配置、来自环境变量、凭据库、状态未知 |
 | 后端开关 | AIHOT、HTTP | 开/关 | 保存后生效 |
 | 搜索行为 | 搜索模式（质量/快速）、抓取模式（快速/干净） | 下拉选择 | 质量=合并免费源+BGE 重排；快速=单后端优先回退；干净=优先免费抽取 |
 | 重排与嵌入模型 | 重排模型、Embedding 模型 | 下拉；拉取模型 | 「已加载 {count} 个模型。」 |
