@@ -8,12 +8,10 @@
 |---|---|---|
 | `AGENTS.md` | 每次会话都需要的硬规则和入口指针，每条 1 到 3 行 | 教程、示例、可推导的细节 |
 | `CODING_STANDARDS.md` | 实现与 Review 的唯一标准：契约、实现原则、测试、完成门禁 | 当前默认值、行为说明 |
-| `AI-REVIEW-LESSONS.md` | P0/P1 错题本和晋升候选；规则正文在第 10 节 | 实现规则、行为说明 |
 | `README.md` / `README.zh.md` | 用户可见事实：安装、凭据、Provider、行为、配额；两份同步 | 内部实现细节、决策历史、完整配置表 |
 | `docs/configuration.md` | 完整配置字段、默认值与说明；README 链接到这里 | 行为教程、实现规则 |
 | `docs/development.md` | 贡献者安装、日常命令、CI、环境变量和排错 | 实现规则、产品行为 |
 | `docs/testing.md` | 测试层级、运行时机和真实 API 验收策略 | 具体命令清单、实现细节 |
-| `docs/pr-gate.md` | PR 交付门禁、正文结构和提交前检查 | 实现规则、产品行为 |
 | `docs/cookbook/` | 带步骤和验收清单的 how-to，例如新增 Provider | 设计理由、当前行为说明 |
 | `docs/defensive-patterns.md` | 按 artifact 展开的 Review 规则 | 决策历史、配置默认值 |
 | `docs/architecture.md` | 组合、模块职责、请求流、扩展点的有序地图 | 单函数细节、配置默认值 |
@@ -21,7 +19,7 @@
 | `docs/adr/` | 已接受的契约级决策；一条决策一份，历史记录不改写 | 当前行为说明、迁移计划 |
 | `.agents/notes/` | 需要保留「为什么、放弃了什么」的决策记录；格式见目录 README | 当前行为说明、任务清单、测试走读 |
 | `GLOSSARY.md` | 项目术语的唯一写法 | 实现细节 |
-| `docs/agents/` | 代理工作流：领域文档读取、Issue 与 PR 操作 | 产品行为 |
+| `docs/agents/` | 代理工作流：领域文档读取 | 产品行为 |
 | `docs/benchmarks/` | 历史基准报告与复现命令；数字和日期不改写 | 当前配置默认值 |
 | `CONTRIBUTING.md` / `CONTRIBUTING.zh.md` | 贡献入口和阅读顺序 | 详细实现规则 |
 | `SAFETY.md` / `SECURITY.md` / `TRADEMARKS.md` / `THIRD_PARTY_NOTICES.md` | 风险模型、漏洞报告、项目身份与第三方归属 | 使用教程、实现规则 |
@@ -44,7 +42,6 @@
 | 术语 | `GLOSSARY.md` |
 | 基准结果 | `docs/benchmarks/`；保留原始数据与复现命令 |
 | 实现规则、Review 门禁 | `CODING_STANDARDS.md` |
-| Issue 与 PR 流程 | `docs/agents/issue-tracker.md` |
 | 版本发布 | `CHANGELOG.md` 增加对应版本段落，行为变化写明对用户可见的影响 |
 
 ## 开发顺序

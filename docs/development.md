@@ -28,7 +28,6 @@ pnpm check
 | `pnpm check` | 语法检查 + `docs:check` + 单测，提交前门禁 |
 | `pnpm docs:check` | 只跑文档层级、链接、配置覆盖和预算检查 |
 | `node --test --test-isolation=none test/<name>.test.js` | 跑单个测试文件 |
-| `node scripts/check-pr-gate.mjs --body-file <path>` | 校验 PR 正文门禁（章节结构、证据、徽章） |
 | `pnpm benchmark:preflight` | 先验证凭据与各后端连通性 |
 | `pnpm benchmark` | live 基准；自动加载 gitignored `.env`，需要 `AS_KEY`、`TV_KEY`、`FC_KEY`、`ZH_KEY`、`SF_KEY`、`DS_TOKEN` |
 | `pnpm benchmark:refresh` | 刷新基准 fixture |
@@ -49,7 +48,7 @@ node scripts/check-syntax.mjs && node --test --test-isolation=none
 
 ## CI 与 Hook
 
-- `.github/workflows/check.yml` 在 Node 22 和 24 上运行 `pnpm install --frozen-lockfile` 和 `pnpm check`，并在 `pull_request` 上运行 `pr-gate` 检查 PR 正文。
+- `.github/workflows/check.yml` 在 Node 22 和 24 上运行 `pnpm install --frozen-lockfile` 和 `pnpm check`。
 - `.githooks/pre-commit` 运行 `pnpm check`；首次 clone 后用 `git config core.hooksPath .githooks` 启用。
 - 仓库没有 `dev` / `build` / `lint` / `typecheck` 脚本；不要运行不存在的命令。
 
@@ -70,4 +69,3 @@ node scripts/check-syntax.mjs && node --test --test-isolation=none
 - [文档标准](AGENTS.md)
 - [测试策略](testing.md)
 - [实现标准](../CODING_STANDARDS.md)
-- [Issue 与 PR 流程](agents/issue-tracker.md)

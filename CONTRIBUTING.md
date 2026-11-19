@@ -25,7 +25,6 @@ Before you start, read these in order:
 - Use a branch name of two or three short words joined by hyphens, such as `fix-router-fallback`.
 - Use `type(scope): summary` for commit messages and pull request titles. `type` is one of `feat`, `fix`, `docs`, `chore`, `refactor`, `test`.
 - Run `pnpm docs:check` and `pnpm check` before you commit. See [AGENTS.md](AGENTS.md) for the `spawn EPERM` workaround in the DSH sandbox.
-- PR body: follow [docs/pr-gate.md](docs/pr-gate.md).
 
 ## Review
 

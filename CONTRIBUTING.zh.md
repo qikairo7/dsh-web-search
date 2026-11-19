@@ -21,7 +21,6 @@
 - 分支名用 2 到 3 个短词、连字符分隔，例如 `fix-router-fallback`。
 - 提交信息和 PR 标题用 `type(scope): summary`；`type` 取 `feat`、`fix`、`docs`、`chore`、`refactor`、`test`。
 - 提交前运行 `pnpm docs:check` 和 `pnpm check`。DSH 沙箱的 `spawn EPERM` 处理见 [AGENTS.md](AGENTS.md)。
-- PR 正文：按 [docs/pr-gate.md](docs/pr-gate.md) 执行。
 
 ## Review
 

@@ -63,7 +63,6 @@
     "test": "node --test",
     "docs:check": "node scripts/verify-docs.mjs",
     "check": "node scripts/check-syntax.mjs && node scripts/verify-docs.mjs && node --test",
-    "check:pr": "node scripts/check-pr-gate.mjs",
     "benchmark": "node --env-file-if-exists=.env scripts/public-benchmark.mjs",
     "benchmark:refresh": "node scripts/refresh-benchmark-fixture.mjs",
     "benchmark:preflight": "node --env-file-if-exists=.env scripts/public-benchmark.mjs --preflight",
