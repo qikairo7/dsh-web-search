@@ -1,6 +1,6 @@
 {
   "name": "@qikairo7/dsh-web-search",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "private": true,
   "description": "Free-tier-first web search and fetch providers for DeepSeek Harness: quality pipeline, keyless Bing floor, failure-class fallback gating",
   "keywords": [
@@ -40,7 +40,7 @@
     "locale/*.json",
     "icon.svg",
     "README.md",
-    "README.zh.md",
+    "README.en.md",
     "CHANGELOG.md",
     "LICENSE",
     "SAFETY.md",

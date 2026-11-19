@@ -11,7 +11,7 @@ const required = [
   'AGENTS.md',
   'CODING_STANDARDS.md',
   'README.md',
-  'README.zh.md',
+  'README.en.md',
   'GLOSSARY.md',
   'CONTRIBUTING.md',
   'CONTRIBUTING.zh.md',
@@ -140,7 +140,7 @@ for (const file of await sourceFiles(path.join(root, 'lib'))) {
 
 // Chinese prose keeps one physical line per paragraph. Skip headings, lists, tables, quotes, and fences.
 const chineseDocs = new Set([
-  'README.zh.md',
+  'README.md',
   'AGENTS.md',
   'CODING_STANDARDS.md',
   'REVIEW-LESSONS.md',
@@ -235,8 +235,8 @@ for (const file of ['docs/configuration.md']) {
   }
 }
 
-const readmeEn = await readFile(path.join(root, 'README.md'), 'utf8');
-const readmeZh = await readFile(path.join(root, 'README.zh.md'), 'utf8');
+const readmeEn = await readFile(path.join(root, 'README.en.md'), 'utf8');
+const readmeZh = await readFile(path.join(root, 'README.md'), 'utf8');
 const headingLevels = (text) =>
   text
     .split(/\r?\n/)

@@ -1,6 +1,6 @@
 # CODING_STANDARDS
 
-实现与 Review 的唯一标准。开始写代码前读完本文件；当前行为以 `README.md` / `README.zh.md` 的 Behavior details 为准，配置字段、默认值和配额以 `docs/configuration.md` 为准，本文不复制默认值表。
+实现与 Review 的唯一标准。开始写代码前读完本文件；当前行为以 `README.md` / `README.en.md` 的 Behavior details 为准，配置字段、默认值和配额以 `docs/configuration.md` 为准，本文不复制默认值表。
 
 ## 1. 仓库结构与发布
 
@@ -95,5 +95,5 @@
 6. **测试与文档**：新行为在映射层和路由层都有覆盖；测试测真实实现、不复制实现逻辑；去掉实现后测试会失败；两份 README、`docs/configuration.md` 的配置表、默认值、配额说明一致；契约变化有 ADR。
 7. **边界与依赖**：根 `AGENTS.md` 的硬边界与本文件 §1、§3 的边界规则全部满足，无未说明的新依赖；依赖方向不被反转（`scripts/check-architecture.mjs` 机械检查，并入 `pnpm check`）。
 8. **实现克制**：除会被测试直接复用的 `mapXxxSearch()` 外，一次性逻辑没有被抽成函数；`try/catch` 只出现在错误边界；没有为未经确认的推测性复杂度增加代码。
-9. **门禁文档同步**：改 `package.json` 的 check 链或 git hook 行为时，`README.md`、`README.zh.md`、`docs/development.md`、`docs/AGENTS.md` 中 check 组成的描述同步更新；带顺序声明（「依次」等）的列举与实际链序逐位一致。
+9. **门禁文档同步**：改 `package.json` 的 check 链或 git hook 行为时，`README.md`、`README.en.md`、`docs/development.md`、`docs/AGENTS.md` 中 check 组成的描述同步更新；带顺序声明（「依次」等）的列举与实际链序逐位一致。
 

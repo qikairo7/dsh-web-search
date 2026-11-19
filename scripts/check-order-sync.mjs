@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /** Order-doc sync: the default provider orders pasted in README.md,
- * README.zh.md, docs/configuration.md and cordis.patch.yml must match
+ * README.en.md, docs/configuration.md and cordis.patch.yml must match
  * DEFAULT_SEARCH_ORDERS from lib/roles.js verbatim (arrows or comma form).
  * The docs-driven counterpart of DSH's type-equiv gate: source is the single
  * authority; a drifted paste fails the check. */
@@ -118,7 +118,7 @@ const isMain = process.argv[1] !== undefined && resolve(process.argv[1]) === fil
 if (isMain) {
   const failures = [];
   let hits = 0;
-  for (const file of ['README.md', 'README.zh.md', 'docs/configuration.md', 'cordis.patch.yml']) {
+  for (const file of ['README.md', 'README.en.md', 'docs/configuration.md', 'cordis.patch.yml']) {
     hits += await scanFile(file, failures);
   }
   if (failures.length > 0) {

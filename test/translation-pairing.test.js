@@ -44,8 +44,8 @@ const ZH_DETAIL = '# 丁\n\n## 丁A\n阿尔法\n';
 function makeGateDir() {
   const dir = mkdtempSync(join(tmpdir(), 'translation-pairing-'));
   mkdirSync(join(dir, 'docs'));
-  writeFileSync(join(dir, 'README.md'), EN_DOC);
-  writeFileSync(join(dir, 'README.zh.md'), ZH_DOC);
+  writeFileSync(join(dir, 'README.en.md'), EN_DOC);
+  writeFileSync(join(dir, 'README.md'), ZH_DOC);
   writeFileSync(join(dir, 'docs/DETAIL.md'), EN_DETAIL);
   writeFileSync(join(dir, 'docs/DETAIL.zh.md'), ZH_DETAIL);
   return dir;
@@ -58,7 +58,7 @@ function runGate(dir, ...args) {
 test('record writes a baseline only when every pair is structurally symmetric', (t) => {
   const dir = makeGateDir();
   t.after(() => rmSync(dir, { recursive: true, force: true }));
-  writeFileSync(join(dir, 'README.md'), '# T\n\n## A\none\n\n## B\ntwo\n\n## C\nthree\n');
+  writeFileSync(join(dir, 'README.en.md'), '# T\n\n## A\none\n\n## B\ntwo\n\n## C\nthree\n');
   const r = runGate(dir, '--record');
   assert.equal(r.status, 1, `expected failure, got stdout: ${r.stdout}`);
   assert.match(r.stderr, /structural symmetry/);
@@ -90,8 +90,8 @@ test('check fails when both sides insert a section without re-recording', (t) =>
   const dir = makeGateDir();
   t.after(() => rmSync(dir, { recursive: true, force: true }));
   runGate(dir, '--record');
-  writeFileSync(join(dir, 'README.md'), '# T\n\n## A0\nzero\n\n## A\none\n\n## B\ntwo words\n');
-  writeFileSync(join(dir, 'README.zh.md'), '# 标\n\n## 甲0\n零\n\n## 甲\n一\n\n## 乙\n二\n');
+  writeFileSync(join(dir, 'README.en.md'), '# T\n\n## A0\nzero\n\n## A\none\n\n## B\ntwo words\n');
+  writeFileSync(join(dir, 'README.md'), '# 标\n\n## 甲0\n零\n\n## 甲\n一\n\n## 乙\n二\n');
   const r = runGate(dir);
   assert.equal(r.status, 1, `expected failure, got stdout: ${r.stdout}`);
   assert.match(r.stderr, /structure changed since record/);
@@ -101,7 +101,7 @@ test('check fails on a one-sided heading rename', (t) => {
   const dir = makeGateDir();
   t.after(() => rmSync(dir, { recursive: true, force: true }));
   runGate(dir, '--record');
-  writeFileSync(join(dir, 'README.md'), '# T\n\n## A2\none\n\n## B\ntwo words\n');
+  writeFileSync(join(dir, 'README.en.md'), '# T\n\n## A2\none\n\n## B\ntwo words\n');
   const r = runGate(dir);
   assert.equal(r.status, 1, `expected failure, got stdout: ${r.stdout}`);
   assert.match(r.stderr, /heading changed since record/);
@@ -111,7 +111,7 @@ test('heading whitespace-only change is not a structural change', (t) => {
   const dir = makeGateDir();
   t.after(() => rmSync(dir, { recursive: true, force: true }));
   runGate(dir, '--record');
-  writeFileSync(join(dir, 'README.md'), '# T\n\n## A \none\n\n## B\ntwo words\n');
+  writeFileSync(join(dir, 'README.en.md'), '# T\n\n## A \none\n\n## B\ntwo words\n');
   const r = runGate(dir);
   assert.equal(r.status, 0, r.stderr);
 });

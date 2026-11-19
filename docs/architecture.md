@@ -1,6 +1,6 @@
 # dsh-web-search 架构
 
-改 `lib/` 前先读本文件。这里只做地图：行为细节在 [README](../README.md) / [README.zh](../README.zh.md)，实现规则在 [CODING_STANDARDS](../CODING_STANDARDS.md)，决策原因在 [docs/adr](adr/) 与 [Agent Notes](../.agents/notes/README.md)。
+改 `lib/` 前先读本文件。这里只做地图：行为细节在 [README](../README.md) / [README.en](../README.en.md)，实现规则在 [CODING_STANDARDS](../CODING_STANDARDS.md)，决策原因在 [docs/adr](adr/) 与 [Agent Notes](../.agents/notes/README.md)。
 
 ## 组成
 

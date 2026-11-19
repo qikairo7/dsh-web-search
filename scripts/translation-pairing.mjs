@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /** Translation-pairing gate (lightweight .i18n.yaml counterpart): README.md
- * and README.zh.md are paired section-by-section (Nth `##` section to Nth).
+ * and README.md are paired section-by-section (Nth `##` section to Nth).
  * A recorded hash per section detects drift — one side changed without its
  * pair, or both changed without re-recording — and fails the check until
  * `--record` re-baselines after an intentional synchronized edit. Pairing basis is section
@@ -15,7 +15,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const PAIRS = [
-  { en: 'README.md', zh: 'README.zh.md' },
+  { en: 'README.en.md', zh: 'README.md' },
   { en: 'docs/DETAIL.md', zh: 'docs/DETAIL.zh.md' },
 ];
 const RECORD = 'docs/translation-pairs.json';
