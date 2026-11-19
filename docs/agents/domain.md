@@ -1,13 +1,13 @@
-# Domain Docs
+# 领域文档
 
-This is a single-context repository. Read the domain docs before exploring code:
+本仓库是单上下文仓库。探索代码前先读领域文档：
 
-- [GLOSSARY.md](../../GLOSSARY.md) at the repo root defines the project's terms.
-- [docs/adr/](../adr/) holds accepted architecture decisions; read the ADRs that touch the area you are changing.
-- If `GLOSSARY-MAP.md` appears, read it and each context glossary it points to.
+- 仓库根目录的 [GLOSSARY.md](../../GLOSSARY.md) 定义项目术语。
+- [docs/adr/](../adr/) 存放已接受的架构决策；改动某区域前，先读涉及该区域的 ADR。
+- 如果出现 `GLOSSARY-MAP.md`，读它以及它指向的每份上下文术语表。
 
-Use glossary terms in issue titles, refactor proposals, hypotheses, tests, and docs. Do not drift to synonyms the glossary avoids. If a term is missing, either you are inventing language the project does not use, or there is a real gap to note.
+在 issue 标题、重构提案、假设、测试和文档中使用术语表里的术语。不要漂移到术语表所回避的同义词。如果缺少某个术语，要么你在发明项目不使用的说法，要么这是一个值得记录的真实缺口。
 
-If output contradicts an existing ADR, say so explicitly before overriding it.
+如果输出与既有 ADR 冲突，先明确说明，再覆盖它。
 
-If a glossary or ADR file is missing, proceed silently. Do not flag the absence or suggest creating one; `/domain-modeling` creates these files when terms or decisions are actually settled.
+如果术语表或 ADR 文件缺失，静默继续。不要提示缺失，也不要建议创建；`/domain-modeling` 只在术语或决策真正确定时才创建这些文件。

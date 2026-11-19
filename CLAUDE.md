@@ -1,1 +1,1 @@
-See [AGENTS.md](AGENTS.md) for the repository rules.
+仓库规则见 [AGENTS.md](AGENTS.md)。

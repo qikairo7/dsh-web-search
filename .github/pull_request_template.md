@@ -1,25 +1,25 @@
-## Summary
+## 摘要
 
-<!-- What changes, and why? Use the smallest view that makes the point clear. -->
+<!-- 改了什么、为什么改？用最小、最能说明问题的视图。 -->
 
-## Evidence
+## 证据
 
-<!-- Before: failure, output, or screenshot from before the change. -->
-<!-- After: passing output, test run, or screenshot after the change. -->
+<!-- 改动前：失败输出或截图。 -->
+<!-- 改动后：通过输出、测试运行或截图。 -->
 
-- **Before:** <!-- fill with actual before evidence -->
-  **After:** <!-- fill with actual after evidence -->
+- **改动前：** <!-- 填实际的改动前证据 -->
+  **改动后：** <!-- 填实际的改动后证据 -->
 
-## Merge Danger
+## 合并风险
 
-**Door:** <!-- one-way or two-way -->
+**门类型：** <!-- 单向或双向 -->
 
-**Blast Radius:** <!-- one short phrase -->
+**影响半径：** <!-- 一个短语 -->
 
-<!-- Optional: rollback plan, compatibility impact, or monitoring requirement. -->
+<!-- 可选：回滚方案、兼容性影响或监控要求。 -->
 
-## AI usage
+## AI 使用情况
 
-<!-- Optional: say which parts were drafted with an AI assistant. The human author remains responsible for the change. -->
+<!-- 可选：说明哪些部分由 AI 助手起草。人类作者仍对改动负责。 -->
 
 [![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
