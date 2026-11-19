@@ -17,6 +17,13 @@
 - 报 Bug 前先用真实入口复现，记下实际输出。
 - 改动会破坏配置或契约语义时，先开 issue 或写 ADR（[docs/adr/](docs/adr/)）再动手。
 
+## 开发文档
+
+- 开发流程与环境：[docs/development.md](docs/development.md)
+- 测试：[docs/testing.md](docs/testing.md)
+- 新增 Provider：[docs/cookbook/adding-a-provider.md](docs/cookbook/adding-a-provider.md)
+- Review 门禁：[CODING_STANDARDS.md](CODING_STANDARDS.md#9-review-门禁) §9
+
 ## 安全边界
 
 贡献前必读 [SAFETY.md](SAFETY.md)：不可信输入、凭据边界与风险模型以该文件为准；正常请求成功不能证明隔离有效。
@@ -24,7 +31,7 @@
 ## 提交与 PR
 
 - 提交信息与 PR 标题用 Conventional Commits 中文主题：`type(scope): 摘要`，`type` 取 `feat`、`fix`、`docs`、`chore`、`refactor`、`test`。
-- 提交正文末尾带 `Verified-by: <方式>` 戳，如 `Verified-by: pnpm check`；未验证写 `Verified-by: none <原因>`。
+- 提交正文末尾带 `Verified-by: <方式>` 戳，如 `Verified-by: pnpm-check`；未验证写 `Verified-by: none <原因>`。
 - PR 描述按 [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md) 的各节填写。
 - 分支从 `origin/main` 切出，PR 对 `main`；合并前 CI 与 `pnpm check` 必须全绿。
 
