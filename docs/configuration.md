@@ -6,6 +6,23 @@
 
 The settings page is generated from the plugin's `Config` schema. All fields are optional; the defaults below match the verified setup.
 
+### Free allowances
+
+Documented free allowances per backend; live remaining values for Tavily and Firecrawl show on the settings page.
+
+| Backend | Free allowance | Used by |
+|---|---|---|
+| Keenable | 100,000/month (key); 1,000/hour anonymous | Default search + Markdown fetch |
+| AnySearch | 1000 searches/day with a registered key; anonymous access also works | Search |
+| Exa | $10 free credits/month (docs.exa.ai); one-time $10 onboarding bonus | Semantic search + Contents fetch; free depth |
+| Bing | Keyless HTML SERP; no metered quota | Keyless search floor before the paid tail |
+| Zhihu | 5000 global + 5000 site searches/day | Chinese search |
+| Tavily | 1000 credits/month | Fallback only: empty free search, missing official docs, stale news, fetch failure chain |
+| Firecrawl | 1000 credits/month | Last-resort fetch for hard JS/PDF pages |
+| AIHOT | Anonymous read-only | AI-news search/curation (free) |
+| Direct HTTP | No API cost | Static-page fetch |
+| SiliconFlow | Free allowance | BGE rerank + embeddings |
+
 ### Mode and routing
 
 | Field | Default | Meaning |
@@ -85,6 +102,23 @@ All `*BaseURL` fields, including `anysearchBaseURL`, `tavilyBaseURL`, and `firec
 ## 中文
 
 设置页由插件的 `Config` schema 自动生成。所有字段可选，默认值如下。
+
+### 各后端免费额度
+
+各后端文档化的免费额度；Tavily 与 Firecrawl 的实时剩余值显示在设置页。
+
+| 后端 | 免费额度 | 用途 |
+|---|---|---|
+| Keenable | 100,000 次/月（Key）；匿名 1,000 次/小时 | 默认搜索 + 干净 Markdown 抓取 |
+| AnySearch | 注册后 1000 次搜索/天；匿名也可用 | 搜索 |
+| Exa | 每月 10 美元免费额度（docs.exa.ai）+ 一次性 10 美元注册奖励 | 语义搜索 + Contents 抓取；免费深度回退 |
+| Bing | 免 Key HTML SERP，无计量配额 | 免费栈之后、付费尾之前的兜底搜索地板 |
+| 知乎 | 全网 5000 次/天 + 站内 5000 次/天 | 中文搜索 |
+| Tavily | 1000 credits/月 | 仅兜底：免费源空结果、缺官方文档、新闻时效不足、Fetch 失败链 |
+| Firecrawl | 1000 credits/月 | Fetch 最后兜底：难抓的 JS/PDF 页面 |
+| AIHOT | 匿名只读 | AI 新闻搜索/精选（免费） |
+| 直连 HTTP | 无 API 成本 | 静态页面抓取 |
+| SiliconFlow | 免费额度 | BGE 重排 + embeddings |
 
 ### 模式与路由
 

@@ -1,64 +1,34 @@
 {
-  "README.md": {
+  "README.en.md": {
     "0": {
       "heading": "(preamble)",
-      "en": "1217ecbec38cd4e3",
-      "zh": "34905bbb709fb652"
+      "en": "6564d170a97f7ef6",
+      "zh": "c772c8e9be07e96a"
     },
     "1": {
-      "heading": "Why this exists",
-      "en": "3193a16228151fc8",
-      "zh": "8d05e675214e8b6b"
+      "heading": "What this is",
+      "en": "a9244f8fb78727fe",
+      "zh": "cfb04c2e6bcd487a"
     },
     "2": {
-      "heading": "Requirements",
-      "en": "cd670f0e6b9742d3",
-      "zh": "7b7f7ab822be2cdc"
+      "heading": "Why",
+      "en": "7f06e9d1bb0aa237",
+      "zh": "7d5f32479689f464"
     },
     "3": {
-      "heading": "Install",
-      "en": "b87b498f52d9ce89",
-      "zh": "04b149f12a898adc"
+      "heading": "Quick start",
+      "en": "4398d89a62828f12",
+      "zh": "2ca6dfcb66010b52"
     },
     "4": {
       "heading": "Credentials",
-      "en": "abcc484f0db04309",
-      "zh": "7346c32f9743dcd4"
+      "en": "620bd14b12738f51",
+      "zh": "fef9adabd582c56a"
     },
     "5": {
-      "heading": "Providers",
-      "en": "bbc06ba8c7ca38bc",
-      "zh": "acb7758d9307db8f"
-    },
-    "6": {
-      "heading": "Behavior",
-      "en": "f9a169dc54543493",
-      "zh": "bd44abea91cd1a9d"
-    },
-    "7": {
-      "heading": "Configuration",
-      "en": "25ec5eca0786a93a",
-      "zh": "e78a8e6b936723bd"
-    },
-    "8": {
-      "heading": "Development",
-      "en": "f1ff653c555569ec",
-      "zh": "65872bd90d2c997b"
-    },
-    "9": {
-      "heading": "Community and support",
-      "en": "c219c56639513426",
-      "zh": "6762ff6d733e4a23"
-    },
-    "10": {
-      "heading": "Documentation",
-      "en": "59255ae4d5ad46c4",
-      "zh": "8411de4f7c628eec"
-    },
-    "11": {
-      "heading": "License",
-      "en": "2d241f8d20274d29",
-      "zh": "aa73b97dc3b756bb"
+      "heading": "Upgrade and more",
+      "en": "2fbfed97f46617ea",
+      "zh": "1cdeacee95e05b80"
     }
   },
   "docs/DETAIL.md": {

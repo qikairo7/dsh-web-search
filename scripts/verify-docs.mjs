@@ -7,11 +7,29 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const errors = [];
 
+// GitHub-style heading slug for one heading line: lowercase, drop punctuation, spaces to hyphens.
+const headingSlugs = async (file) => {
+  const target = await readFile(file, 'utf8');
+  return new Set(
+    target
+      .split(/\r?\n/)
+      .filter((line) => /^#{1,6}\s/.test(line))
+      .map((line) =>
+        line
+          .replace(/^#{1,6}\s+/, '')
+          .toLowerCase()
+          .replace(/[^\p{L}\p{N}\s_-]/gu, '')
+          .trim()
+          .replace(/\s+/g, '-'),
+      ),
+  );
+};
+
 const required = [
   'AGENTS.md',
   'CODING_STANDARDS.md',
   'README.md',
-  'README.zh.md',
+  'README.en.md',
   'GLOSSARY.md',
   'CONTRIBUTING.md',
   'CONTRIBUTING.zh.md',
@@ -113,10 +131,18 @@ for (const file of markdown) {
   for (const match of text.matchAll(/\]\(([^)]+)\)/g)) {
     const target = match[1];
     if (/^(https?:|mailto:|#)/.test(target)) continue;
-    const clean = decodeURIComponent(target.split('#')[0]);
+    const [rawPath, rawFragment] = target.split('#');
+    const clean = decodeURIComponent(rawPath);
     if (clean.length === 0) continue;
-    if (!existsSync(path.resolve(path.dirname(path.join(root, file)), clean))) {
+    const absolute = path.resolve(path.dirname(path.join(root, file)), clean);
+    if (!existsSync(absolute)) {
       errors.push(`${file}: broken relative link: ${target}`);
+      continue;
+    }
+    if (rawFragment === undefined || rawFragment === '' || !absolute.endsWith('.md')) continue;
+    const slugs = await headingSlugs(absolute);
+    if (!slugs.has(rawFragment)) {
+      errors.push(`${file}: broken anchor: ${target} (no heading matches "#${rawFragment}")`);
     }
   }
 }
@@ -140,7 +166,7 @@ for (const file of await sourceFiles(path.join(root, 'lib'))) {
 
 // Chinese prose keeps one physical line per paragraph. Skip headings, lists, tables, quotes, and fences.
 const chineseDocs = new Set([
-  'README.zh.md',
+  'README.md',
   'AGENTS.md',
   'CODING_STANDARDS.md',
   'REVIEW-LESSONS.md',
@@ -235,8 +261,8 @@ for (const file of ['docs/configuration.md']) {
   }
 }
 
-const readmeEn = await readFile(path.join(root, 'README.md'), 'utf8');
-const readmeZh = await readFile(path.join(root, 'README.zh.md'), 'utf8');
+const readmeEn = await readFile(path.join(root, 'README.en.md'), 'utf8');
+const readmeZh = await readFile(path.join(root, 'README.md'), 'utf8');
 const headingLevels = (text) =>
   text
     .split(/\r?\n/)
@@ -247,26 +273,27 @@ const fenceInfos = (text) =>
     .split(/\r?\n/)
     .filter((line) => /^```/.test(line))
     .map((line) => line.replace(/^```/, '').trim());
-const configRows = (text) => [...text.matchAll(/^\| `([^`]+)` \| `([^`]*)` \|/gm)].length;
 const providerRows = (text) => [...text.matchAll(/^\| `([a-z-]+)` \|/gm)].map((match) => match[1]);
-const tableRows = (text) => text.split(/\r?\n/).filter((line) => /^\|/.test(line)).length;
 
 for (const [name, left, right] of [
   ['heading levels', headingLevels(readmeEn), headingLevels(readmeZh)],
   ['code fences', fenceInfos(readmeEn), fenceInfos(readmeZh)],
-  ['table row count', tableRows(readmeEn), tableRows(readmeZh)],
 ]) {
   if (JSON.stringify(left) !== JSON.stringify(right)) {
     errors.push(`README pair mismatch: ${name}`);
   }
 }
-if (configRows(readmeEn) !== configRows(readmeZh)) {
-  errors.push('README pair mismatch: config table row count');
+
+// The provider capability matrix and the per-backend free-allowance table moved out of
+// the README; guard their new homes so a silent deletion turns this check red.
+const requiredProviders = ['anysearch', 'keenable', 'exa', 'bing', 'tavily', 'firecrawl', 'zhihu', 'zhihu-site', 'aihot', 'http', 'auto'];
+const matrixProviders = new Set(providerRows(architecture));
+for (const id of requiredProviders) {
+  if (!matrixProviders.has(id)) errors.push(`docs/architecture.md: provider matrix missing "${id}"`);
 }
-const providersEn = providerRows(readmeEn);
-const providersZh = providerRows(readmeZh);
-if (JSON.stringify(providersEn) !== JSON.stringify(providersZh)) {
-  errors.push('README pair mismatch: provider table rows');
+const configText = await readFile(path.join(root, 'docs/configuration.md'), 'utf8');
+for (const backend of ['Keenable', 'AnySearch', 'Exa', 'Bing', 'Zhihu', 'Tavily', 'Firecrawl', 'AIHOT']) {
+  if (!configText.includes(`| ${backend} |`)) errors.push(`docs/configuration.md: free-allowance table missing "${backend}"`);
 }
 
 if (errors.length > 0) {

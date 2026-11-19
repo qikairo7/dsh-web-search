@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 
 const FILES = [
   'README.md',
-  'README.zh.md',
+  'README.en.md',
   'CODING_STANDARDS.md',
   'docs/**/*.md',
 ];

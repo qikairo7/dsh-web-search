@@ -1,6 +1,6 @@
 # dsh-web-search 架构
 
-改 `lib/` 前先读本文件。这里只做地图：行为细节在 [README](../README.md) / [README.zh](../README.zh.md)，实现规则在 [CODING_STANDARDS](../CODING_STANDARDS.md)，决策原因在 [docs/adr](adr/) 与 [Agent Notes](../.agents/notes/README.md)。
+改 `lib/` 前先读本文件。这里只做地图：行为概览在 [README](../README.md) / [README.en](../README.en.md)；请求流细节见本文档与 [docs/configuration.md](configuration.md)，实现规则在 [CODING_STANDARDS](../CODING_STANDARDS.md)，决策原因在 [docs/adr](adr/) 与 [Agent Notes](../.agents/notes/README.md)。
 
 ## 组成
 
@@ -26,7 +26,23 @@ keenable / anysearch / exa / bing / tavily / firecrawl / zhihu / zhihu-site / ai
 
 `lib/index.js` 导出 `name`、`inject`、`Config` 和 `apply()`。`apply()` 经 `createProviders()` 按 catalog 顺序构造各 Provider 实例与 SiliconFlow 客户端，注册 search / fetch Provider、`auto` 路由与可选高级工具。
 
-Provider 的能力矩阵与默认顺序归 [README Providers 段](../README.md#providers)；注册列表在 `lib/index.js`。
+Provider 的能力矩阵与默认顺序见下节；注册列表在 `lib/index.js`。
+
+## Provider 能力与默认顺序
+
+| Provider id | 搜索 | 抓取 | 默认角色 |
+|---|---|---|---|
+| `anysearch` | 是 | 是 | 英文/默认搜索补充；覆盖面广 |
+| `keenable` | 是 | 是 | 免费额度首选；搜索 + 干净 Markdown 抓取 |
+| `exa` | 是 | 是 | 语义搜索 + Contents 抓取；免费栈之后的免费深度回退 |
+| `bing` | 是 | 否 | 免 Key HTML SERP 兜底；免费栈之后、付费尾之前 |
+| `tavily` | 是 | 是 | 搜索兜底；新闻时效/官方文档补充；可选生成答案；PDF Extract |
+| `firecrawl` | 是 | 是 | 仅 Fetch 最后兜底；SPA/PDF 抓取最强 |
+| `zhihu` | 是 | 否 | 中文搜索首选；全网 + 站内补充 |
+| `zhihu-site` | 是 | 否 | 单独选择时只搜知乎站内 |
+| `aihot` | 是 | 否 | AI 新闻查询的精选源；匿名 |
+| `http` | 否 | 是 | 直连 HTTP 抓取；fast 顺序中位于 Keenable 之后 |
+| `auto` | 是 | 是 | 默认自动路由 |
 
 ## 模块地图
 

@@ -1,6 +1,6 @@
 # CODING_STANDARDS
 
-实现与 Review 的唯一标准。开始写代码前读完本文件；当前行为以 `README.md` / `README.zh.md` 的 Behavior details 为准，配置字段、默认值和配额以 `docs/configuration.md` 为准，本文不复制默认值表。
+实现与 Review 的唯一标准。开始写代码前读完本文件；当前行为以 `docs/architecture.md` 的请求流为准，配置字段、默认值和免费额度以 `docs/configuration.md` 为准，本文不复制默认值表。
 
 ## 1. 仓库结构与发布
 
@@ -69,8 +69,8 @@
 - 证据贴原始输出：行为改动附实际命令与输出摘录；界面或交互改动附截图（web/ego 路径见 .agents/skills/verify/SKILL.md）。
 - 测试满足 §5；纯文档或格式改动确认无需新增测试。
 - 涉及后端协议、凭据解析、路由顺序或 DSH 注册的改动：有凭据时跑 `pnpm benchmark`，或安装并重启 DSH 后用 `web_search`（中英文各一次）和 `web_fetch` 各验证一次；纯逻辑改动以单测为准。
-- 新配置字段满足 §4；新 Provider 同时完成：provider 文件、`lib/catalog.js` 条目与 `lib/index.js` factory（注册顺序由 catalog 派生）、配置与默认值、`docs/configuration.md` 配置表、两份 README 的 Provider 表、映射测试、路由顺序与回退测试。
-- 默认值或配额变化时，更新 `docs/configuration.md` 的配置表和两份 README 的免费额度说明（ADR-0003 要求）；随包默认行为变化时同步 `cordis.patch.yml`。
+- 新配置字段满足 §4；新 Provider 同时完成：provider 文件、`lib/catalog.js` 条目与 `lib/index.js` factory（注册顺序由 catalog 派生）、配置与默认值、`docs/configuration.md` 配置表、`docs/architecture.md` 的 Provider 矩阵、映射测试、路由顺序与回退测试。
+- 默认值或配额变化时，更新 `docs/configuration.md` 的配置表和免费额度说明（ADR-0003 要求）；随包默认行为变化时同步 `cordis.patch.yml`。
 
 ## 7. 文档
 
@@ -95,5 +95,5 @@
 6. **测试与文档**：新行为在映射层和路由层都有覆盖；测试测真实实现、不复制实现逻辑；去掉实现后测试会失败；两份 README、`docs/configuration.md` 的配置表、默认值、配额说明一致；契约变化有 ADR。
 7. **边界与依赖**：根 `AGENTS.md` 的硬边界与本文件 §1、§3 的边界规则全部满足，无未说明的新依赖；依赖方向不被反转（`scripts/check-architecture.mjs` 机械检查，并入 `pnpm check`）。
 8. **实现克制**：除会被测试直接复用的 `mapXxxSearch()` 外，一次性逻辑没有被抽成函数；`try/catch` 只出现在错误边界；没有为未经确认的推测性复杂度增加代码。
-9. **门禁文档同步**：改 `package.json` 的 check 链或 git hook 行为时，`README.md`、`README.zh.md`、`docs/development.md`、`docs/AGENTS.md` 中 check 组成的描述同步更新；带顺序声明（「依次」等）的列举与实际链序逐位一致。
+9. **门禁文档同步**：改 `package.json` 的 check 链或 git hook 行为时，`README.md`、`README.en.md`、`docs/development.md`、`docs/AGENTS.md` 中 check 组成的描述同步更新；带顺序声明（「依次」等）的列举与实际链序逐位一致。
 
