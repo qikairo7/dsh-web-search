@@ -4,6 +4,12 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 条目一律中文，按 tech-doc-style-chinese 规范撰写；发版说明由发布流程自动取自对应版本节。
 
+## 0.13.1 — 2026-11-19
+
+### 修复
+
+- 设置页多 Key 保存清理：删除不可达防御分支、overflow/empty 判定前置，消除保存按钮瞬时闪烁（#118，修复 #117）。
+
 ## 0.13.0 — 2026-11-19
 
 ### 新增
