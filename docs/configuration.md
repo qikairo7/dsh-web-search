@@ -4,7 +4,9 @@
 
 ## English
 
-The settings page is generated from the plugin's `Config` schema. ### Free allowances
+The settings page is generated from the plugin's `Config` schema. All fields are optional; the defaults below match the verified setup.
+
+### Free allowances
 
 Documented free allowances per backend; live remaining values for Tavily and Firecrawl show on the settings page.
 
@@ -98,6 +100,8 @@ Documented free allowances per backend; live remaining values for Tavily and Fir
 All `*BaseURL` fields, including `anysearchBaseURL`, `tavilyBaseURL`, and `firecrawlBaseURL`, appear in the tables above and can be overridden from the settings page or a profile patch.
 
 ## 中文
+
+设置页由插件的 `Config` schema 自动生成。所有字段可选，默认值如下。
 
 ### 各后端免费额度
 
