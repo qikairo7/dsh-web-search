@@ -49,6 +49,25 @@ const beginKeySave = (plan, setBusy) => {
   return true;
 };
 
+/**
+ * Run one key save through the settings page path. Invalid plans are refused before any state
+ * change so bad input never flashes the saving state (#117); an accepted plan writes its keys and
+ * always lowers busy when done. Results are reported through `deps` callbacks.
+ */
+const saveKey = async ({ plan, setBusy, setCredential, onRefused, onSaved, onFailed }) => {
+  if (!beginKeySave(plan, setBusy)) {
+    onRefused(plan.overflow ? 'tooManyKeys' : 'enterKey');
+    return;
+  }
+  const status = await applyKeyPlan(plan, setCredential);
+  if (status === 'saved') {
+    await onSaved();
+  } else {
+    onFailed();
+  }
+  setBusy(false);
+};
+
 window.__ModuleLoader__.load({
   id: '@qikairo7/dsh-web-search',
   // Pure helpers exposed for unit tests; the host reads only `id` and `factory`.
@@ -56,6 +75,7 @@ window.__ModuleLoader__.load({
   planKeyWrites,
   applyKeyPlan,
   beginKeySave,
+  saveKey,
   factory(require) {
     const React = require('react');
     const h = React.createElement;
@@ -754,24 +774,19 @@ window.__ModuleLoader__.load({
         setKeyMessages((current) => ({ ...current, [provider.id]: { text, error } }));
       };
 
-      const saveKey = async (provider, ref) => {
-        const plan = planKeyWrites(keyRows[provider.id] ?? [], keyRefsFor(ref));
-        if (!beginKeySave(plan, setBusy)) {
-          noteKey(provider, plan.overflow ? t('tooManyKeys') : t('enterKey'), true);
-          return;
-        }
-        const status = await applyKeyPlan(
-          plan,
-          (target, value) => safeCall(() => props.ctx.remote.credentials.set(target, value)),
-        );
-        if (status === 'saved') {
-          setRevealed((current) => ({ ...current, [provider.id]: false }));
-          noteKey(provider, t('savedKey', { name: provider.label }));
-          await refresh(false);
-        } else {
-          noteKey(provider, t('saveFailed'), true);
-        }
-        setBusy(false);
+      const handleSaveKey = async (provider, ref) => {
+        await saveKey({
+          plan: planKeyWrites(keyRows[provider.id] ?? [], keyRefsFor(ref)),
+          setBusy,
+          setCredential: (target, value) => safeCall(() => props.ctx.remote.credentials.set(target, value)),
+          onRefused: (kind) => noteKey(provider, t(kind), true),
+          onSaved: async () => {
+            setRevealed((current) => ({ ...current, [provider.id]: false }));
+            noteKey(provider, t('savedKey', { name: provider.label }));
+            await refresh(false);
+          },
+          onFailed: () => noteKey(provider, t('saveFailed'), true),
+        });
       };
 
       const addKeyRow = (provider) => {
@@ -1045,7 +1060,7 @@ window.__ModuleLoader__.load({
               type: 'button',
               style: { ...styles.button, ...styles.primary, ...((busy || !writable || !(keyRows[provider.id] ?? []).some((row) => row.value.trim().length > 0)) ? styles.disabled : {}) },
               disabled: busy || !writable || !(keyRows[provider.id] ?? []).some((row) => row.value.trim().length > 0),
-              onClick: () => { void saveKey(provider, ref); },
+              onClick: () => { void handleSaveKey(provider, ref); },
             }, t('save')),
             h('button', {
               type: 'button',
