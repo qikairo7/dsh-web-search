@@ -15,5 +15,7 @@
 
 | 规则 | 为什么 | 证据 | Seen | 最近日期 | 状态 |
 |---|---|---|---|---|---|
+| 等待/重试步骤须核对「本 job 超时 vs 循环总预算 vs 被等待 job 超时」三者自洽 | 矛盾时 check 绿但超 10min 会误杀 release，新引入失败模式；本地干跑测不出 job 级超时 | PR#101 release.yml:24 vs :43-70 vs check.yml:21，三轴独立发现 | 1 | 2026-11-19 | open |
+| 多触发路径 workflow 用 $GITHUB_SHA 前须按触发类型核对语义；被发布 commit 用 checkout 后 git rev-parse HEAD 定位 | workflow_dispatch 时 GITHUB_SHA 是派发 ref HEAD，非 inputs.tag commit，会等错 commit 的 check | PR#101 release.yml:29 vs :44 | 1 | 2026-11-19 | open |
 
 新条目追加在表尾；一次 review 里同一教训只记一次。
