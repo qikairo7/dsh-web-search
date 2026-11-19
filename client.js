@@ -176,6 +176,9 @@ window.__ModuleLoader__.load({
       testing: 'Testing…',
       testOk: '{name} responded in {ms} ms with {count} result(s).',
       testFailed: 'Verification failed. Check the key, network, or provider status.',
+      testFailedDetail: '{name} — verification failed: {reason}',
+      modelsFailedDetail: 'Could not load models: {reason}',
+      quotaFailedDetail: 'Could not query allowance: {reason}',
       save: 'Save',
       clear: 'Clear',
       confirm: 'Confirm',
@@ -278,6 +281,9 @@ window.__ModuleLoader__.load({
       testing: '验证中…',
       testOk: '{name} 在 {ms} ms 内返回 {count} 条结果。',
       testFailed: '验证失败，请检查 Key、网络或 Provider 状态。',
+      testFailedDetail: '{name} — 验证失败：{reason}',
+      modelsFailedDetail: '无法加载模型：{reason}',
+      quotaFailedDetail: '额度查询失败：{reason}',
       save: '保存',
       clear: '清除',
       confirm: '确认',
@@ -316,6 +322,21 @@ window.__ModuleLoader__.load({
       searchSection: '搜索',
       fetchSection: '抓取',
     };
+
+    /**
+     * Build a human-readable reason from a management-route error body so the
+     * settings page shows the server's real `code`/`message` (for example
+     * `forbidden: same-origin request required`) instead of a generic failure.
+     * @param {unknown} data - parsed JSON response body, possibly `{ ok:false, code, message }`.
+     * @returns {string} reason text, or '' when the body carries neither field.
+     */
+    function serverReason(data) {
+      if (data === null || typeof data !== 'object') return '';
+      const code = typeof data.code === 'string' ? data.code : '';
+      const message = typeof data.message === 'string' ? data.message : '';
+      if (code && message) return `${code}: ${message}`;
+      return message || code;
+    }
 
     const styles = {
       section: {
@@ -791,7 +812,10 @@ window.__ModuleLoader__.load({
               count: data.count ?? 0,
             }));
           } else {
-            noteKey(provider, t('testFailed'), true);
+            const reason = serverReason(data);
+            noteKey(provider, reason
+              ? t('testFailedDetail', { name: provider.label, reason })
+              : t('testFailed'), true);
           }
         } catch {
           noteKey(provider, t('testFailed'), true);
@@ -812,14 +836,18 @@ window.__ModuleLoader__.load({
               body: JSON.stringify({ kind }),
             });
             const data = await response.json();
-            if (data?.ok !== true) throw new Error(data?.message ?? 'models failed');
+            if (data?.ok !== true) {
+              const reason = serverReason(data);
+              throw Object.assign(new Error(reason || 'models failed'), { reason });
+            }
             next[kind] = Array.isArray(data.models) ? data.models : [];
           }
           setModels(next);
           const count = next.rerank.length + next.embedding.length;
           setModelMessage(t('modelsLoaded', { count }));
-        } catch {
-          setModelMessage(t('modelsFailed'));
+        } catch (error) {
+          const reason = typeof error?.reason === 'string' ? error.reason : '';
+          setModelMessage(reason ? t('modelsFailedDetail', { reason }) : t('modelsFailed'));
         } finally {
           setModelsBusy(false);
         }
@@ -835,10 +863,14 @@ window.__ModuleLoader__.load({
             body: JSON.stringify({ providerIds: QUOTA_FIELDS.map((item) => item.id) }),
           });
           const data = await response.json();
-          if (data?.ok !== true) throw new Error(data?.message ?? 'quota failed');
+          if (data?.ok !== true) {
+            const reason = serverReason(data);
+            throw Object.assign(new Error(reason || 'quota failed'), { reason });
+          }
           setQuota(data.providers ?? {});
-        } catch {
-          setQuotaMessage(t('quotaFailed'));
+        } catch (error) {
+          const reason = typeof error?.reason === 'string' ? error.reason : '';
+          setQuotaMessage(reason ? t('quotaFailedDetail', { reason }) : t('quotaFailed'));
         } finally {
           setQuotaBusy(false);
         }
