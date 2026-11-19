@@ -4,6 +4,8 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 条目一律中文，按 tech-doc-style-chinese 规范撰写；发版说明由发布流程自动取自对应版本节。
 
+更早版本见 [docs/changelog-archive.md](docs/changelog-archive.md)
+
 ## 0.13.3 — 2026-11-20
 
 ### 变更
@@ -39,5 +41,3 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 - README 凭据示例：手改 `~/.dsh/.credentials.yaml` 时 Key 须嵌套在 `refs` 之下；推荐用设置页的「添加 Key」。
 - README 重构为中文主文档（`README.md`），英文版移至 `README.en.md`。
-
-更早版本见 [docs/changelog-archive.md](docs/changelog-archive.md)
