@@ -11,7 +11,7 @@ DSH 插件：实现 `ctx.web` 的搜索/抓取 Provider，用免费后端替换�
 ## 指针
 
 - 日常 `pnpm check`；命令与排错见 `docs/development.md`。
-- 改代码：`docs/architecture.md`；DSH 集成：`docs/dsh-host-contract.md`。
+- 改代码：先读 `docs/architecture.md`；查调用关系用 `codegraph_explore`，索引过期跑 `codegraph init`；DSH 集成：`docs/dsh-host-contract.md`。
 - 写代码/Review/Provider：`CODING_STANDARDS.md`、`docs/cookbook/adding-a-provider.md`。
 - 配置/配额：README Behavior、`docs/configuration.md`。
 - 改文档：`docs/AGENTS.md`；术语与 ADR：`GLOSSARY.md`、`docs/agents/domain.md`。
