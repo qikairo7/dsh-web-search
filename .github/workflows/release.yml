@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: write
+  checks: read
 
 concurrency:
   group: release-${{ github.ref }}
@@ -20,12 +21,79 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # 预算自洽：等待循环最多 30 分钟（60 × 30 秒，见下方等待步骤），被等待的 check 自身
+    # 上限 15 分钟（check.yml 的 timeout-minutes: 15），两者都要落在本 job 的预算内，
+    # 再留出 checkout/install/pack/release 的余量，所以取 45（30 等待 + 15 构建发布）。
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ref: ${{ inputs.tag || github.ref }}
+
+      - name: Wait for green checks on the tagged commit
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # 打 tag 会立刻触发构建；先要求被 tag 的 commit 在 main 上的 check 全绿。
+          # main 的 check 若被新推送取消，就没有跑完的绿跑可等（magpie 丢版本教训 #1846）。
+          # 用 checkout 后的 HEAD 解析被发布的 commit：tag push 时即 tag 指向的 commit，
+          # workflow_dispatch 时也不受 GITHUB_SHA（派发 ref 的 SHA）影响。
+          SHA=$(git rev-parse HEAD)
+          required=(
+            'check (ubuntu-latest, 22)'
+            'check (ubuntu-latest, 24)'
+            'check (windows-latest, 24)'
+          )
+          # 预算：60 轮 × 30 秒 ≈ 30 分钟，须落在 job 的 timeout-minutes: 45 之内。
+          first_check=1
+          for attempt in $(seq 1 60); do
+            if ! runs=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${SHA}/check-runs?per_page=100" \
+              --jq '.check_runs[] | [.name, .status, (.conclusion // "")] | @tsv'); then
+              echo "waiting: gh api failed (attempt $attempt/60); retry after 30s"
+              [[ "$attempt" == "60" ]] || sleep 30
+              continue
+            fi
+            # 首检：required 名单是 check.yml matrix 的手抄拷贝，第一次拿到结果时校验名字是否对得上，
+            # 对不上说明 matrix 已改、名单漂移，立即失败而不是空等 30 分钟。
+            if [[ "$first_check" == "1" ]]; then
+              first_check=0
+              missing=()
+              for want in "${required[@]}"; do
+                printf '%s\n' "$runs" | awk -F'\t' -v n="$want" '$1 == n { found = 1 } END { if (found) exit 0; exit 1 }' || missing+=("$want")
+              done
+              if (( ${#missing[@]} > 0 )); then
+                echo "::error::required check 名单与实际 check 不符，检查 check.yml matrix 是否已变（缺少：${missing[*]}）"
+                exit 1
+              fi
+            fi
+            ok=1
+            for want in "${required[@]}"; do
+              line=$(printf '%s\n' "$runs" | awk -F'\t' -v n="$want" '$1 == n { print; exit }')
+              if [[ -z "$line" ]]; then
+                ok=0
+                echo "waiting: $want has not started"
+                continue
+              fi
+              status=$(printf '%s' "$line" | cut -f2)
+              conclusion=$(printf '%s' "$line" | cut -f3)
+              if [[ "$status" != "completed" ]]; then
+                ok=0
+                echo "waiting: $want is $status"
+              elif [[ "$conclusion" != "success" ]]; then
+                echo "::error::required check failed: $want is $conclusion"
+                exit 1
+              fi
+            done
+            if [[ "$ok" == "1" ]]; then
+              echo "all required checks are green on $SHA"
+              exit 0
+            fi
+            [[ "$attempt" == "60" ]] || sleep 30
+          done
+          echo "::error::timed out after ~30 minutes waiting for green checks on $SHA"
+          exit 1
 
       - uses: pnpm/action-setup@v6
         with:
