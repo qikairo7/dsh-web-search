@@ -32,6 +32,7 @@ DSH `0.2.2-rc.3` 的 `standard` preset 在 `@deepseek-ai/dsh-web-app` 的 `prese
 ## 检查 DSH 内部
 
 - 安装目录：`<DSH 安装目录>/resources/app.asar/dsh/node_modules/@deepseek-ai/`；Windows Desktop 默认安装在 `%LOCALAPPDATA%\Programs\DeepSeek Harness`。
+- 宿主源码公开于 https://github.com/deepseek-ai/deepseek-harness；克隆后跑 `codegraph init` 建索引，即可用 `codegraph_explore` 按 projectPath 查宿主调用关系。
 - `app.asar` 里的文件可以用 `read` 直接读；PowerShell 的 `Get-ChildItem` 不要递归 `profiles/node_modules`，会输出数万行。
 - 排查 profile 时只读 `package.json`、`cordis.patch.yml`、`cordis.yml`；需要完整组合时用 `--dump-config`。
 - 查外部文档优先试 `.md` 页面或站点的 `llms.txt`，不要把 200KB 的 HTML 整页塞进上下文。
