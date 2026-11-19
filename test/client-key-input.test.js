@@ -19,7 +19,7 @@ function loadDefinition() {
 // Values built inside the vm context have foreign prototypes; normalize before deepEqual.
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
-const { splitKeyInput, planKeyWrites, applyKeyPlan } = loadDefinition();
+const { splitKeyInput, planKeyWrites, applyKeyPlan, beginKeySave } = loadDefinition();
 const REFS = ['KEY', 'KEY_2', 'KEY_3', 'KEY_4', 'KEY_5', 'KEY_6', 'KEY_7', 'KEY_8'];
 
 test('splits a pasted key box on commas and whitespace', () => {
@@ -102,4 +102,22 @@ test('an empty plan writes nothing', async () => {
   });
   assert.equal(status, 'empty');
   assert.equal(calls.length, 0);
+});
+
+test('invalid input never raises the busy saving state', () => {
+  const ten = Array.from({ length: 10 }, (_, index) => `k${index + 1}`).join(',');
+  const overflow = planKeyWrites([{ ref: null, value: ten }], REFS, {});
+  const empty = planKeyWrites([{ ref: null, value: '  , ' }], REFS, {});
+  for (const plan of [overflow, empty]) {
+    const busy = [];
+    assert.equal(beginKeySave(plan, (value) => busy.push(value)), false);
+    assert.deepEqual(busy, []);
+  }
+});
+
+test('valid input raises the busy saving state exactly once', () => {
+  const plan = planKeyWrites([{ ref: null, value: 'k1 k2' }], REFS, {});
+  const busy = [];
+  assert.equal(beginKeySave(plan, (value) => busy.push(value)), true);
+  assert.deepEqual(busy, [true]);
 });

@@ -38,12 +38,24 @@ const applyKeyPlan = async (plan, setCredential) => {
   return 'saved';
 };
 
+/**
+ * Gate a key-write plan before any save work starts. Overflow or empty plans are refused
+ * without raising busy, so invalid input never shows the saving state; a valid plan raises
+ * busy and returns true. The caller lowers busy when the save finishes.
+ */
+const beginKeySave = (plan, setBusy) => {
+  if (plan.overflow || plan.writes.length === 0) return false;
+  setBusy(true);
+  return true;
+};
+
 window.__ModuleLoader__.load({
   id: '@qikairo7/dsh-web-search',
   // Pure helpers exposed for unit tests; the host reads only `id` and `factory`.
   splitKeyInput,
   planKeyWrites,
   applyKeyPlan,
+  beginKeySave,
   factory(require) {
     const React = require('react');
     const h = React.createElement;
@@ -744,15 +756,10 @@ window.__ModuleLoader__.load({
 
       const saveKey = async (provider, ref) => {
         const plan = planKeyWrites(keyRows[provider.id] ?? [], keyRefsFor(ref));
-        if (plan.overflow) {
-          noteKey(provider, t('tooManyKeys'), true);
+        if (!beginKeySave(plan, setBusy)) {
+          noteKey(provider, plan.overflow ? t('tooManyKeys') : t('enterKey'), true);
           return;
         }
-        if (plan.writes.length === 0) {
-          noteKey(provider, t('enterKey'), true);
-          return;
-        }
-        setBusy(true);
         const status = await applyKeyPlan(
           plan,
           (target, value) => safeCall(() => props.ctx.remote.credentials.set(target, value)),
