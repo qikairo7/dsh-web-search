@@ -24,3 +24,15 @@ body:
     attributes:
       label: 替代方案
       description: 考虑过的变通做法或其他设计。
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: 预估改动面
+      description: 此选择用于路由审查强度，不确定就选不确定。
+      options:
+        - fast-lane（≤30 行，不碰 lib/ 与 .github/ 与 schema）
+        - 碰 lib/ 或 scripts/
+        - 碰 schema 或 .github/
+        - 不确定
+      default: 3
