@@ -175,7 +175,7 @@ pnpm probe
 pnpm benchmark
 ```
 
-`pnpm check` 运行 guardrail 测试、架构检查、order-doc 同步、文档代码块检查、文档检查和翻译配对门禁；pre-commit hook 只运行语法检查，pre-push hook 在推送前运行一次全量 `pnpm check`。`pnpm probe` 是日常实测探针：14 条固定查询 + 2 个抓取，带分后端遥测、清单健康信号、滚动 7 天聚合与 PASS/FAIL 判定（见[测试策略](docs/testing.md)）。`pnpm benchmark` 优先读已提交的 FRAMES/WebWalkerQA fixture，读取失败才回退到公开 rows API；`SAMPLE_SIZE` 控制每个基准的行数（默认 50）。基准数据变化时运行 `pnpm benchmark:refresh` 刷新。真实 API 验收需要上面的凭据。
+`pnpm check` 运行 guardrail 测试、架构检查、order-doc 同步、文档代码块检查、翻译配对门禁和文档检查；pre-commit hook 只运行语法检查，pre-push hook 在推送前运行一次全量 `pnpm check`。`pnpm probe` 是日常实测探针：14 条固定查询 + 2 个抓取，带分后端遥测、清单健康信号、滚动 7 天聚合与 PASS/FAIL 判定（见[测试策略](docs/testing.md)）。`pnpm benchmark` 优先读已提交的 FRAMES/WebWalkerQA fixture，读取失败才回退到公开 rows API；`SAMPLE_SIZE` 控制每个基准的行数（默认 50）。基准数据变化时运行 `pnpm benchmark:refresh` 刷新。真实 API 验收需要上面的凭据。
 
 ## 社区与支持
 

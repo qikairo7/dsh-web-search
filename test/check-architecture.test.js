@@ -27,6 +27,18 @@ test('bare package imports are not governed', () => {
   assert.deepEqual(findViolations('lib/settings.js', ['node:path', 'zod']), []);
 });
 
+test('full-line // comment imports are not treated as imports', async () => {
+  const { default: fs } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const tmp = await fs.mkdtemp(tmpdir() + '/arch-linecomment-');
+  const f = tmp + '/probe.mjs';
+  await fs.writeFile(f, "// import x from './providers/bing.js'\nexport const a = 1;\n", 'utf8');
+  const { extractSpecifiers } = await import('../scripts/check-architecture.mjs');
+  const specifiers = await extractSpecifiers(f);
+  assert.deepEqual(specifiers, []);
+  await fs.rm(tmp, { recursive: true, force: true });
+});
+
 test('JSDoc import() mentions are not treated as imports (R-ghost-specifier regression)', async () => {
   const { default: fs } = await import('node:fs/promises');
   const { tmpdir } = await import('node:os');

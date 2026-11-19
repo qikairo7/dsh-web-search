@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 /** Doc code-block gate: every fenced code block in tracked markdown that
- * declares an executable language (js/mjs/sh/bash) must at least parse.
+ * declares an executable language (js/mjs/javascript/sh/bash/shell/console)
+ * must at least parse. Shell blocks go through stdin so no tmp path is
+ * passed to bash (WSL bash swallows backslashes in Windows paths).
  * Mirrors DSH's doc-typecheck idea at syntax level: a drifted or rotten
  * example fails `pnpm check` instead of misleading the reader. */
 
@@ -17,19 +19,21 @@ const FILES = [
   'docs/**/*.md',
 ];
 
-const FENCE_RE = /```(js|mjs|sh|bash)\n(.*?)```/gs;
+const FENCE_RE = /```(js|mjs|javascript|sh|bash|shell|console)\r?\n(.*?)```/gs;
 
 function checkerFor(lang) {
-  if (lang === 'js' || lang === 'mjs') {
-    return { cmd: process.execPath, args: (file) => ['--check', file], suffix: '.mjs' };
+  if (lang === 'js' || lang === 'mjs' || lang === 'javascript') {
+    return { cmd: process.execPath, args: (file) => ['--check', file], suffix: '.mjs', viaStdin: false };
   }
-  return { cmd: 'bash', args: (file) => ['-n', file], suffix: '.sh' };
+  return { cmd: 'bash', args: () => ['-n'], suffix: '.sh', viaStdin: true };
 }
 
 /** Distinguish "the checker never ran" (spawn error) from "the block failed to parse". */
 export function failureMessage(result, cmd, label) {
   if (result.error) return `${label}: checker '${cmd}' unavailable (${result.error.code})`;
-  return `${label}: ${(result.stderr || 'parse error').split('\n').slice(0, 3).join(' | ')}`;
+  // tail lines: toolchain banners (e.g. WSL warnings) come first, the parser error last
+  const lines = (result.stderr || '').split('\n').filter((line) => line.trim() !== '');
+  return `${label}: ${lines.slice(-3).join(' | ') || 'parse error'}`;
 }
 
 async function collectMarkdown() {
@@ -53,10 +57,15 @@ if (isMain) {
         const lang = match[1];
         const body = match[2];
         if (!body.trim()) continue;
-        const { cmd, args, suffix } = checkerFor(lang);
-        const tmp = join(dir, `block-${index}${suffix}`);
-        await writeFile(tmp, body, 'utf8');
-        const result = spawnSync(cmd, args(tmp), { encoding: 'utf8' });
+        const { cmd, args, suffix, viaStdin } = checkerFor(lang);
+        let result;
+        if (viaStdin) {
+          result = spawnSync(cmd, args(), { input: body, timeout: 10_000, encoding: 'utf8' });
+        } else {
+          const tmp = join(dir, `block-${index}${suffix}`);
+          await writeFile(tmp, body, 'utf8');
+          result = spawnSync(cmd, args(tmp), { encoding: 'utf8' });
+        }
         if (result.error || result.status !== 0) {
           failures.push(failureMessage(result, cmd, `${file} (${lang} block #${index})`));
         }

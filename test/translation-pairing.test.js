@@ -107,6 +107,15 @@ test('check fails on a one-sided heading rename', (t) => {
   assert.match(r.stderr, /heading changed since record/);
 });
 
+test('heading whitespace-only change is not a structural change', (t) => {
+  const dir = makeGateDir();
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  runGate(dir, '--record');
+  writeFileSync(join(dir, 'README.md'), '# T\n\n## A \none\n\n## B\ntwo words\n');
+  const r = runGate(dir);
+  assert.equal(r.status, 0, r.stderr);
+});
+
 test('R-013 title half: retitled heading changes the hash', () => {
   const before = sectionHash({ heading: 'A', body: ['one'] });
   const after = sectionHash({ heading: 'Renamed', body: ['one'] });

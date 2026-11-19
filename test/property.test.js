@@ -40,7 +40,7 @@ test('property: classifyFailure always lands in the six classes and is determini
   }
   // Documented contract of lib/errors.js: exact WEB_* code first, then the
   // status read from error.status, cause.status, or cause.httpStatus;
-  // 402/429 quota, 401/403 auth, 408/5xx transient, everything else unknown.
+  // 402/429 quota, 401/403 auth, 408/≥500 transient, everything else unknown.
   assert.equal(classifyFailure({ status: 429 }), 'quota');
   assert.equal(classifyFailure({ cause: { status: 403 } }), 'auth');
   assert.equal(classifyFailure({ cause: { httpStatus: 500 } }), 'transient');
