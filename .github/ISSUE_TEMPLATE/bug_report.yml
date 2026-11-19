@@ -1,73 +1,72 @@
-name: Bug report
-description: Report behavior that no longer works as expected
+name: Bug 报告
+description: 报告与预期不符的行为
 title: "[Bug] "
 labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for the report. Remove API keys and tokens from logs before pasting them.
+        感谢反馈。粘贴日志前请先删掉 API Key 与 token。
 
   - type: input
-    id: plugin-version
+    id: env-plugin
     attributes:
-      label: Plugin version
-      description: The version shown in Settings → Plugins, or in `package.json`.
-      placeholder: 0.12.0
+      label: 插件版本
+      description: 设置 → 插件 里显示的版本，或 package.json 中的 version。
+      placeholder: 0.13.2
     validations:
       required: true
 
   - type: input
-    id: dsh-version
+    id: env-dsh
     attributes:
-      label: DeepSeek Harness version
-      placeholder: 0.2.2-rc.3
+      label: DSH 版本
+      placeholder: 0.2.2-rc.5
     validations:
       required: true
 
   - type: input
-    id: node-version
+    id: env-node
     attributes:
-      label: Node.js version
-      placeholder: 22.19.0 or 24.20.0
+      label: Node.js 版本
+      placeholder: 22.19.0 或 24.20.0
     validations:
       required: true
 
   - type: dropdown
-    id: os
+    id: env-os
     attributes:
-      label: Operating system
+      label: 操作系统
       options:
         - Windows
         - macOS
         - Linux
-        - Other
+        - 其他
     validations:
       required: true
 
   - type: dropdown
     id: provider
     attributes:
-      label: Provider
-      description: Pick the provider that failed, or the one selected in auto mode.
+      label: 出问题的 Provider
+      description: 选择失败的 Provider，或 auto 模式下实际选中的后端；不确定选「不特定」。
       options:
         - auto
         - anysearch
         - keenable
         - exa
+        - bing
         - tavily
         - firecrawl
         - zhihu
         - aihot
         - http
-        - Not provider-specific
-    validations:
-      required: true
+        - 不特定
 
   - type: textarea
     id: steps
     attributes:
-      label: Steps to reproduce
+      label: 复现步骤
       placeholder: |
         1.
         2.
@@ -78,13 +77,21 @@ body:
   - type: textarea
     id: expected
     attributes:
-      label: What happened, and what you expected
+      label: 期望行为
     validations:
       required: true
 
   - type: textarea
-    id: logs
+    id: actual
     attributes:
-      label: Error text or logs
-      description: Paste the exact error. Remove keys and tokens first.
+      label: 实际行为
+      description: 贴准确报错；先删掉 key 与 token。
       render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: root-cause
+    attributes:
+      label: 根因线索（可选）
+      description: 若已定位到相关文件、Provider 或请求路径，写在这里。

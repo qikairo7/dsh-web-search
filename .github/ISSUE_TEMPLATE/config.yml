@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Security report
+  - name: 安全报告
     url: https://github.com/qikairo7/dsh-web-search/security/advisories/new
-    about: Report a vulnerability privately. Do not open a public issue.
-  - name: Documentation
+    about: 私下报告漏洞，不要开公开 issue。
+  - name: 文档
     url: https://github.com/qikairo7/dsh-web-search/tree/main/docs
-    about: Read the architecture, configuration, and testing guides.
+    about: 阅读架构、配置与测试指南。
