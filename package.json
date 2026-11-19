@@ -53,7 +53,7 @@
     "LICENSES/*.txt",
     "client.js",
     "docs/DETAIL.md",
-    "docs/DETAIL.zh.md",
+    "docs/DETAIL.en.md",
     "docs/preview.svg"
   ],
   "engines": {

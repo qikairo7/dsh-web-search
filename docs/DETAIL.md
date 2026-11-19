@@ -1,1 +1,1 @@
-![Provider keys feed the router that serves web search and web fetch](preview.svg)
+![各后端 API Key 进入路由器，再服务 web_search 与 web_fetch](preview.svg)

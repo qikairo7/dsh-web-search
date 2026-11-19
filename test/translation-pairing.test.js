@@ -46,8 +46,8 @@ function makeGateDir() {
   mkdirSync(join(dir, 'docs'));
   writeFileSync(join(dir, 'README.en.md'), EN_DOC);
   writeFileSync(join(dir, 'README.md'), ZH_DOC);
-  writeFileSync(join(dir, 'docs/DETAIL.md'), EN_DETAIL);
-  writeFileSync(join(dir, 'docs/DETAIL.zh.md'), ZH_DETAIL);
+  writeFileSync(join(dir, 'docs/DETAIL.en.md'), EN_DETAIL);
+  writeFileSync(join(dir, 'docs/DETAIL.md'), ZH_DETAIL);
   return dir;
 }
 
@@ -79,11 +79,11 @@ test('check fails when a pair lost its baseline key', (t) => {
   runGate(dir, '--record');
   const recordPath = join(dir, 'docs/translation-pairs.json');
   const record = JSON.parse(readFileSync(recordPath, 'utf8'));
-  delete record['docs/DETAIL.md'];
+  delete record['docs/DETAIL.en.md'];
   writeFileSync(recordPath, `${JSON.stringify(record, null, 2)}\n`);
   const r = runGate(dir);
   assert.equal(r.status, 1, `expected failure, got stdout: ${r.stdout}`);
-  assert.match(r.stderr, /docs\/DETAIL\.md missing from/);
+  assert.match(r.stderr, /docs\/DETAIL\.en\.md missing from/);
 });
 
 test('check fails when both sides insert a section without re-recording', (t) => {
