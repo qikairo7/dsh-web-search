@@ -19,6 +19,6 @@
 ## 维护
 
 - 新规则只在真实事件（审查 finding 事后验证、事故复盘 PM、lead 裁决）发生后追加，BECAUSE 必须带 PR#/PM 编号。
-- 规则与 `CODING_STANDARDS.md` 的 Review 门禁互补：门禁记「实现必须满足什么」，本库记「审查员查什么、为什么查」。
+- 本库记「审查员查什么、为什么查」，与 CODING_STANDARDS 的 Review 门禁互补。
 - 规则被机械化（变成 check 脚本）后改写为「已机械化，确认门禁绿即可」（如 R1），不删除。
 - 编号 R11–R13 空缺：预留给 flaky 纪律（CODING_STANDARDS §5）、Pre-existing 标注、round-trip 属性测试三条候选——待首个真实事件触发后正式入表。
