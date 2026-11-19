@@ -2,7 +2,9 @@
 /** Architecture lint: enforce the dependency direction
  * lib/index.js → lib/providers/* → lib/* shared modules.
  * Shared modules must not import providers/ or index.js; providers must not
- * import index.js. Rules from AGENTS.md, mechanically enforced (2026-11-17). */
+ * import index.js. Rules from CODING_STANDARDS §1, mechanically enforced.
+ * Comment stripping is textual: '/*' or '//' inside a string literal is
+ * treated as a comment (known limit; fixing it needs an AST). */
 
 import { readdir, readFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
@@ -57,7 +59,9 @@ async function collect(dir) {
 }
 
 export async function extractSpecifiers(file) {
-  const source = (await readFile(file, 'utf8')).replace(/\/\*[\s\S]*?\*\//gu, '');
+  const source = (await readFile(file, 'utf8'))
+    .replace(/\/\*[\s\S]*?\*\//gu, '')
+    .replace(/^\s*\/\/.*$/gm, '');
   const specifiers = [];
   for (const match of source.matchAll(IMPORT_RE)) {
     specifiers.push(match[1] ?? match[2] ?? match[3]);

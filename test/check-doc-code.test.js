@@ -9,10 +9,10 @@ test('failureMessage reports an unavailable checker instead of a parse error', (
   assert.ok(!message.includes('parse error'), message);
 });
 
-test('failureMessage keeps the truncated parser output when the checker ran and failed', () => {
-  const message = failureMessage({ status: 1, stderr: 'line1\nline2\nline3\nline4' }, process.execPath, 'README.md (js block #2)');
-  assert.ok(message.includes('line1 | line2 | line3'), message);
-  assert.ok(!message.includes('line4'), message);
+test('failureMessage keeps the last non-empty parser lines; toolchain banners drop off', () => {
+  const message = failureMessage({ status: 1, stderr: 'wsl banner\nline2\nline3\nline4' }, process.execPath, 'README.md (js block #2)');
+  assert.ok(message.includes('line2 | line3 | line4'), message);
+  assert.ok(!message.includes('wsl banner'), message);
 });
 
 test('failureMessage falls back to parse error when stderr is empty', () => {

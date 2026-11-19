@@ -3,8 +3,9 @@
  * and README.zh.md are paired section-by-section (Nth `##` section to Nth).
  * A recorded hash per section detects drift — one side changed without its
  * pair, or both changed without re-recording — and fails the check until
- * `--record` re-baselines after an intentional synchronized edit. Pairing basis is section ordinal, because
- * structural symmetry (heading count) is already enforced by verify-docs.
+ * `--record` re-baselines after an intentional synchronized edit. Pairing basis is section
+ * ordinal; structural symmetry (equal heading count) is enforced by this
+ * script's own length check before any pairing happens.
  * Outside record mode the recorded count and headings are re-verified, so a
  * structural edit that skipped `--record` fails loudly instead of mis-pairing. */
 
@@ -19,6 +20,7 @@ const PAIRS = [
 ];
 const RECORD = 'docs/translation-pairs.json';
 
+/** Split markdown text into sections at ## headings; the preamble is section 0. */
 export function splitSections(text) {
   const lines = text.split('\n');
   const sections = [];
@@ -35,6 +37,7 @@ export function splitSections(text) {
   return sections;
 }
 
+/** Short stable hash of one section; whitespace collapses so reflow does not drift. */
 export function sectionHash(section) {
   const normalized = `${section.heading}\n${section.body.join('\n')}`.replace(/\s+/gu, ' ').trim();
   return createHash('sha256').update(normalized).digest('hex').slice(0, 16);
@@ -93,7 +96,7 @@ if (isMain) {
       next[pair.en][String(i)] = { heading: enSections[i].heading, en: nowEn, zh: nowZh };
       const saved = savedPair?.[String(i)];
       if (!recordMode && structureOk && saved) {
-        if (saved.heading.replace(/\r/g, '') !== enSections[i].heading.replace(/\r/g, '')) {
+        if (saved.heading.replace(/\r/g, '').trim() !== enSections[i].heading.replace(/\r/g, '').trim()) {
           failures.push(`${pair.en}#${i + 1} heading changed since record: re-run \`node scripts/translation-pairing.mjs --record\``);
           continue;
         }
