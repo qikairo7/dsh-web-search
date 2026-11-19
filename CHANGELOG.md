@@ -4,6 +4,13 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 条目一律中文，按 tech-doc-style-chinese 规范撰写；发版说明由发布流程自动取自对应版本节。
 
+## 0.13.3 — 2026-11-20
+
+### 变更
+
+- bug / feature 两个 issue 表单新增「预估改动面」下拉，作为审查分档的前置信息，默认「不确定」。
+- `CHANGELOG.md` 瘦身回基线下：只保留最近三节，更早条目移入 `docs/changelog-archive.md`；该文件已加入发布包 `files` 白名单随包发布。
+
 ## 0.13.2 — 2026-11-19
 
 ### 变更
