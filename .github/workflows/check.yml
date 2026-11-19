@@ -11,8 +11,9 @@ permissions:
   contents: read
 
 concurrency:
+  # PR 分支照旧取消旧跑；main 的跑必须跑完，保证发布时总有一个完整的绿跑可等。
   group: check-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   check:

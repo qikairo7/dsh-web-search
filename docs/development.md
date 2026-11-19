@@ -59,7 +59,7 @@ node scripts/check-syntax.mjs && node scripts/check-architecture.mjs && node scr
 
 ## CI 与 Hook
 
-- `.github/workflows/check.yml` 在 Node 22/24 上跑 `pnpm install --frozen-lockfile` 和 `pnpm check`。
+- `.github/workflows/check.yml` 在 Node 22/24 上跑 `pnpm install --frozen-lockfile` 和 `pnpm check`；main 的 check 不被新推送取消，release 等绿跑。
 - `.githooks/pre-commit` 运行 `node scripts/check-syntax.mjs`（仅语法检查）；`.githooks/pre-push` 在推送前运行全量 `pnpm check`。首次 clone 后用 `git config core.hooksPath .githooks` 启用。
 - 仓库没有 `dev` / `build` / `lint` / `typecheck` 脚本；不要运行不存在的命令。
 

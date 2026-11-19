@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: write
+  checks: read
 
 concurrency:
   group: release-${{ github.ref }}
@@ -26,6 +27,48 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ inputs.tag || github.ref }}
+
+      - name: Wait for green checks on the tagged commit
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # 打 tag 会立刻触发构建；先要求被 tag 的 commit 在 main 上的 check 全绿。
+          # main 的 check 若被新推送取消，就没有跑完的绿跑可等（magpie 丢版本教训 #1846）。
+          required=(
+            'check (ubuntu-latest, 22)'
+            'check (ubuntu-latest, 24)'
+            'check (windows-latest, 24)'
+          )
+          for attempt in $(seq 1 60); do
+            runs=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/check-runs?per_page=100" \
+              --jq '.check_runs[] | [.name, .status, (.conclusion // "")] | @tsv')
+            ok=1
+            for want in "${required[@]}"; do
+              line=$(printf '%s\n' "$runs" | awk -F'\t' -v n="$want" '$1 == n { print; exit }')
+              if [[ -z "$line" ]]; then
+                ok=0
+                echo "waiting: $want has not started"
+                continue
+              fi
+              status=$(printf '%s' "$line" | cut -f2)
+              conclusion=$(printf '%s' "$line" | cut -f3)
+              if [[ "$status" != "completed" ]]; then
+                ok=0
+                echo "waiting: $want is $status"
+              elif [[ "$conclusion" != "success" ]]; then
+                echo "::error::required check failed: $want is $conclusion"
+                exit 1
+              fi
+            done
+            if [[ "$ok" == "1" ]]; then
+              echo "all required checks are green on $GITHUB_SHA"
+              exit 0
+            fi
+            [[ "$attempt" == "60" ]] || sleep 30
+          done
+          echo "::error::timed out after ~30 minutes waiting for green checks on $GITHUB_SHA"
+          exit 1
 
       - uses: pnpm/action-setup@v6
         with:
