@@ -2,7 +2,7 @@
   "name": "@qikairo7/dsh-web-search",
   "version": "0.13.0",
   "private": true,
-  "description": "Free-tier-first web search and fetch providers for DeepSeek Harness: quality pipeline, keyless Bing floor, failure-class fallback gating",
+  "description": "Free web search and fetch providers for DeepSeek Harness — keyless-ready multi-backend aggregation with automatic fallback.",
   "keywords": [
     "deepseek-harness",
     "dsh-plugin",

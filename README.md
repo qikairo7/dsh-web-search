@@ -4,7 +4,7 @@
   <img alt="dsh-web-search" src="icon.svg" width="96" height="96">
 </a>
 
-### 给 DeepSeek Harness 的免费优先多后端搜索与抓取 Provider
+### DeepSeek Harness 的免费联网插件：免 Key 即用的网络搜索与网页抓取
 
 中文 / [English](README.en.md)
 
@@ -23,9 +23,11 @@
 
 ## 这是什么
 
-本插件实现 `ctx.web` 的搜索与抓取 Provider：用免费额度与直连 HTTP 替代官方收费的 DeepSeek Search/Fetch API，保留第一方 `dsh-tool-web` 工具层。模型仍调用 `web_search` 与 `web_fetch`，后端换成一个多后端路由器，另有可选的 AnySearch / Tavily / AIHOT 高级工具。
+为 DSH 的 agent 提供多后端聚合的搜索与抓取：免费后端自动路由与回退，替换官方按量计费的 Search/Fetch；`web_search` / `web_fetch` 用法不变，也可自带 Key 启用更多后端。
 
-运行需要 DeepSeek Harness `0.2.2-rc.5`（本插件实测版本）、Node.js `22.19+` 或 `24+`，以及挂载 `dsh-web` 的 profile。
+运行需要 DeepSeek Harness `0.2.2-rc.5`（本插件实测版本）、Node.js `22.19+` 或 `24+`，以及挂载 `dsh-web` 的 profile。状态为 pre-1.0，行为、默认值和后端支持可能在小版本间变化。
+
+非目标：不接入官方收费 Search/Fetch API，不依赖 MCP，不安装第三方 DSH 插件。
 
 ## 为什么
 

@@ -4,7 +4,7 @@
   <img alt="dsh-web-search" src="icon.svg" width="96" height="96">
 </a>
 
-### Free-tier-first multi-backend search and fetch providers for DeepSeek Harness
+### Free web search and fetch plugin for DeepSeek Harness — keyless-ready out of the box
 
 [中文](README.md) / English
 
@@ -23,9 +23,11 @@
 
 ## What this is
 
-This plugin implements the search and fetch providers for `ctx.web`: free allowances and direct HTTP replace the paid official DeepSeek Search/Fetch APIs while the first-party `dsh-tool-web` tool layer stays. The model still calls `web_search` and `web_fetch`; only the backends change to a multi-backend router, with optional AnySearch / Tavily / AIHOT advanced tools.
+For DSH agents, multi-backend aggregated search and fetch: free backends route and fall back automatically, replacing the metered official Search/Fetch; `web_search` / `web_fetch` usage is unchanged, and you can bring your own keys to enable more backends.
 
-It needs DeepSeek Harness `0.2.2-rc.5` (the version this bundle was verified against), Node.js `22.19+` or `24+`, and a profile that mounts `dsh-web`.
+It needs DeepSeek Harness `0.2.2-rc.5` (the version this bundle was verified against), Node.js `22.19+` or `24+`, and a profile that mounts `dsh-web`. Status is pre-1.0; behavior, defaults, and provider support can change between minor versions.
+
+Non-goals: the paid official Search/Fetch APIs, an MCP server, and third-party DSH plugins.
 
 ## Why
 
