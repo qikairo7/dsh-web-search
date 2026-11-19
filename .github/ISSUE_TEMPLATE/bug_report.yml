@@ -95,3 +95,15 @@ body:
     attributes:
       label: 根因线索（可选）
       description: 若已定位到相关文件、Provider 或请求路径，写在这里。
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: 预估改动面
+      description: 此选择用于路由审查强度，不确定就选不确定。
+      options:
+        - fast-lane（≤30 行，不碰 lib/ 与 .github/ 与 schema）
+        - 碰 lib/ 或 scripts/
+        - 碰 schema 或 .github/
+        - 不确定
+      default: 3
