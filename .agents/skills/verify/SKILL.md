@@ -31,7 +31,7 @@ description: 在 dsh-web-search 里提交/交付前做端到端冒烟时使用�
 ```sh
 # 从 web 模板脚手架一个测试 profile；--dump-config 只打印配置后退出，不启动
 dsh <test-profile> --from-default-profile web --dump-config
-# 仓库根打包，装进测试 profile（pnpm add 自动把插件加进 dsh.profile.bundles）
+# 仓库根打包，装进测试 profile（dsh plugin add 会把它回写进 dsh.profile.bundles）
 pnpm pack --pack-destination <tmp-dir>
 dsh plugin --profile <test-profile> add <tmp-dir>/qikairo7-dsh-web-search-<version>.tgz
 # 独立端口启动；首行日志给出带 token 的 URL
@@ -54,20 +54,29 @@ dsh <test-profile> --port 4690 --no-open
 
 按钮可能在视口外，原生点击报 `element is not visible`；先页面内 `scrollIntoView({ block: 'center' })` 再点，或 `page.evaluate` 找到按钮调 `click()`。
 
-### 4. curl 形态对照
+### 4. curl 形态对照（bash / MSYS 下运行）
 
-先换 cookie，再用同一份 cookie 打三个路由：
+先换 cookie，再用同一份 cookie 打对照，覆盖同源、桌面转发、跨源、无凭据四种形态（以下命令在 bash / MSYS 即 Git Bash 下运行）：
 
 ```sh
 BASE=http://127.0.0.1:4690; JAR=/tmp/dsh-verify-jar.txt
-curl -sS -c "$JAR" "$BASE/?token=<launchToken>"        # 换 cookie，期望 303
-curl -sS -b "$JAR" -X POST -H 'Content-Type: application/json' -H "Origin: $BASE" \
-  -d '{"providerId":"keenable","capability":"search"}' -w '\n%{http_code}\n' "$BASE/dsh-web-search/health"
-curl -sS -b "$JAR" -X POST -H 'Content-Type: application/json' \
-  -d '{"providerId":"keenable","capability":"search"}' -w '\n%{http_code}\n' "$BASE/dsh-web-search/health"
+curl -sS -c "$JAR" "$BASE/?token=<launchToken>"   # 换 cookie，期望 303
+
+# 同源：Origin = Host，带 cookie
+curl -sS -b "$JAR" -X POST -H 'Content-Type: application/json' -H "Origin: $BASE" -d '{"providerId":"keenable","capability":"search"}' -w '%{http_code}' "$BASE/dsh-web-search/health"; echo
+# 桌面转发形态：无 Origin，只带 cookie
+curl -sS -b "$JAR" -X POST -H 'Content-Type: application/json' -d '{"providerId":"keenable","capability":"search"}' -w '%{http_code}' "$BASE/dsh-web-search/health"; echo
+# 跨源：Origin 不是本服务，带 cookie -> 403
+curl -sS -b "$JAR" -X POST -H 'Content-Type: application/json' -H "Origin: http://127.0.0.1:9999" -d '{"providerId":"keenable","capability":"search"}' -w '%{http_code}' "$BASE/dsh-web-search/health"; echo
+# 无凭据：不带 -b（不发 cookie）-> 403
+curl -sS -X POST -H 'Content-Type: application/json' -d '{"providerId":"keenable","capability":"search"}' -w '%{http_code}' "$BASE/dsh-web-search/health"; echo
+
+# 其余路由同样可换路径，例如 /models（kind=rerank）与 /quotas
+curl -sS -b "$JAR" -X POST -H 'Content-Type: application/json' -d '{"kind":"rerank"}' -w '%{http_code}' "$BASE/dsh-web-search/models"; echo
+curl -sS -b "$JAR" -X POST -H 'Content-Type: application/json' -d '{}' -w '%{http_code}' "$BASE/dsh-web-search/quotas"; echo
 ```
 
-对照（#96 之后，信任判定走 Host Connection 的 `requestRejection`）：
+对照（信任判定走 Host Connection 的 `requestRejection`）：
 
 | 形态 | Origin | 有效 cookie | 结果 |
 |---|---|---|---|
@@ -76,7 +85,7 @@ curl -sS -b "$JAR" -X POST -H 'Content-Type: application/json' \
 | 无凭据 | 无 | 无 | 403 `same-origin request required` |
 | 跨源 | 有（≠ Host） | 有 | 403 |
 
-#96 之前 `sameOrigin` 只认 Origin / Sec-Fetch-Site，对照是「带 Origin 200 / 不带 403」，即 issue #91 的现象；现在 stripped 形态应转为 200。
+桌面转发形态（无 Origin、带 Host cookie）应 200；无凭据与跨源 403。
 
 ### 5. 覆盖边界与清理
 
