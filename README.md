@@ -200,4 +200,5 @@ pnpm benchmark
 
 ## License
 
-MIT. Third-party code, dependencies, and benchmark data are disclosed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Names and compatibility statements are covered by [TRADEMARKS.md](TRADEMARKS.md).
+MIT. Third-party code, dependencies, and benchmark data: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Names and compatibility statements: [TRADEMARKS.md](TRADEMARKS.md).
+hello from superagent
