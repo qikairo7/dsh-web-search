@@ -16,5 +16,4 @@ DSH 插件：实现 `ctx.web` 的搜索/抓取 Provider，用免费后端替换�
 - 配置/配额：README Behavior、`docs/configuration.md`。
 - 改文档：`docs/AGENTS.md`；术语与 ADR：`GLOSSARY.md`、`docs/agents/domain.md`。
 - 决策：`docs/adr/`、`.agents/notes/`。
-- Issue/PR：`docs/agents/issue-tracker.md`、`docs/pr-gate.md`。
-- PR 正文/推前检查：`.agents/skills/`。
+- 推前检查：`.agents/skills/`。

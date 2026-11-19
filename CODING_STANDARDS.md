@@ -81,12 +81,10 @@
 - 分支名用 2 到 3 个短词、连字符分隔，如 `fix-router-fallback`；不要 `feat/` 之类前缀。
 - 提交信息和 PR 标题用 `type(scope): summary`；`type` 取 `feat`、`fix`、`docs`、`chore`、`refactor`、`test`，`scope` 可选。
 - **验证戳**：每笔提交正文末尾带一行 `Verified-by: <方式>`——如 `Verified-by: pnpm-check`、`Verified-by: node --test test/errors.test.js`、`Verified-by: docs-only`；未验证的诚实写 `Verified-by: none <一句原因>`。戳用于审计可查（`git log --grep 'Verified-by: none'` 列出未验证提交），PR 里最后一笔全量验证过的提交应带 `Verified-by: pnpm-check`。
-- Issue、子任务和 PR 流程：`docs/agents/issue-tracker.md`。
-- PR 正文按 [docs/pr-gate.md](docs/pr-gate.md)：固定顺序为 `pr` → `tech-doc-style-chinese` → `humanizer-zh`；必须包含 `## Summary`、`## Evidence`、`## Merge Danger`；正文末尾的 `powered by dsh` 徽章要求也见该文件；运行 `node scripts/check-pr-gate.mjs --body-file <path>` 通过后才能提交。
 
 ## 9. Review 门禁
 
-按 artifact 展开的规则见 `docs/defensive-patterns.md`；以下是必须逐项核对的总门禁。以下任一项不满足即阻塞合并。第 10 节已晋升的规则同样按阻塞项核对。Review 时逐项核对，不只看 diff。
+按 artifact 展开的规则见 `docs/defensive-patterns.md`；以下是必须逐项核对的总门禁。以下任一项不满足即阻塞合并。Review 时逐项核对，不只看 diff。
 
 1. **契约**：provider 实现 `id`、`title`、`description`、`available()`、`ready()`、`search()` / `fetch()`；`web_search` / `web_fetch` 的入参与结果形状不变；设置页仍由 `Config` 生成。
 2. **回退语义**：只有可恢复错误（网络、超时、429、5xx、凭据缺失）触发下一个 provider；取消和非法 URL 立即返回；直连 HTTP 的 404 作为结果返回；熔断只统计可恢复失败且属于允许回退的类别。
@@ -98,10 +96,3 @@
 8. **实现克制**：除会被测试直接复用的 `mapXxxSearch()` 外，一次性逻辑没有被抽成函数；`try/catch` 只出现在错误边界；没有为未经确认的推测性复杂度增加代码。
 9. **门禁文档同步**：改 `package.json` 的 check 链或 git hook 行为时，`README.md`、`README.zh.md`、`docs/development.md`、`docs/AGENTS.md` 中 check 组成的描述同步更新；带顺序声明（「依次」等）的列举与实际链序逐位一致。
 
-## 10. Review 错题本
-
-- 每个 P0/P1 finding 都要记录到 `AI-REVIEW-LESSONS.md`，包括规则、原因、证据和 `Seen` 次数。
-- 同一规则出现 3 次后，晋升到本文件；晋升后的规则在后续 review 中逐项检查。
-- 证据写实际观察到的输出、失败或代码位置；不写推测，不写未运行的验证。
-- 规则与标准正文只写当前状态，不嵌决策日期或变更史；决策史放 ADR 与 notes。
-- 改钩子、门禁或命令行为时，同步 README、AGENTS.md 与 `docs/development.md` 中所有枚举该行为的位置。

@@ -19,7 +19,7 @@ description: 在 dsh-web-search 推送分支前使用：按改动面选最小够
 
 ## 硬规矩
 
-- 汇报只写**实际跑过的**命令与结果（同 PR 正文 Evidence 纪律）。
+- 汇报只写**实际跑过的**命令与结果。
 - 按上表选检查省的是证据轮；`.githooks/pre-push` 每次推送仍无条件全量 `pnpm check` 兜底，中途多笔提交只过语法门。
 - 基准（`pnpm benchmark`）永远手动：调外部 API，噪声大，不做门禁；性能下限有 `test/bench.test.js` 的量级 floor 自动门禁。
 - CI 才负责三配置矩阵（ubuntu-latest×node 22/24、windows-latest×node 24）、CodeQL、穷尽覆盖；本地不重复排练。
