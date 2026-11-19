@@ -83,12 +83,32 @@ jobs:
           echo "tarball=$TARBALL" >> "$GITHUB_OUTPUT"
           ls -l "$TARBALL"
 
+      - name: Smoke check tarball entries
+        shell: bash
+        run: |
+          # Minimal "can the shipped artifact load" gate: unpack and syntax-check
+          # the export entries. Not an install test - it catches a broken publish
+          # (missing entry, bad transform) before the release goes out.
+          TMP=$(mktemp -d)
+          tar -xzf "${{ steps.pack.outputs.tarball }}" -C "$TMP"
+          node --check "$TMP/package/lib/index.js"
+          node --check "$TMP/package/client.js"
+
+      - name: Generate SHA256SUMS
+        shell: bash
+        run: |
+          # Single source of truth for asset integrity: checksums are computed
+          # from the exact tarballs uploaded by the release step below.
+          (cd dist && sha256sum -- *.tgz > SHA256SUMS)
+          cat dist/SHA256SUMS
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "${{ steps.version.outputs.tag }}" \
             "${{ steps.pack.outputs.tarball }}" \
+            dist/SHA256SUMS \
             --title "${{ steps.version.outputs.tag }}" \
             --notes-file notes.md \
             --verify-tag

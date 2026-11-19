@@ -143,6 +143,7 @@ const chineseDocs = new Set([
   'README.zh.md',
   'AGENTS.md',
   'CODING_STANDARDS.md',
+  'REVIEW-LESSONS.md',
   'CONTRIBUTING.md',
   'BENCHMARK.md',
   'docs/AGENTS.md',
@@ -151,6 +152,10 @@ const chineseDocs = new Set([
   'docs/testing.md',
   'docs/cookbook/adding-a-provider.md',
   'docs/defensive-patterns.md',
+  'docs/subsystems/README.md',
+  'docs/subsystems/providers.md',
+  'docs/subsystems/dsh-host.md',
+  'docs/subsystems/settings.md',
   '.agents/notes/README.md',
 ]);
 for (const file of chineseDocs) {

@@ -8,6 +8,7 @@
 |---|---|---|
 | `AGENTS.md` | 每回合加载的硬规则与指针 | 教程、示例、可推导的细节 |
 | `CODING_STANDARDS.md` | 实现与 Review 的唯一标准：契约、实现原则、测试、完成门禁 | 当前默认值、行为说明 |
+| `REVIEW-LESSONS.md` | 错题本：教训的证据、Seen 计数与晋升机制 | 正式实现标准、决策历史 |
 | `README.md` / `README.zh.md` | 用户可见事实：安装、凭据、Provider、行为、配额；两份同步 | 内部实现细节、决策历史、完整配置表 |
 | `docs/configuration.md` | 完整配置字段、默认值与说明；README 链接到这里 | 行为教程、实现规则 |
 | `docs/development.md` | 安装、命令、CI 与排错 | 实现规则、产品行为 |
@@ -16,6 +17,7 @@
 | `docs/cookbook/` | 带步骤和验收清单的 how-to，例如新增 Provider | 设计理由、当前行为说明 |
 | `docs/defensive-patterns.md` | 按 artifact 展开的 Review 规则 | 决策历史、配置默认值 |
 | `docs/architecture.md` | 组合、模块与请求流地图 | 单函数细节、配置默认值 |
+| `docs/subsystems/` | 子系统参考页：职责真源表、运行路径、约束与验证命令 | 行为教程、决策历史、实现规则 |
 | `docs/dsh-host-contract.md` | DSH 宿主契约、tool-web 渲染与 preset 作用域、内部排查路径 | 当前插件行为、配置默认值 |
 | `docs/adr/` | 已接受的契约级决策；一条决策一份，历史记录不改写 | 当前行为说明、迁移计划 |
 | `.agents/notes/` | 需要保留「为什么、放弃了什么」的决策记录；格式见目录 README | 当前行为说明、任务清单、测试走读 |
