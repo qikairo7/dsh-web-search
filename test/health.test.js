@@ -232,6 +232,27 @@ test('fallback without Connection: stripped headers are still rejected', async (
   assert.equal(res.status, 403);
 });
 
+// --- Capability probe: present Connection service without requestRejection -----
+//
+// A supported host may ship a Connection service that no longer exposes
+// requestRejection. isTrustedRequest must then fall back to sameOrigin and stay
+// closed for a stripped request while still admitting a plain same-origin browser.
+
+test('fallback when the Connection service lacks requestRejection admits a same-origin browser', async () => {
+  const route = healthRoute({ connection: {} });
+  const res = response();
+  await route.handler(request({ providerId: 'keenable', capability: 'search' }), res);
+  assert.equal(res.status, 200);
+  assert.equal(JSON.parse(res.body).ok, true);
+});
+
+test('fallback when the Connection service lacks requestRejection rejects a stripped request', async () => {
+  const route = healthRoute({ connection: {} });
+  const res = response();
+  await route.handler(strippedRequest({ providerId: 'keenable', capability: 'search' }), res);
+  assert.equal(res.status, 403);
+});
+
 // --- The other two management routes apply the same fence -------------------
 
 test('models and quotas reject an unauthenticated stripped request', async () => {
