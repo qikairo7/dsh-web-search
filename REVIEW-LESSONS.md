@@ -9,7 +9,7 @@
 - Seen=2：优先把教训「机械化」成守卫测试或机械检查（如 `test/architecture.test.js`、`scripts/verify-docs.mjs`），让门禁替人记住；确实无法机械化才继续留在本表。
 - Seen=3：把规则晋升进 [CODING_STANDARDS.md](CODING_STANDARDS.md) 或该事实的唯一 home 文档；晋升不删旧条目，原条目保留证据与计数，状态改「已晋升」。
 - 验证状态如实标注：没实际跑过的项标 `not-run`，不伪装成已验证；证据缺失的教训先补证据再入表。
-- 本表当前为空：旧错题本条目已按僵尸规则处置，不迁移。
+- 本表随 review 累积教训，当前收录 4 条。
 
 ## 教训表
 
