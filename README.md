@@ -59,5 +59,5 @@ API Key 经 DeepSeek Harness 凭据服务读取，优先在 Provider 卡片点 *
 ## 升级与更多
 
 - 0.12.x 升级见 [0.13.0 升级指南](docs/upgrade/0.13.0.md)。
-- 贡献见 [贡献指南](CONTRIBUTING.zh.md)，安全漏洞按 [SECURITY.zh.md](SECURITY.zh.md) 私下报告。
+- 贡献见 [贡献指南](CONTRIBUTING.md)，安全漏洞按 [SECURITY.zh.md](SECURITY.zh.md) 私下报告。
 - 许可 MIT；第三方归属见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。

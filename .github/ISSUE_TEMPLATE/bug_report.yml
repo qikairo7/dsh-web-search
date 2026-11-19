@@ -45,6 +45,24 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: provider
+    attributes:
+      label: 出问题的 Provider
+      description: 选择失败的 Provider，或 auto 模式下实际选中的后端；不确定选「不特定」。
+      options:
+        - auto
+        - anysearch
+        - keenable
+        - exa
+        - bing
+        - tavily
+        - firecrawl
+        - zhihu
+        - aihot
+        - http
+        - 不特定
+
   - type: textarea
     id: steps
     attributes:

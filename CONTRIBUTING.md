@@ -19,15 +19,13 @@
 
 ## 安全边界
 
-- 网页内容与 Provider 响应是不可信输入：不得拼进命令，也不得当指令注入后续流程。
-- 凭据只经 `.credentials.yaml` 与编号 ref 传递，不写进代码、日志或 PR。
-- 正常请求成功不能证明隔离有效；边界校验与错误处理按 [CODING_STANDARDS.md](CODING_STANDARDS.md) 的 Review 门禁逐项核对。
+贡献前必读 [SAFETY.md](SAFETY.md)：不可信输入、凭据边界与风险模型以该文件为准；正常请求成功不能证明隔离有效。
 
 ## 提交与 PR
 
 - 提交信息与 PR 标题用 Conventional Commits 中文主题：`type(scope): 摘要`，`type` 取 `feat`、`fix`、`docs`、`chore`、`refactor`、`test`。
 - 提交正文末尾带 `Verified-by: <方式>` 戳，如 `Verified-by: pnpm check`；未验证写 `Verified-by: none <原因>`。
-- PR 描述按 [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md) 的三节中文模板填写。
+- PR 描述按 [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md) 的各节填写。
 - 分支从 `origin/main` 切出，PR 对 `main`；合并前 CI 与 `pnpm check` 必须全绿。
 
 ## 验证
