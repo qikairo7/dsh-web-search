@@ -20,6 +20,78 @@ description: 在 dsh-web-search 里提交/交付前做端到端冒烟时使用�
 1. 仓库根 `pnpm pack` 产出 tgz，装载后重启 DSH（或新 profile）。
 2. 依次验证并记录**原始输出摘录**：`web_search` 中文查询（如「Node.js 文件读取」）——期望多来源结果，含中文信源；英文技术查询（如 `site:nodejs.org fs.readFile`）——期望官方文档靠前。
 
+## 管理路由真机验证（web + ego）
+
+设置页的「验证」「拉取模型」「刷新额度」调 `/dsh-web-search/{health,models,quotas}`。桌面版页面跑在 `dsh-app://`，无法自动化；改用独立 Web 实例 + ego 浏览器带已登录会话点击，覆盖 DSH Web 的「同源 + 真实认证 cookie」通道。桌面转发形态（无 Origin、带 Host cookie）用下面的 curl 对照模拟。
+
+### 1. 起独立 Web 实例（独立端口 + 独立 profile）
+
+绝不复用或重启正在运行的实例（例如 4670）。
+
+```sh
+# 从 web 模板脚手架一个测试 profile；--dump-config 只打印配置后退出，不启动
+dsh <test-profile> --from-default-profile web --dump-config
+# 仓库根打包，装进测试 profile（dsh plugin add 会把它回写进 dsh.profile.bundles）
+pnpm pack --pack-destination <tmp-dir>
+dsh plugin --profile <test-profile> add <tmp-dir>/qikairo7-dsh-web-search-<version>.tgz
+# 独立端口启动；首行日志给出带 token 的 URL
+dsh <test-profile> --port 4690 --no-open
+```
+
+启动日志首行形如 `dsh web: http://127.0.0.1:4690/?token=<launchToken>`。
+
+### 2. 浏览器鉴权（先实测再操作）
+
+无 cookie 直接访问 `http://127.0.0.1:4690/` 返回 401。先访问带 `?token=` 的 URL：服务端种一枚签名 cookie（HttpOnly、SameSite=Strict）并 303 跳到 `./`，此后 `/api` 与插件路由靠这枚 cookie 放行。ego 里就是先 `page.goto("<带 token 的 URL>")`。
+
+### 3. ego 操作序列
+
+1. 打开带 token 的 URL，等首页标题「DeepSeek Harness」。
+2. 关「预览版说明」弹窗（「继续」）→「账号菜单」→「设置」→「搜索与抓取设置」。
+3. Keenable 卡片点「验证」，期望「Keenable 在 N ms 内返回 M 条结果。」。
+4. 「重排与嵌入模型」区点「拉取模型」，期望「已加载 N 个模型。」。
+5. 「剩余额度」区点「刷新额度」，期望 Keenable 等显示「剩余 <n>」。
+
+按钮可能在视口外，原生点击报 `element is not visible`；先页面内 `scrollIntoView({ block: 'center' })` 再点，或 `page.evaluate` 找到按钮调 `click()`。
+
+### 4. curl 形态对照（bash / MSYS 下运行）
+
+先换 cookie，再用同一份 cookie 打对照，覆盖同源、桌面转发、跨源、无凭据四种形态（以下命令在 bash / MSYS 即 Git Bash 下运行）：
+
+```sh
+BASE=http://127.0.0.1:4690; JAR=/tmp/dsh-verify-jar.txt
+curl -sS -c "$JAR" "$BASE/?token=<launchToken>"   # 换 cookie，期望 303
+
+# 同源：Origin = Host，带 cookie
+curl -sS -b "$JAR" -X POST -H 'Content-Type: application/json' -H "Origin: $BASE" -d '{"providerId":"keenable","capability":"search"}' -w '%{http_code}' "$BASE/dsh-web-search/health"; echo
+# 桌面转发形态：无 Origin，只带 cookie
+curl -sS -b "$JAR" -X POST -H 'Content-Type: application/json' -d '{"providerId":"keenable","capability":"search"}' -w '%{http_code}' "$BASE/dsh-web-search/health"; echo
+# 跨源：Origin 不是本服务，带 cookie -> 403
+curl -sS -b "$JAR" -X POST -H 'Content-Type: application/json' -H "Origin: http://127.0.0.1:9999" -d '{"providerId":"keenable","capability":"search"}' -w '%{http_code}' "$BASE/dsh-web-search/health"; echo
+# 无凭据：不带 -b（不发 cookie）-> 403
+curl -sS -X POST -H 'Content-Type: application/json' -d '{"providerId":"keenable","capability":"search"}' -w '%{http_code}' "$BASE/dsh-web-search/health"; echo
+
+# 其余路由同样可换路径，例如 /models（kind=rerank）与 /quotas
+curl -sS -b "$JAR" -X POST -H 'Content-Type: application/json' -d '{"kind":"rerank"}' -w '%{http_code}' "$BASE/dsh-web-search/models"; echo
+curl -sS -b "$JAR" -X POST -H 'Content-Type: application/json' -d '{}' -w '%{http_code}' "$BASE/dsh-web-search/quotas"; echo
+```
+
+对照（信任判定走 Host Connection 的 `requestRejection`）：
+
+| 形态 | Origin | 有效 cookie | 结果 |
+|---|---|---|---|
+| 同源浏览器 | 有（= Host） | 有 | 200 `ok:true` |
+| 桌面转发形态 | 无 | 有 | 200 `ok:true` |
+| 无凭据 | 无 | 无 | 403 `same-origin request required` |
+| 跨源 | 有（≠ Host） | 有 | 403 |
+
+桌面转发形态（无 Origin、带 Host cookie）应 200；无凭据与跨源 403。
+
+### 5. 覆盖边界与清理
+
+- Web 端覆盖带 Origin 的同源 + 真实认证 cookie 通道；桌面 `dsh-app://` 无 Origin、带 Host cookie 的转发形态用上面 curl 模拟，不依赖桌面打包。
+- 测试实例用完即关，清掉临时 profile 与 tgz，不动正在运行的实例和主检出。
+
 ## 判定与记录
 
 - 每步贴原始输出进 Evidence（不是"通过"两个字）。
