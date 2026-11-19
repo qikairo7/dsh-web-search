@@ -29,7 +29,7 @@
 | `CHANGELOG.md` | 面向用户的版本变化公告，每个已发版一条 | 实现细节、决策理由、未发版的重构 |
 | `BENCHMARK.md` | 基准入口、运行规则和指标说明 | 历史报告数据 |
 | `docs/AGENTS.md` | 本文件：结构、写作、预算、检查 | 实现规则 |
-| `.agents/skills/`、`docs/review-rules.md` | skill 与审查规则库 | 成文流程的复制 |
+| `.agents/skills/` | 仓库内 skill | 成文流程的复制 |
 
 ## 改代码时改哪份文档
 
