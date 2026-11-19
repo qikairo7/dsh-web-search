@@ -22,6 +22,8 @@ description: 在 dsh-web-search 里提交/交付前做端到端冒烟时使用�
 
 ## 管理路由真机验证（web + ego）
 
+冒烟范围与期望反馈以 [docs/feature-map.md](../../../docs/feature-map.md) 为准，本节只补增量。
+
 设置页的「验证」「拉取模型」「刷新额度」调 `/dsh-web-search/{health,models,quotas}`。桌面版页面跑在 `dsh-app://`，无法自动化；改用独立 Web 实例 + ego 浏览器带已登录会话点击，覆盖 DSH Web 的「同源 + 真实认证 cookie」通道。桌面转发形态（无 Origin、带 Host cookie）用下面的 curl 对照模拟。
 
 ### 1. 起独立 Web 实例（独立端口 + 独立 profile）
