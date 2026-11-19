@@ -4,6 +4,12 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 条目一律中文，按 tech-doc-style-chinese 规范撰写；发版说明由发布流程自动取自对应版本节。
 
+## 0.13.2 — 2026-11-19
+
+### 变更
+
+- 设置页多 Key 保存：把非法输入判定抽成门函数 `beginKeySave`（可注入 `setBusy`），新增 2 条单测锁住「非法输入绝不进入保存中状态」；对外行为不变（#121，Refs #117）。
+
 ## 0.13.1 — 2026-11-19
 
 ### 修复
