@@ -19,7 +19,7 @@ function loadDefinition() {
 // Values built inside the vm context have foreign prototypes; normalize before deepEqual.
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
-const { splitKeyInput, planKeyWrites, applyKeyPlan, beginKeySave } = loadDefinition();
+const { splitKeyInput, planKeyWrites, applyKeyPlan, beginKeySave, saveKey } = loadDefinition();
 const REFS = ['KEY', 'KEY_2', 'KEY_3', 'KEY_4', 'KEY_5', 'KEY_6', 'KEY_7', 'KEY_8'];
 
 test('splits a pasted key box on commas and whitespace', () => {
@@ -120,4 +120,62 @@ test('valid input raises the busy saving state exactly once', () => {
   const busy = [];
   assert.equal(beginKeySave(plan, (value) => busy.push(value)), true);
   assert.deepEqual(busy, [true]);
+});
+
+// Wiring coverage: the real save path (saveKey) must refuse invalid plans before touching busy,
+// so the #117 flashing write (setBusy before the gate) turns these tests red.
+test('saveKey refuses invalid input without raising busy', async () => {
+  const ten = Array.from({ length: 10 }, (_, index) => `k${index + 1}`).join(',');
+  const cases = [
+    { plan: planKeyWrites([{ ref: null, value: ten }], REFS, {}), prompt: 'tooManyKeys' },
+    { plan: planKeyWrites([{ ref: null, value: '  , ' }], REFS, {}), prompt: 'enterKey' },
+  ];
+  for (const { plan, prompt } of cases) {
+    const busy = [];
+    const prompts = [];
+    let writes = 0;
+    await saveKey({
+      plan,
+      setBusy: (value) => busy.push(value),
+      setCredential: () => { writes += 1; return { ok: true }; },
+      onRefused: (kind) => prompts.push(kind),
+      onSaved: () => prompts.push('saved'),
+      onFailed: () => prompts.push('failed'),
+    });
+    assert.deepEqual(busy, [], 'invalid input must not raise busy');
+    assert.equal(writes, 0, 'invalid input must not write credentials');
+    assert.deepEqual(prompts, [prompt]);
+  }
+});
+
+test('saveKey writes a valid plan and lowers busy after saving', async () => {
+  const plan = planKeyWrites([{ ref: null, value: 'k1 k2' }], REFS, {});
+  const calls = [];
+  const busy = [];
+  await saveKey({
+    plan,
+    setBusy: (value) => busy.push(value),
+    setCredential: (ref, value) => { calls.push([ref, value]); return { ok: true }; },
+    onRefused: (kind) => calls.push(['refused', kind]),
+    onSaved: () => calls.push(['saved']),
+    onFailed: () => calls.push(['failed']),
+  });
+  assert.deepEqual(plain(calls), [['KEY', 'k1'], ['KEY_2', 'k2'], ['saved']]);
+  assert.deepEqual(busy, [true, false]);
+});
+
+test('saveKey lowers busy after a failed write', async () => {
+  const plan = planKeyWrites([{ ref: null, value: 'k1' }], REFS, {});
+  const busy = [];
+  const events = [];
+  await saveKey({
+    plan,
+    setBusy: (value) => busy.push(value),
+    setCredential: () => ({ ok: false }),
+    onRefused: (kind) => events.push(['refused', kind]),
+    onSaved: () => events.push('saved'),
+    onFailed: () => events.push('failed'),
+  });
+  assert.deepEqual(events, ['failed']);
+  assert.deepEqual(busy, [true, false]);
 });
