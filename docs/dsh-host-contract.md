@@ -8,6 +8,14 @@
 - `web_search` 的 `summary` 由 `tool-web.searchSummaryMaxChars` 截断，**默认 800 字**；provider 的 `maxSnippetChars` 不会绕过这个上限。
 - `web_fetch` 的模型输出上限是 `tool-web.fetchMaxOutputChars`，默认 200000 字；转换前只处理 source 字符串的前 200000 字。
 
+## 管理路由的请求信任
+
+设置页的三个 provider 管理路由（`/dsh-web-search/health`、`/dsh-web-search/models`、`/dsh-web-search/quotas`）把请求信任判定委托给 Host Connection 服务的 `requestRejection(request)`（`lib/health.js` 的 `isTrustedRequest`）。它先跑 Host/Origin 栅栏（回环或受信 host、无 cross-site 标记、带 Origin 时须与 Host 同源），再要求浏览器或 API 凭据。桌面壳的转发器会剥掉 `host`、`origin`、`cookie` 与 `sec-fetch-site`，再附上 Host 认证 cookie，只有通过这套凭据校验才放行。
+
+- 无 `connection` 服务、或该服务没有 `requestRejection` 方法时，回退到本地 `sameOrigin(req)` 头检查：有 Origin 则须与 Host 同源，否则接受 `sec-fetch-site` 为 `same-origin` 或 `none`；两者都没有则拒绝。回退 fail-closed，不放行被剥头的桌面调用。
+- 版本漂移：公开升级指南 v0.2.2-rc.2 记载 Connection 已移除 `requestRejection` 与 `ConnectionRequestRejection`、改用 `admit` 与 authentication；本机实测宿主 `0.2.2-rc.5` 仍导出该方法（`rpc.ts` 的 `HostConnectionHandle.requestRejection`，返回 `401 | 403 | undefined`）。`package.json` 的 `dsh.engines` 允许 `>=0.2.2-rc.3 <0.4.0-0`，某受支持宿主若真没有该方法就会静默回退 `sameOrigin`，桌面转发调用因缺 Origin/Sec-Fetch-Site 被拒为 403——功能失效（fail-closed），不是安全回退。`test/health.test.js` 用无 `requestRejection` 的 stub connection 钉住这条回退路径。
+- 同源回退的已知边界：没有 Connection 时 `sameOrigin` 只看请求头，能自行伪造 `sec-fetch-site` 的非浏览器客户端可以借此通过。浏览器脚本无法设置这个 forbidden header，跨站浏览器 POST 会带不匹配的 Origin 被拒；DSH 自身的 `isTrustedApiRequest` 也刻意接受无 Origin 的请求，以 Host 作为 DNS-rebinding 栅栏。故不把回退收紧成「必须有 Origin」：那会比宿主官方栅栏更严、可能拒掉宿主认可的合法请求，而 header-only 信任对能伪造头的非浏览器客户端本就不是安全边界。真实信任以 Connection 的凭据校验为准，回退只是「纯浏览器可用」的尽力而为。
+
 ## preset 拥有 tool-web
 
 DSH `0.2.2-rc.3` 的 `standard` preset 在 `@deepseek-ai/dsh-web-app` 的 `presets/standard.patch.yml` 内声明 `tool-web`（只配 `fetch` 与 `searchTimeoutMs`，`searchSummaryMaxChars` 走 800 默认值）。bundle patch 里的 `- id: tool-web` 命中不了 preset 内的子行，因此：
