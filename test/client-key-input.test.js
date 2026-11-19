@@ -19,7 +19,7 @@ function loadDefinition() {
 // Values built inside the vm context have foreign prototypes; normalize before deepEqual.
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
-const { splitKeyInput, planKeyWrites } = loadDefinition();
+const { splitKeyInput, planKeyWrites, applyKeyPlan } = loadDefinition();
 const REFS = ['KEY', 'KEY_2', 'KEY_3', 'KEY_4', 'KEY_5', 'KEY_6', 'KEY_7', 'KEY_8'];
 
 test('splits a pasted key box on commas and whitespace', () => {
@@ -68,4 +68,38 @@ test('counts existing keys toward the eight-ref limit', () => {
   const plan = planKeyWrites(rows, REFS, credentials);
   assert.equal(plan.overflow, true);
   assert.equal(plan.writes.length, 2);
+});
+
+test('an overflowing plan writes no credentials', async () => {
+  const ten = Array.from({ length: 10 }, (_, index) => `k${index + 1}`).join(',');
+  const plan = planKeyWrites([{ ref: null, value: ten }], REFS, {});
+  const calls = [];
+  const status = await applyKeyPlan(plan, (ref, value) => {
+    calls.push([ref, value]);
+    return { ok: true };
+  });
+  assert.equal(status, 'overflow');
+  assert.equal(calls.length, 0);
+});
+
+test('a ready plan writes every key once in order', async () => {
+  const plan = planKeyWrites([{ ref: null, value: 'k1 k2' }], REFS, {});
+  const calls = [];
+  const status = await applyKeyPlan(plan, (ref, value) => {
+    calls.push([ref, value]);
+    return { ok: true };
+  });
+  assert.equal(status, 'saved');
+  assert.deepEqual(plain(calls), [['KEY', 'k1'], ['KEY_2', 'k2']]);
+});
+
+test('an empty plan writes nothing', async () => {
+  const plan = planKeyWrites([{ ref: null, value: '  , ' }], REFS, {});
+  const calls = [];
+  const status = await applyKeyPlan(plan, () => {
+    calls.push('x');
+    return { ok: true };
+  });
+  assert.equal(status, 'empty');
+  assert.equal(calls.length, 0);
 });
