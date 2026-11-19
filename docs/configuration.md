@@ -1,109 +1,10 @@
-# Configuration / 配置
+# 配置
 
 本文件是配置字段、默认值和说明的唯一事实来源。两个 README 只保留行为概览并链接到这里。
 
-## English
-
-The settings page is generated from the plugin's `Config` schema. All fields are optional; the defaults below match the verified setup.
-
-### Free allowances
-
-Documented free allowances per backend; live remaining values for Tavily and Firecrawl show on the settings page.
-
-| Backend | Free allowance | Used by |
-|---|---|---|
-| Keenable | 100,000/month (key); 1,000/hour anonymous | Default search + Markdown fetch |
-| AnySearch | 1000 searches/day with a registered key; anonymous access also works | Search |
-| Exa | $10 free credits/month (docs.exa.ai); one-time $10 onboarding bonus | Semantic search + Contents fetch; free depth |
-| Bing | Keyless HTML SERP; no metered quota | Keyless search floor before the paid tail |
-| Zhihu | 5000 global + 5000 site searches/day | Chinese search |
-| Tavily | 1000 credits/month | Fallback only: empty free search, missing official docs, stale news, fetch failure chain |
-| Firecrawl | 1000 credits/month | Last-resort fetch for hard JS/PDF pages |
-| AIHOT | Anonymous read-only | AI-news search/curation (free) |
-| Direct HTTP | No API cost | Static-page fetch |
-| SiliconFlow | Free allowance | BGE rerank + embeddings |
-
-### Mode and routing
-
-| Field | Default | Meaning |
-|---|---|---|
-| `searchMode` | `quality` | `quality` = free-source merge + rerank + top-5 evidence enrichment; `fast` = single-provider priority order |
-| `fetchMode` | `fast` | `fast` = Keenable/direct HTTP first; `clean` = Keenable/AnySearch/Exa extraction first, HTTP then, Tavily/Firecrawl fallback |
-| `intentRouting` | `true` | Route technical/news/Chinese-community queries with free-first role-table orders; routed queries ignore the configured orders (`false` always uses the configured orders) |
-| `languageRouting` | `true` | Detect query language and pass `language` to Tavily/AnySearch |
-| `officialDocsEnabled` | `true` | Add a domain-restricted Tavily search only when free results miss known official docs |
-| `newsFreshnessEnabled` | `true` | Add one Tavily news search for non-AI news queries when fewer than 3 free results are dated within 7 days |
-| `aihotEnabled` | `true` | Enable the AIHOT AI-news provider |
-| `chineseSearchOrder` | `zhihu,keenable,anysearch,exa,bing,tavily,firecrawl` | Fast-mode search order for Han queries not caught by intent routing |
-| `defaultSearchOrder` | `keenable,anysearch,exa,bing,tavily,firecrawl` | Fast-mode search order for other queries not caught by intent routing |
-| `fetchOrder` | `keenable,http,anysearch,exa,tavily,firecrawl` | Fast fetch fallback order |
-| `cleanFetchOrder` | `keenable,anysearch,exa,http,tavily,firecrawl` | Clean fetch order |
-| `tavilyIncludeAnswer` | `true` | Map Tavily's answer to `web_search.content` |
-| `zhihuIncludeMetadata` | `true` | Add author/vote/comment to Zhihu summaries |
-
-### Backends and credentials
-
-| Field | Default | Meaning |
-|---|---|---|
-| `anysearchEnabled` | `true` | Enable AnySearch |
-| `anysearchApiKeyEnv` | `ANYSEARCH_API_KEY` | AnySearch credential reference |
-| `anysearchBaseURL` | `https://api.anysearch.com` | AnySearch API base |
-| `anysearchMaxRenderedContentChars` | `12000` | Per-call rendered-content cap for `anysearch_search` / `anysearch_batch_search` |
-| `keenableEnabled` | `true` | Enable Keenable |
-| `keenableApiKeyEnv` | `KEENABLE_API_KEY` | Keenable credential reference |
-| `keenableBaseURL` | `https://api.keenable.ai` | Keenable API base |
-| `exaEnabled` | `true` | Enable Exa |
-| `exaApiKeyEnv` | `EXA_API_KEY` | Exa credential reference |
-| `exaBaseURL` | `https://api.exa.ai` | Exa API base |
-| `bingEnabled` | `true` | Enable the keyless Bing search floor |
-| `bingBaseURL` | `https://www.bing.com` | Bing SERP base |
-| `bingMarket` | `` | Send `mkt` only when non-empty; empty keeps Bing's own localization |
-| `tavilyEnabled` | `true` | Enable Tavily |
-| `tavilyApiKeyEnv` | `TAVILY_API_KEY` | Tavily credential reference |
-| `tavilyBaseURL` | `https://api.tavily.com` | Tavily API base |
-| `firecrawlEnabled` | `true` | Enable Firecrawl |
-| `firecrawlApiKeyEnv` | `FIRECRAWL_API_KEY` | Firecrawl credential reference |
-| `firecrawlBaseURL` | `https://api.firecrawl.dev` | Firecrawl API base |
-| `zhihuEnabled` | `true` | Enable Zhihu providers |
-| `zhihuApiKeyEnv` | `ZHIHU_API_KEY` | Zhihu Access Secret reference |
-| `zhihuBaseURL` | `https://developer.zhihu.com` | Zhihu API base |
-| `aihotBaseURL` | `https://aihot.news` | AIHOT API base |
-| `httpEnabled` | `true` | Enable the direct HTTP fetch provider |
-| `siliconflowEnabled` | `true` | Enable SiliconFlow reranking |
-| `siliconflowApiKeyEnv` | `SILICONFLOW_API_KEY` | SiliconFlow credential reference |
-| `siliconflowBaseURL` | `https://api.siliconflow.cn/v1` | SiliconFlow API base |
-| `siliconflowRerankModel` | `BAAI/bge-reranker-v2-m3` | Rerank model |
-| `siliconflowEmbeddingsEnabled` | `true` | Enable semantic duplicate removal |
-| `siliconflowEmbeddingModel` | `BAAI/bge-m3` | Embedding model |
-
-### Quality, limits, and cache
-
-| Field | Default | Meaning |
-|---|---|---|
-| `semanticDedupThreshold` | `0.95` | Cosine similarity threshold for duplicate removal |
-| `requestTimeoutMs` | `30000` | Per-request timeout |
-| `maxFetchChars` | `200000` | Maximum characters returned by `web_fetch` |
-| `maxSnippetChars` | `4000` | Maximum characters per search summary |
-| `enrichEnabled` | `true` | Fetch top sources and regenerate their summaries |
-| `enrichTopN` | `5` | Number of top sources to enrich |
-| `enrichSummaryMinChars` | `800` | Minimum enriched summary length |
-| `enrichSummaryMaxChars` | `1500` | Maximum enriched summary length |
-| `minDirectHtmlChars` | `2048` | SPA-shell detection threshold |
-| `searchCacheTtlMs` | `300000` | Search cache TTL |
-| `searchCacheMaxEntries` | `200` | Search cache entry cap |
-| `fetchCacheTtlMs` | `600000` | Fetch cache TTL |
-| `fetchCacheMaxEntries` | `100` | Fetch cache entry cap |
-| `fallbackFailureClasses` | `quota,auth,bot-wall,transient,invalid-response,unknown` | Failure classes that may fall back to the next provider: `quota` (402/429), `auth` (401/403), `bot-wall`, `transient` (408/5xx), `invalid-response` (bad or empty content), `unknown` (other recoverable failures). An explicit empty list stops at the first failure; unset keeps all six. The gate applies to the sequential fallback chain; quality parallel fan-out is unaffected |
-| `breakerFailureThreshold` | `3` | Consecutive failures before cooldown |
-| `breakerCooldownMs` | `300000` | Provider cooldown |
-
-All `*BaseURL` fields, including `anysearchBaseURL`, `tavilyBaseURL`, and `firecrawlBaseURL`, appear in the tables above and can be overridden from the settings page or a profile patch.
-
-## 中文
-
 设置页由插件的 `Config` schema 自动生成。所有字段可选，默认值如下。
 
-### 各后端免费额度
+## 各后端免费额度
 
 各后端文档化的免费额度；Tavily 与 Firecrawl 的实时剩余值显示在设置页。
 
@@ -113,14 +14,14 @@ All `*BaseURL` fields, including `anysearchBaseURL`, `tavilyBaseURL`, and `firec
 | AnySearch | 注册后 1000 次搜索/天；匿名也可用 | 搜索 |
 | Exa | 每月 10 美元免费额度（docs.exa.ai）+ 一次性 10 美元注册奖励 | 语义搜索 + Contents 抓取；免费深度回退 |
 | Bing | 免 Key HTML SERP，无计量配额 | 免费栈之后、付费尾之前的兜底搜索地板 |
-| 知乎 | 全网 5000 次/天 + 站内 5000 次/天 | 中文搜索 |
+| Zhihu | 全网 5000 次/天 + 站内 5000 次/天 | 中文搜索 |
 | Tavily | 1000 credits/月 | 仅兜底：免费源空结果、缺官方文档、新闻时效不足、Fetch 失败链 |
 | Firecrawl | 1000 credits/月 | Fetch 最后兜底：难抓的 JS/PDF 页面 |
 | AIHOT | 匿名只读 | AI 新闻搜索/精选（免费） |
 | 直连 HTTP | 无 API 成本 | 静态页面抓取 |
 | SiliconFlow | 免费额度 | BGE 重排 + embeddings |
 
-### 模式与路由
+## 模式与路由
 
 | 字段 | 默认值 | 说明 |
 |---|---|---|
@@ -138,7 +39,7 @@ All `*BaseURL` fields, including `anysearchBaseURL`, `tavilyBaseURL`, and `firec
 | `tavilyIncludeAnswer` | `true` | 把 Tavily 答案映射到 `web_search.content` |
 | `zhihuIncludeMetadata` | `true` | 知乎 summary 加入作者/赞同/评论 |
 
-### 后端与凭据
+## 后端与凭据
 
 | 字段 | 默认值 | 说明 |
 |---|---|---|
@@ -173,7 +74,7 @@ All `*BaseURL` fields, including `anysearchBaseURL`, `tavilyBaseURL`, and `firec
 | `siliconflowEmbeddingsEnabled` | `true` | 启用语义去重 |
 | `siliconflowEmbeddingModel` | `BAAI/bge-m3` | Embedding 模型 |
 
-### 质量、限制与缓存
+## 质量、限制与缓存
 
 | 字段 | 默认值 | 说明 |
 |---|---|---|

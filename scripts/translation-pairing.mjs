@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 
 const PAIRS = [
   { en: 'README.en.md', zh: 'README.md' },
-  { en: 'docs/DETAIL.md', zh: 'docs/DETAIL.zh.md' },
+  { en: 'docs/DETAIL.en.md', zh: 'docs/DETAIL.md' },
 ];
 const RECORD = 'docs/translation-pairs.json';
 

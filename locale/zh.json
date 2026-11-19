@@ -2,6 +2,6 @@
   "meta": {
     "title": "网页搜索路由器",
     "description": "把内置的 web_search 和 web_fetch 工具路由到 AnySearch、Keenable、Exa、Tavily、Firecrawl、知乎、AIHOT 与直连 HTTP。质量模式会合并免费结果并用 BGE 重排；API Key 从 DSH 凭据读取，可在「设置 > 搜索与抓取设置」或「插件 > 已安装插件 > 网页搜索路由器 > 配置」中填写 Key、选择后端和设置模式。",
-    "detail": "docs/DETAIL.zh.md"
+    "detail": "docs/DETAIL.md"
   }
 }
