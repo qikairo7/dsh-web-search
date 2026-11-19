@@ -67,16 +67,19 @@ dsh plugin --profile desktop add path/to/dsh-web-search-<version>.tgz
 
 ## 凭据
 
-插件通过 DSH 凭据服务读取 API Key。把 Key 放进 `~/.dsh/.credentials.yaml`（或启动环境变量）：
+插件通过 DSH 凭据服务读取 API Key。优先用设置页 Provider 卡的「添加 Key」保存（凭据服务保证格式）；需要手改 `~/.dsh/.credentials.yaml` 时，Key 必须嵌在 `refs` 之下（或启动环境变量）：
 
 ```yaml
-ANYSEARCH_API_KEY: "as_..."
-KEENABLE_API_KEY: "keen_..."
-EXA_API_KEY: "..."
-TAVILY_API_KEY: "tvly-..."
-FIRECRAWL_API_KEY: "fc-..."
-ZHIHU_API_KEY: "..."
-SILICONFLOW_API_KEY: "sk-..."
+version: 1
+records: {}
+refs:
+  ANYSEARCH_API_KEY: "as_..."
+  KEENABLE_API_KEY: "keen_..."
+  EXA_API_KEY: "..."
+  TAVILY_API_KEY: "tvly-..."
+  FIRECRAWL_API_KEY: "fc-..."
+  ZHIHU_API_KEY: "..."
+  SILICONFLOW_API_KEY: "sk-..."
 ```
 
 AnySearch 可以匿名使用；注册 Key 后额度更高。Keenable 没有 Key 也能匿名使用，配置 Key 后额度更高。Exa 需要 Key。知乎需要开放平台的 Access Secret。Tavily 和 Firecrawl 没有 Key 时会报告未就绪，自动路由会跳过它们。引用名可以通过 `*ApiKeyEnv` 字段修改。
@@ -172,7 +175,7 @@ pnpm probe
 pnpm benchmark
 ```
 
-`pnpm check` 运行 guardrail 测试和文档检查；pre-commit hook 运行同一命令。`pnpm probe` 是日常实测探针：14 条固定查询 + 2 个抓取，带分后端遥测、清单健康信号、滚动 7 天聚合与 PASS/FAIL 判定（见[测试策略](docs/testing.md)）。`pnpm benchmark` 优先读已提交的 FRAMES/WebWalkerQA fixture，读取失败才回退到公开 rows API；`SAMPLE_SIZE` 控制每个基准的行数（默认 50）。基准数据变化时运行 `pnpm benchmark:refresh` 刷新。真实 API 验收需要上面的凭据。
+`pnpm check` 运行 guardrail 测试、架构检查、order-doc 同步、文档代码块检查、翻译配对门禁和文档检查；pre-commit hook 只运行语法检查，pre-push hook 在推送前运行一次全量 `pnpm check`。`pnpm probe` 是日常实测探针：14 条固定查询 + 2 个抓取，带分后端遥测、清单健康信号、滚动 7 天聚合与 PASS/FAIL 判定（见[测试策略](docs/testing.md)）。`pnpm benchmark` 优先读已提交的 FRAMES/WebWalkerQA fixture，读取失败才回退到公开 rows API；`SAMPLE_SIZE` 控制每个基准的行数（默认 50）。基准数据变化时运行 `pnpm benchmark:refresh` 刷新。真实 API 验收需要上面的凭据。
 
 ## 社区与支持
 

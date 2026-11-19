@@ -20,7 +20,7 @@
 - 从 `origin/main` 切工作分支，PR 对 `main`。
 - 分支名用 2 到 3 个短词、连字符分隔，例如 `fix-router-fallback`。
 - 提交信息和 PR 标题用 `type(scope): summary`；`type` 取 `feat`、`fix`、`docs`、`chore`、`refactor`、`test`。
-- 提交前运行 `pnpm docs:check` 和 `pnpm check`。DSH 沙箱的 `spawn EPERM` 处理见 [AGENTS.md](AGENTS.md)。
+- 提交前运行 `pnpm docs:check` 和 `pnpm check`。DSH 沙箱的 `spawn EPERM` 处理见 [开发指南](docs/development.md) 的「DSH 沙箱」节。
 
 ## Review
 

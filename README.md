@@ -67,21 +67,24 @@ Use **Test** on a provider card to send one real search request and confirm the 
 
 ## Credentials
 
-The plugin reads API keys through the DSH credentials service. Put them in `~/.dsh/.credentials.yaml` (or export them in the launching environment):
+The plugin reads API keys through the DSH credentials service. Prefer the provider card's **Add key** on the settings page (the credential service writes the format). To hand-edit `~/.dsh/.credentials.yaml`, nest the keys under `refs` (or export them in the launching environment):
 
 ```yaml
-ANYSEARCH_API_KEY: "as_..."
-KEENABLE_API_KEY: "keen_..."
-EXA_API_KEY: "..."
-TAVILY_API_KEY: "tvly-..."
-FIRECRAWL_API_KEY: "fc-..."
-ZHIHU_API_KEY: "..."
-SILICONFLOW_API_KEY: "sk-..."
+version: 1
+records: {}
+refs:
+  ANYSEARCH_API_KEY: "as_..."
+  KEENABLE_API_KEY: "keen_..."
+  EXA_API_KEY: "..."
+  TAVILY_API_KEY: "tvly-..."
+  FIRECRAWL_API_KEY: "fc-..."
+  ZHIHU_API_KEY: "..."
+  SILICONFLOW_API_KEY: "sk-..."
 ```
 
-AnySearch works without a key in anonymous mode; a registered key raises the daily quota. Keenable works anonymously too; a key raises the quota. Exa requires a key. Zhihu requires an Access Secret from the Zhihu Open Platform. Tavily and Firecrawl report themselves not ready when their key is missing, so the router skips them. The exact reference names are configurable with the `*ApiKeyEnv` fields.
+AnySearch and Keenable work anonymously; a registered key raises the quota. Exa requires a key. Zhihu requires an Access Secret from the Zhihu Open Platform. Tavily and Firecrawl report not ready without a key and the router skips them. Reference names are configurable via the `*ApiKeyEnv` fields.
 
-For multiple keys, use **Add key** in the provider card to add one row per key. Existing keys show a masked value with a **Delete** button. The plugin stores rows as the base reference plus `_2`, `_3`, … and tries them in order; a key that returns quota, rate-limit, or authentication errors moves to the next key before the router falls back to another provider. Zhihu exposes its daily allowance at `GET /api/v1/quota`; the settings page shows it alongside the other quota rows.
+For multiple keys, use **Add key** in the provider card to add one row per key. Existing keys show a masked value with a **Delete** button. Rows are stored as the base reference plus `_2`, `_3`, … and tried in order; a key failing on quota, rate-limit, or authentication moves to the next before the router falls back. Zhihu exposes its daily allowance at `GET /api/v1/quota`, shown on the settings page.
 
 ## Providers
 
@@ -172,7 +175,7 @@ pnpm probe
 pnpm benchmark
 ```
 
-`pnpm check` runs the guardrail tests and the docs check; the pre-commit hook runs the same command. `pnpm probe` is the daily live probe: 14 fixed queries plus 2 fetches with per-provider telemetry, list-health signals, a rolling 7-day aggregate, and PASS/FAIL verdicts (see [Testing policy](docs/testing.md)). `pnpm benchmark` loads the committed FRAMES/WebWalkerQA fixture first, then falls back to the public rows API; `SAMPLE_SIZE` sets the rows per benchmark (default 50). Run `pnpm benchmark:refresh` when the benchmark data changes. Live API verification requires the credentials above.
+`pnpm check` runs guardrail tests, architecture lint, order-doc sync, doc-code, pairing and docs checks; pre-commit runs only the syntax check, and pre-push runs the full `pnpm check` once. `pnpm probe` is the daily live probe: 14 fixed queries plus 2 fetches with per-provider telemetry, list-health signals, a rolling 7-day aggregate, and PASS/FAIL verdicts (see [Testing policy](docs/testing.md)). `pnpm benchmark` loads the committed FRAMES/WebWalkerQA fixture first, then falls back to the public rows API; `SAMPLE_SIZE` sets the rows per benchmark (default 50). Run `pnpm benchmark:refresh` when the benchmark data changes. Live API verification requires the credentials above.
 
 ## Community and support
 

@@ -13,3 +13,5 @@ Thumbs.db
 .pnpm-store/
 tmp/
 *.tgz
+.codegraph/
+.workflow-lite/
