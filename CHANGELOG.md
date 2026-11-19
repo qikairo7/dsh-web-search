@@ -2,21 +2,24 @@
 
 All notable changes are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver. Releases before 0.8.0 have no tags — see git history.
 
+条目一律中文，按 tech-doc-style-chinese 规范撰写；发版说明由发布流程自动取自对应版本节。
+
 ## 0.13.0 — 2026-11-19
 
-### Added
+### 新增
 
-- Keyless Bing search floor (ADR-0011): Bing's public HTML SERP sits between the free stack and the paid tail with no key or quota; empty or unrelated SERPs hand to the next provider. New settings: `bingEnabled`, `bingBaseURL`, `bingMarket`.
-- `fallbackFailureClasses` config: failures are classified as quota / auth / bot-wall / transient / invalid-response / unknown, choosing which classes may fall back to the next provider (default all six; an explicit empty list stops at first failure). Empty-content failures (Tavily/AnySearch extract, HTTP SPA shells) now throw `WEB_INVALID_RESPONSE`.
-- GitHub Releases now attach an installable `.tgz` package.
+- 免 Key 的 Bing 搜索地板（ADR-0011）：Bing 公开 HTML SERP 位于免费栈与付费尾接之间，无需 Key、不占配额；空结果或无关 SERP 自动交给下一个 provider。新设置：`bingEnabled`、`bingBaseURL`、`bingMarket`。
+- `fallbackFailureClasses` 配置：失败按 quota / auth / bot-wall / transient / invalid-response / unknown 分类，该字段决定哪些类别可以回退到下一个 provider（默认全部六类；显式空列表表示在首个失败处停止）。空内容失败（Tavily/AnySearch extract、HTTP SPA 壳）现在抛 `WEB_INVALID_RESPONSE`。
+- GitHub Release 附带可安装的 `.tgz` 包与 `SHA256SUMS` 校验和。
 
-### Fixed
+### 修复
 
-- Desktop (`dsh-app://`) settings page: verify, load models, and refresh quota no longer return `403 same-origin request required`; the host Connection fence now decides trust, and real failures show the server `code`/`message`.
+- 桌面版（`dsh-app://`）设置页的「验证」「拉取模型」「刷新额度」不再统一返回 `403 same-origin request required`：信任判定改由宿主 Connection 栅栏决定，真实失败会显示服务端返回的 `code` 与 `message`。
 
-### Changed
+### 变更
 
-- README Credentials example: hand-edited `~/.dsh/.credentials.yaml` nests keys under `refs`; prefer **Add key**.
+- README 凭据示例：手改 `~/.dsh/.credentials.yaml` 时 Key 须嵌套在 `refs` 之下；推荐用设置页的「添加 Key」。
+- README 重构为中文主文档（`README.md`），英文版移至 `README.en.md`。
 
 ## 0.12.0 — 2026-11-16
 
