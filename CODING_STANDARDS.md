@@ -1,6 +1,6 @@
 # CODING_STANDARDS
 
-实现与 Review 的唯一标准。开始写代码前读完本文件；当前行为以 `README.md` / `README.en.md` 的 Behavior details 为准，配置字段、默认值和配额以 `docs/configuration.md` 为准，本文不复制默认值表。
+实现与 Review 的唯一标准。开始写代码前读完本文件；当前行为以 `docs/architecture.md` 的请求流为准，配置字段、默认值和免费额度以 `docs/configuration.md` 为准，本文不复制默认值表。
 
 ## 1. 仓库结构与发布
 
@@ -69,8 +69,8 @@
 - 证据贴原始输出：行为改动附实际命令与输出摘录；界面或交互改动附截图（web/ego 路径见 .agents/skills/verify/SKILL.md）。
 - 测试满足 §5；纯文档或格式改动确认无需新增测试。
 - 涉及后端协议、凭据解析、路由顺序或 DSH 注册的改动：有凭据时跑 `pnpm benchmark`，或安装并重启 DSH 后用 `web_search`（中英文各一次）和 `web_fetch` 各验证一次；纯逻辑改动以单测为准。
-- 新配置字段满足 §4；新 Provider 同时完成：provider 文件、`lib/catalog.js` 条目与 `lib/index.js` factory（注册顺序由 catalog 派生）、配置与默认值、`docs/configuration.md` 配置表、两份 README 的 Provider 表、映射测试、路由顺序与回退测试。
-- 默认值或配额变化时，更新 `docs/configuration.md` 的配置表和两份 README 的免费额度说明（ADR-0003 要求）；随包默认行为变化时同步 `cordis.patch.yml`。
+- 新配置字段满足 §4；新 Provider 同时完成：provider 文件、`lib/catalog.js` 条目与 `lib/index.js` factory（注册顺序由 catalog 派生）、配置与默认值、`docs/configuration.md` 配置表、`docs/architecture.md` 的 Provider 矩阵、映射测试、路由顺序与回退测试。
+- 默认值或配额变化时，更新 `docs/configuration.md` 的配置表和免费额度说明（ADR-0003 要求）；随包默认行为变化时同步 `cordis.patch.yml`。
 
 ## 7. 文档
 

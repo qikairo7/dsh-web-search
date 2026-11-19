@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Translation-pairing gate (lightweight .i18n.yaml counterpart): README.md
+/** Translation-pairing gate (lightweight .i18n.yaml counterpart): README.en.md
  * and README.md are paired section-by-section (Nth `##` section to Nth).
  * A recorded hash per section detects drift — one side changed without its
  * pair, or both changed without re-recording — and fails the check until

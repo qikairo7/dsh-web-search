@@ -31,7 +31,7 @@ Non-goals: the paid official Search/Fetch APIs, an MCP server, and third-party D
 
 ## Why
 
-- A free-tier-first pool of backends that fails over automatically and only reaches the paid tail when free quota is gone. → [Architecture](docs/architecture.md)
+- A free-tier-first pool of backends that fails over automatically and only reaches the paid tail when free quota is gone. → [Architecture](docs/architecture.md) · [Configuration](docs/configuration.md)
 - Quality pipeline: URL dedupe, BGE rerank with a domain-authority prior, evidence enrichment on the top 5. → [Architecture](docs/architecture.md)
 - Failure-class fallback gating: `fallbackFailureClasses` decides which failures may move to the next provider. → [Configuration](docs/configuration.md)
 - Bing keyless search floor between the free stack and the paid tail (ADR-0011). → [Architecture decisions](docs/adr/)

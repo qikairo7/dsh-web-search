@@ -31,7 +31,7 @@
 
 ## 为什么
 
-- 免费额度优先、自动故障切换的多后端池，免费额度用尽才落到付费尾。 → [架构](docs/architecture.md)
+- 免费额度优先、自动故障切换的多后端池，免费额度用尽才落到付费尾。 → [架构](docs/architecture.md) · [配置](docs/configuration.md)
 - 质量管线：按 URL 去重、BGE 重排叠加域名权威加权，前 5 条做证据增强。 → [架构](docs/architecture.md)
 - 失败分类回退门控：`fallbackFailureClasses` 决定哪些失败可以换下一后端。 → [配置](docs/configuration.md)
 - Bing 免 Key 搜索地板，位于免费栈之后、付费尾之前（ADR-0011）。 → [架构决策](docs/adr/)
