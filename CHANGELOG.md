@@ -6,6 +6,13 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 更早版本见 [docs/changelog-archive.md](docs/changelog-archive.md)
 
+## 0.13.5 — 2026-11-20
+
+### 变更
+
+- 把设置页保存 Key 的真实路径 `saveKey` 抽成模块级函数并暴露给单测：门在 busy 之前，成功或失败都复位 busy，界面行为不变（#133，修复 #123）。
+- 新增 3 个接线级用例，锁住「非法输入不进入保存中状态」与 busy 复位；此前的守卫只覆盖 `beginKeySave` 单体，`saveKey` 里把 `setBusy` 提前仍可全绿。
+
 ## 0.13.4 — 2026-11-20
 
 ### 变更
