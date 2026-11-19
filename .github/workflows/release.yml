@@ -57,7 +57,8 @@ jobs:
             fi
             # 首检：required 名单是 check.yml matrix 的手抄拷贝，第一次拿到结果时校验名字是否对得上，
             # 对不上说明 matrix 已改、名单漂移，立即失败而不是空等 30 分钟。
-            if [[ "$first_check" == "1" ]]; then
+            # 空 runs（tag 后 check 尚未创建）不算漂移，跳过首检走正常等待分支。
+            if [[ "$first_check" == "1" && -n "$runs" ]]; then
               first_check=0
               missing=()
               for want in "${required[@]}"; do
