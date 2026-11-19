@@ -9,7 +9,7 @@
 - Seen=2：优先把教训「机械化」成守卫测试或机械检查（如 `test/architecture.test.js`、`scripts/verify-docs.mjs`），让门禁替人记住；确实无法机械化才继续留在本表。
 - Seen=3：把规则晋升进 [CODING_STANDARDS.md](CODING_STANDARDS.md) 或该事实的唯一 home 文档；晋升不删旧条目，原条目保留证据与计数，状态改「已晋升」。
 - 验证状态如实标注：没实际跑过的项标 `not-run`，不伪装成已验证；证据缺失的教训先补证据再入表。
-- 本表随 review 累积教训，当前收录 4 条。
+- 本表随 review 累积教训，当前收录 5 条。
 
 ## 教训表
 
@@ -19,5 +19,6 @@
 | 多触发路径 workflow 用 $GITHUB_SHA 前须按触发类型核对语义；被发布 commit 用 checkout 后 git rev-parse HEAD 定位 | workflow_dispatch 时 GITHUB_SHA 是派发 ref HEAD，非 inputs.tag commit，会等错 commit 的 check | PR#101 release.yml:29 vs :44 | 1 | 2026-11-19 | open |
 | 渐进式披露类改动必须逐信息点在全仓找落点，PR 自述的『已有对应内容』不作数 | 搬家做成了丢失，且自述掩盖 | PR#104 S1：额度表与 Provider 矩阵删除后无新家，需求轴+质量轴独立收敛 | 1 | 2026-11-19 | open |
 | 搬移内容类改动，新写入的 Markdown 结构须逐处核对渲染：标题独立成行、双语小节对称；CI 绿不等于结构对（门禁不覆盖全部文件的标题结构） | 搬家把标题粘进正文行，双语导语被删，门禁全绿仍带病 | PR#104 修复轮 round1 引入 configuration.md:7 标题粘连+导语双丢，三轴复审收敛 | 1 | 2026-11-19 | open |
+| 声称修复 issue 的 PR 正文用 Fixes/Closes/Resolves 引用；合并后核对 issue 已关，悬挂的补关 | Refs 不触发 GitHub 自动关闭，issue 悬挂无人发现 | PR#96 正文 Refs #91；#91 OPEN 至 2026-11-19 手动补关 | 1 | 2026-11-19 | open |
 
 新条目追加在表尾；一次 review 里同一教训只记一次。
