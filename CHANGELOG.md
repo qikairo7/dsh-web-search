@@ -6,6 +6,13 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 更早版本见 [docs/changelog-archive.md](docs/changelog-archive.md)
 
+## 0.13.4 — 2026-11-20
+
+### 变更
+
+- `docs/changelog-archive.md` 在 `scripts/doc-budgets.json` 登记 8000 字符预算，纳入 `verify-docs` 的体量检查。
+- 归档导航行从 0.13.0 节移到 `CHANGELOG.md` 文件头，作为文件级导航；版本节结构不变。
+
 ## 0.13.3 — 2026-11-20
 
 ### 变更
