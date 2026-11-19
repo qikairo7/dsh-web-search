@@ -23,24 +23,16 @@
 
 ## 这是什么
 
-为 DSH 的 agent 提供多后端聚合的搜索抓取：免费后端自动路由与回退，替换官方计费的 Search/Fetch；`web_search` / `web_fetch` 用法不变，也可自带 Key 启用更多后端。
+为 DeepSeek Harness 的 agent 提供多后端聚合的搜索抓取：免费后端自动路由与回退，替换官方计费的 Search/Fetch；`web_search` / `web_fetch` 用法不变，也可自带 Key 启用更多后端。
 
 运行需要 DeepSeek Harness `0.2.2-rc.5`（实测）、Node.js `22.19+` 或 `24+`，以及挂载 `dsh-web` 的 profile。
 
-```
-+-------------- [ STATUS ] ---------------+
-| !  状态 pre-1.0：行为、默认值和后端支持 |
-|    可能在小版本间变化。                 |
-+-----------------------------------------+
-```
+> ⚠️ **状态**：pre-1.0，行为、默认值和后端支持可能在小版本间变化。
 
-```
-+---------- [ NON-GOALS ] -----------+
-| x  不接入官方收费 Search/Fetch API |
-| x  不依赖 MCP                      |
-| x  不安装第三方 DSH 插件           |
-+------------------------------------+
-```
+> 🚫 **非目标**：
+> - 不接入官方收费 Search/Fetch API
+> - 不依赖 MCP
+> - 不安装第三方 DeepSeek Harness 插件
 
 ## 为什么
 
@@ -52,19 +44,17 @@
 
 ## 快速开始
 
-```
-+------------------------ [ SHELL ] -------------------------+
-| $ git clone https://github.com/qikairo7/dsh-web-search.git |
-| $ cd dsh-web-search                                        |
-| $ dsh plugin --profile desktop add "."                     |
-+------------------------------------------------------------+
+```sh
+git clone https://github.com/qikairo7/dsh-web-search.git
+cd dsh-web-search
+dsh plugin --profile desktop add "."
 ```
 
-重启 DSH，在 **设置 → 搜索与抓取设置** 填 API Key、启用后端即可。完整步骤见[开发指南](docs/development.md)。
+重启 DeepSeek Harness，在 **设置 → 搜索与抓取设置** 填 API Key、启用后端即可。完整步骤见[开发指南](docs/development.md)。
 
 ## 凭据
 
-API Key 经 DSH 凭据服务读取，优先在 Provider 卡片点 **添加 Key**。手改 `~/.dsh/.credentials.yaml` 时 Key 须在 `refs` 下；字段名与多 Key 规则见 [配置参考](docs/configuration.md)。
+API Key 经 DeepSeek Harness 凭据服务读取，优先在 Provider 卡片点 **添加 Key**。手改 `~/.dsh/.credentials.yaml` 时 Key 须在 `refs` 下；字段名与多 Key 规则见 [配置参考](docs/configuration.md)。
 
 ## 升级与更多
 

@@ -34,7 +34,7 @@
 
 ## 改代码时改哪份文档
 
-| 改动 | 同步到 |
+| 改动 | 须同步到 |
 |---|---|
 | Provider 行为、配额、Provider 表 | 行为：`README.md` 与 `README.en.md`；配额与配置表：`docs/configuration.md`；能力矩阵：`docs/architecture.md`；代码事实：`lib/settings.js` 的 `DEFAULT_SETTINGS`；随包默认：`cordis.patch.yml` |
 | 模块、依赖方向、请求流、扩展点 | `docs/architecture.md` |

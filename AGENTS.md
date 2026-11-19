@@ -12,11 +12,11 @@
 
 ## 路由
 
-确定性命令：`pnpm install` `pnpm check`
+确定性命令：`pnpm check`
 
 |任务|去处|触发时机|
 |---|---|---|
-|行为/配额|docs/configuration.md|查配置|
+|配置/配额|docs/configuration.md|查配置|
 |架构|docs/architecture.md、docs/dsh-host-contract.md、codegraph_explore、codegraph init|改代码/查调用/重建|
 |标准/Review|CODING_STANDARDS.md、docs/cookbook/adding-a-provider.md|写/评审|
 |文档/术语/ADR/决策|docs/AGENTS.md、GLOSSARY.md、docs/agents/domain.md、docs/adr/、.agents/notes/|文档/术语|

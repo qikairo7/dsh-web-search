@@ -23,24 +23,16 @@
 
 ## What this is
 
-For DSH agents, multi-backend aggregated search and fetch: free backends route and fall back automatically, replacing the metered official Search/Fetch; `web_search` / `web_fetch` usage is unchanged, and you can bring your own keys for more backends.
+For DeepSeek Harness agents, multi-backend aggregated search and fetch: free backends route and fall back automatically, replacing the metered official Search/Fetch; `web_search` / `web_fetch` usage is unchanged, and you can bring your own keys for more backends.
 
 It needs DeepSeek Harness `0.2.2-rc.5` (verified), Node.js `22.19+` or `24+`, and a profile that mounts `dsh-web`.
 
-```
-+----------------- [ STATUS ] ------------------+
-| !  pre-1.0: behavior, defaults, and provider  |
-|    support can change between minor versions. |
-+-----------------------------------------------+
-```
+> ⚠️ **Status**: pre-1.0 — behavior, defaults, and provider support can change between minor versions.
 
-```
-+------------ [ NON-GOALS ] -------------+
-| x  the paid official Search/Fetch APIs |
-| x  an MCP server                       |
-| x  third-party DSH plugins             |
-+----------------------------------------+
-```
+> 🚫 **Non-goals**:
+> - the paid official Search/Fetch APIs
+> - an MCP server
+> - third-party DeepSeek Harness plugins
 
 ## Why
 
@@ -52,19 +44,17 @@ It needs DeepSeek Harness `0.2.2-rc.5` (verified), Node.js `22.19+` or `24+`, an
 
 ## Quick start
 
-```
-+------------------------ [ SHELL ] -------------------------+
-| $ git clone https://github.com/qikairo7/dsh-web-search.git |
-| $ cd dsh-web-search                                        |
-| $ dsh plugin --profile desktop add "."                     |
-+------------------------------------------------------------+
+```sh
+git clone https://github.com/qikairo7/dsh-web-search.git
+cd dsh-web-search
+dsh plugin --profile desktop add "."
 ```
 
-Restart DSH, then add API keys and enable backends under **Settings → Search and fetch settings**. Full steps in the [Development guide](docs/development.md).
+Restart DeepSeek Harness, then add API keys and enable backends under **Settings → Search and fetch settings**. Full steps in the [Development guide](docs/development.md).
 
 ## Credentials
 
-API keys come from the DSH credentials service; prefer the provider card's **Add key**. To hand-edit `~/.dsh/.credentials.yaml`, nest keys under `refs`; field names and multi-key rules are in [Configuration](docs/configuration.md).
+API keys come from the DeepSeek Harness credentials service; prefer the provider card's **Add key**. To hand-edit `~/.dsh/.credentials.yaml`, nest keys under `refs`; field names and multi-key rules are in [Configuration](docs/configuration.md).
 
 ## Upgrade and more
 
