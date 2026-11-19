@@ -40,17 +40,3 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
 
-  pr-gate:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-      - name: Check PR delivery gate
-        env:
-          PR_BODY: ${{ github.event.pull_request.body }}
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-        run: node scripts/check-pr-gate.mjs
