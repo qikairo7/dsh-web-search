@@ -27,9 +27,9 @@ For DeepSeek Harness agents, multi-backend aggregated search and fetch: free bac
 
 It needs DeepSeek Harness `0.2.2-rc.5` (verified), Node.js `22.19+` or `24+`, and a profile that mounts `dsh-web`.
 
-> ⚠️ **Status**: pre-1.0 — behavior, defaults, and provider support can change between minor versions.
+> **Status**: pre-1.0 — behavior, defaults, and provider support can change between minor versions.
 
-> 🚫 **Non-goals**:
+> **Non-goals**:
 > - the paid official Search/Fetch APIs
 > - an MCP server
 > - third-party DeepSeek Harness plugins
