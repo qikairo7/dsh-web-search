@@ -13,7 +13,7 @@
  * historical lifecycle notes and upstream paths cited in third-party notices.
  */
 
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { execSync } from 'node:child_process';
 import path from 'node:path';
@@ -21,11 +21,14 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-// Lifecycle notes record past states and are never rewritten (docs/AGENTS.md),
+// Historical, no-rewrite zones (docs/AGENTS.md): lifecycle notes, ADRs, benchmark
+// reports and shipped changelog sections record past states and are never rewritten,
 // so an old path there is load-bearing history, not a live reference to fix.
-const SKIP_FILE = /^\.agents\/notes\/(?:implemented|proposed|rejected|archived)\//;
+const SKIP_FILE = /^(?:(?:\.agents\/notes\/(?:implemented|proposed|rejected|archived)|docs\/(?:adr|benchmarks))\/|CHANGELOG\.md$|docs\/changelog-archive\.md$)/;
 // `lib/engines/*` are upstream repo files named in THIRD_PARTY_NOTICES, not ours.
 const SKIP_REF_PREFIX = 'lib/engines/';
+// Glob / placeholder marker: such a token is a shape, not a literal reference.
+const PLACEHOLDER = /[<>*?{}[\]|]/;
 
 // pnpm actions that are built into pnpm itself, not script names in package.json.
 const PNPM_BUILTINS = new Set([
@@ -49,7 +52,7 @@ export function pathRef(span, repoRoots) {
   if (/^(?:https?:|mailto:|#)/i.test(token)) return null; // URL / anchor
   if (/^(?:@|~|\/)/.test(token)) return null; // package name / home / absolute
   if (/^[A-Za-z]:[\\/]/.test(token)) return null; // Windows absolute path
-  if (/[<>*?{}[\]|]/.test(token)) return null; // glob / placeholder
+  if (PLACEHOLDER.test(token)) return null;
   if (token.endsWith('/')) return null; // directory shorthand
   if (!token.includes('/')) return null; // bare filename shorthand
   if (!repoRoots.has(token.split('/')[0])) return null; // reference to another repo
@@ -62,7 +65,7 @@ export function commandRefs(span) {
   const refs = [];
   for (const match of span.matchAll(/\bnode\s+(?:--?\S+\s+)*([^\s&|;]+)/g)) {
     const target = stripLineRef(match[1]);
-    if (/[<>*?{}[\]|]/.test(target)) continue;
+    if (PLACEHOLDER.test(target)) continue;
     if (/\.(?:mjs|js|cjs)$/.test(target)) refs.push({ kind: 'node', token: target });
   }
   for (const match of span.matchAll(/\bpnpm\s+([^\s&|;]+)/g)) {
@@ -109,12 +112,14 @@ export function scanMarkdown(text, file, { repoRoots, scripts, exists = existsSy
 
 const isMain = process.argv[1] !== undefined && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
-  const repoRoots = new Set(readdirSync(root, { withFileTypes: true }).map((entry) => entry.name));
+  // Top-level names come from tracked files, not the live filesystem: an untracked
+  // local dir (.research, etc.) must not turn a valid reference red on a dev machine
+  // while CI's clean checkout stays green.
+  const tracked = execSync('git ls-files -z', { cwd: root, encoding: 'utf8' }).split('\0').filter(Boolean);
+  const repoRoots = new Set(tracked.map((file) => file.replaceAll('\\', '/').split('/')[0]));
   const pkg = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
   const scripts = new Set(Object.keys(pkg.scripts ?? {}));
-  const files = execSync('git ls-files -z "*.md"', { cwd: root, encoding: 'utf8' })
-    .split('\0')
-    .filter(Boolean);
+  const files = tracked.map((file) => file.replaceAll('\\', '/')).filter((file) => file.endsWith('.md'));
 
   const failures = [];
   for (const file of files) {
