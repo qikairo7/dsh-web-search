@@ -6,6 +6,12 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 更早版本见 [docs/changelog-archive.md](docs/changelog-archive.md)
 
+## 0.13.10 — 2026-11-20
+
+### 修复
+
+- `anysearchClient` 解析响应体改用全仓统一的 `readResponseText`，按 10MB 上限流式读取，超限在读取阶段即中止；此前直接调用 `response.json()`，一次性读入且无上限，可绕过限制把超大响应体整段缓冲进内存（#162，修复 #139）。
+
 ## 0.13.9 — 2026-11-20
 
 ### 变更
