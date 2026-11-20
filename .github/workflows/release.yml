@@ -42,9 +42,9 @@ jobs:
           # workflow_dispatch 时也不受 GITHUB_SHA（派发 ref 的 SHA）影响。
           SHA=$(git rev-parse HEAD)
           required=(
-            'check (ubuntu-latest, 22)'
-            'check (ubuntu-latest, 24)'
-            'check (windows-latest, 24)'
+            'check'
+            'full-matrix (ubuntu-latest, 22)'
+            'full-matrix (windows-latest, 24)'
           )
           # 预算：60 轮 × 30 秒 ≈ 30 分钟，须落在 job 的 timeout-minutes: 45 之内。
           first_check=1
