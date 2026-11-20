@@ -18,7 +18,8 @@
 
 ### 工具调用
 
-- `web_search`：按搜索模式聚合多后端，返回 sources（标题/URL/摘要）与可选 content；失败类别命中 `fallbackFailureClasses` 时回退下一后端（顺序由 provider 顺序决定）。
+- `web_search`：按搜索模式聚合多后端，返回 sources（标题/URL/摘要）与可选 content；失败类别命中 `fallbackFailureClasses` 时回退下一后端，顺序由意图/语言路由的 fast 前缀 + 显式 keyless 地板（bing）+ 显式付费尾（tavily、firecrawl）决定，不按注册顺序。
+- keyless 后端 `bing`：免 Key 的搜索地板（ADR-0011，默认开启），在 fast 回退链里位于快速前缀之后、付费尾（tavily、firecrawl）之前。
 - `web_fetch`：抓取单个 URL 返回 Markdown；fast 优先 Keenable/直连 HTTP，clean 优先免费抽取，Tavily/Firecrawl 兜底。
 
 ## 错误提示语义表
