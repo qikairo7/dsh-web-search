@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import { QualityEngine } from '../lib/quality.js';
 import { ProviderRunner } from '../lib/providerRunner.js';
+import { webError } from '../lib/errors.js';
 
 function settings(overrides = {}) {
   return {
@@ -318,5 +319,197 @@ test('QualityEngine enriches through the pipeline with a bounded summary when bo
   assert.ok(
     source.summary.length <= 1500,
     `summary above the maximum bound: ${source.summary.length}`,
+  );
+});
+
+// --- internal deadline must degrade, not fail the whole search (issue #137) ---
+
+test('QualityEngine returns merged sources when rerank hits the internal deadline', async () => {
+  const controller = new AbortController();
+  const quality = makeEngine({
+    providers: {
+      keenable: fakeProvider({
+        sources: [
+          { url: 'https://k1.example/', title: 'K1' },
+          { url: 'https://k2.example/', title: 'K2' },
+        ],
+        truncated: false,
+      }),
+    },
+    reranker: {
+      rerankScored: async () => {
+        controller.abort(new DOMException('search budget expired', 'TimeoutError'));
+        throw webError('rerank aborted', 'WEB_ABORTED');
+      },
+    },
+  });
+  const outcome = await quality.search({ query: 'budget burn query' }, controller.signal);
+  assert.equal(outcome.sources.length, 2);
+  assert.deepEqual(
+    outcome.sources.map((source) => source.url).sort(),
+    ['https://k1.example/', 'https://k2.example/'],
+  );
+});
+
+test('QualityEngine keeps the original candidates when embeddings hits the internal deadline', async () => {
+  const controller = new AbortController();
+  const quality = makeEngine({
+    providers: {
+      keenable: fakeProvider({
+        sources: [
+          { url: 'https://k1.example/', title: 'K1' },
+          { url: 'https://k2.example/', title: 'K2' },
+        ],
+        truncated: false,
+      }),
+    },
+    embeddings: {
+      dedupe: async () => {
+        controller.abort(new DOMException('search budget expired', 'TimeoutError'));
+        throw webError('embeddings aborted', 'WEB_ABORTED');
+      },
+    },
+  });
+  const outcome = await quality.search({ query: 'dedupe budget query' }, controller.signal);
+  assert.deepEqual(
+    outcome.sources.map((source) => source.url).sort(),
+    ['https://k1.example/', 'https://k2.example/'],
+  );
+});
+
+test('QualityEngine returns merged sources when the internal deadline fires during an official-docs supplement', async () => {
+  const controller = new AbortController();
+  const quality = makeEngine({
+    providers: {
+      keenable: fakeProvider({
+        sources: [{ url: 'https://stackoverflow.com/questions/1', title: 'fs.promises usage' }],
+        truncated: false,
+      }),
+      tavily: {
+        available: () => true,
+        ready: async () => true,
+        searchWithDomains: async () => {
+          controller.abort(new DOMException('search budget expired', 'TimeoutError'));
+          throw webError('official docs aborted', 'WEB_ABORTED');
+        },
+      },
+    },
+    overrides: { officialDocsEnabled: true },
+    // A real reranker over the already-expired budget would also abort; it must
+    // degrade too, so the whole search stays usable.
+    reranker: {
+      rerankScored: async () => {
+        throw webError('rerank aborted', 'WEB_ABORTED');
+      },
+    },
+  });
+  const outcome = await quality.search(
+    { query: 'node.js fs promises', maxResults: 10 },
+    controller.signal,
+  );
+  assert.ok(
+    outcome.sources.some((source) => source.url === 'https://stackoverflow.com/questions/1'),
+  );
+});
+
+test('QualityEngine rethrows caller cancellation at rerank instead of degrading', async () => {
+  const controller = new AbortController();
+  const quality = makeEngine({
+    providers: {
+      keenable: fakeProvider({
+        sources: [{ url: 'https://k1.example/', title: 'K1' }],
+        truncated: false,
+      }),
+    },
+    reranker: {
+      rerankScored: async () => {
+        controller.abort(new DOMException('caller cancelled', 'AbortError'));
+        throw webError('rerank aborted', 'WEB_ABORTED');
+      },
+    },
+  });
+  await assert.rejects(
+    () => quality.search({ query: 'cancel query' }, controller.signal),
+    (error) => error.code === 'WEB_ABORTED',
+  );
+});
+
+test('QualityEngine rethrows caller cancellation during an official-docs supplement', async () => {
+  const controller = new AbortController();
+  const quality = makeEngine({
+    providers: {
+      keenable: fakeProvider({
+        sources: [{ url: 'https://stackoverflow.com/questions/1', title: 'fs.promises usage' }],
+        truncated: false,
+      }),
+      tavily: {
+        available: () => true,
+        ready: async () => true,
+        searchWithDomains: async () => {
+          controller.abort(new DOMException('caller cancelled', 'AbortError'));
+          throw webError('official docs aborted', 'WEB_ABORTED');
+        },
+      },
+    },
+    overrides: { officialDocsEnabled: true },
+  });
+  await assert.rejects(
+    () => quality.search({ query: 'node.js fs promises' }, controller.signal),
+    (error) => error.code === 'WEB_ABORTED',
+  );
+});
+
+test('QualityEngine returns merged sources when the internal deadline fires during a news supplement', async () => {
+  const controller = new AbortController();
+  const quality = makeEngine({
+    providers: {
+      keenable: fakeProvider({
+        sources: [
+          { url: 'https://www.sohu.com/a/free', title: '旧闻', publishedAt: '2020-01-01T00:00:00Z' },
+        ],
+        truncated: false,
+      }),
+      tavily: {
+        available: () => true,
+        ready: async () => true,
+        search: async () => {
+          controller.abort(new DOMException('search budget expired', 'TimeoutError'));
+          throw webError('news supplement aborted', 'WEB_ABORTED');
+        },
+      },
+    },
+  });
+  const outcome = await quality.search(
+    { query: '2026年11月 行业新闻', maxResults: 10 },
+    controller.signal,
+  );
+  assert.ok(
+    outcome.sources.some((source) => source.url === 'https://www.sohu.com/a/free'),
+  );
+});
+
+test('QualityEngine rethrows caller cancellation during a news supplement', async () => {
+  const controller = new AbortController();
+  const quality = makeEngine({
+    providers: {
+      keenable: fakeProvider({
+        sources: [
+          { url: 'https://www.sohu.com/a/free', title: '旧闻', publishedAt: '2020-01-01T00:00:00Z' },
+        ],
+        truncated: false,
+      }),
+      tavily: {
+        available: () => true,
+        ready: async () => true,
+        search: async () => {
+          controller.abort(new DOMException('caller cancelled', 'AbortError'));
+          throw webError('news supplement aborted', 'WEB_ABORTED');
+        },
+      },
+    },
+  });
+  await assert.rejects(
+    () => quality.search({ query: '2026年11月 行业新闻' }, controller.signal),
+    (error) => error.code === 'WEB_ABORTED',
   );
 });
