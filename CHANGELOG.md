@@ -6,6 +6,13 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 更早版本见 [docs/changelog-archive.md](docs/changelog-archive.md)
 
+## 0.13.9 — 2026-11-20
+
+### 变更
+
+- 仓库中文文档标准由 `tech-doc-style-chinese` 切换为 `zh-tech-writing`，`CODING_STANDARDS.md`、`docs/AGENTS.md` 等处的技能引用随之替换；接入 autocorrect，新增 `.autocorrectrc`、`.autocorrectignore` 与 `pnpm lint:zh`，以 observe 方式单跑、不并入 `pnpm check`，历史文件不改写。
+- `README.md`、`README.en.md` 去掉装饰性 emoji，重录 `docs/translation-pairs.json`；活文档按机械排版与行文抽查两层清理，`docs/development.md` 预算由 3500 调到 4000。
+
 ## 0.13.8 — 2026-11-20
 
 ### 变更
