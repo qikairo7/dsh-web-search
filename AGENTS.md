@@ -23,3 +23,8 @@
 |发版/推前/排错|CHANGELOG.md、.agents/skills/、docs/development.md|发版/推前/排错|
 
 改功能必同步改相关文档（去处见上表），PR 里文档与代码同 diff；只改代码不改文档的 PR 退回。
+
+## Agent skills
+
+Agent 侧配置（issue tracker、triage labels、domain docs）见 `docs/agents/` 下的 issue-tracker.md、triage-labels.md、domain.md。
+
