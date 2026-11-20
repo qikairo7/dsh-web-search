@@ -1,4 +1,5 @@
 {
+  "minHeadroom": 10,
   "AGENTS.md": 1000,
   "CODING_STANDARDS.md": 8000,
   "README.md": 4000,
