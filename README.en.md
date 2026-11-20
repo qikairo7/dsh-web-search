@@ -56,6 +56,14 @@ Restart DeepSeek Harness, then add API keys and enable backends under **Settings
 
 API keys come from the DeepSeek Harness credentials service; prefer the provider card's **Add key**. To hand-edit `~/.dsh/.credentials.yaml`, nest keys under `refs`; field names and multi-key rules are in [Configuration](docs/configuration.md).
 
+## Documentation index
+
+- Usage: [Configuration](docs/configuration.md) · [Upgrade guide](docs/upgrade/0.13.0.md) · [Changelog](CHANGELOG.md) · [Changelog archive](docs/changelog-archive.md)
+- How it works: [Architecture](docs/architecture.md) · [Architecture decisions](docs/adr/) · [Host contract](docs/dsh-host-contract.md) · [Feature map](docs/feature-map.md) · [Plugin details](docs/DETAIL.md) · [Plugin details (EN)](docs/DETAIL.en.md)
+- Development: [Development guide](docs/development.md) · [Testing strategy](docs/testing.md) · [Adding a provider](docs/cookbook/adding-a-provider.md) · [Raising the summary cap](docs/cookbook/raising-summary-cap.md) · [Contributing](CONTRIBUTING.md)
+- Deep dive: [Subsystem reference](docs/subsystems/README.md) · [Review rules](docs/defensive-patterns.md) · [Agent domain docs](docs/agents/domain.md) · [Benchmark entry](BENCHMARK.md) · [Benchmark reports](docs/benchmarks/) · [Glossary](GLOSSARY.md)
+- Governance: [Documentation standard](docs/AGENTS.md) · [Document inventory](docs/schema-inventory.md) · [Documentation sync map](docs/schema-sync-map.md) · [Security policy](SECURITY.md) · [Trademarks](TRADEMARKS.md)
+
 ## Upgrade and more
 
 - Upgrading from 0.12.x: [0.13.0 upgrade guide](docs/upgrade/0.13.0.md).
