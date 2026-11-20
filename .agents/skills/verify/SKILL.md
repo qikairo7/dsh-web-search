@@ -1,6 +1,6 @@
 ---
 name: verify
-description: 在 dsh-web-search 里提交/交付前做端到端冒烟时使用：装包后的真实 web_search / web_fetch 验证规程，分 keyless 与 keyed 两条路径——keyless 免凭据全自动，keyed 用真实 provider key 端到端跑搜索和抓取。机器审查 Evidence 里标 not-run 的装包冒烟，由本 skill 收口。
+description: 在 dsh-web-search 里提交/交付前做端到端冒烟时使用：装包后的真实 web_search / web_fetch 验证规程，分 keyless、keyed 定向、dogfooding 日常使用三条路径——keyless 免凭据全自动，keyed 用真实 provider key 定向跑搜索和抓取，dogfooding 以 ego 当真实用户做全流日常体验。机器审查 Evidence 里标 not-run 的装包冒烟，由本 skill 收口。
 ---
 
 # 端到端验证（verify）
@@ -12,6 +12,7 @@ description: 在 dsh-web-search 里提交/交付前做端到端冒烟时使用�
 - provider 或路由改动合并前后（对应 PR Evidence 的 not-run 项）
 - 版本发布前（tag 前）
 - 大重构后（quality 管线、router、errors）
+- dogfooding 日常使用验收：版本发布（tag）前，或 PR 改 `lib/`、router、provider、`client.js` 核心交互时（见下「dogfooding 日常使用验收」）
 
 ## 规程（keyless 全自动，无需凭据）
 
@@ -122,6 +123,36 @@ keyless 冒烟只走免 key 后端；带 key provider 的真实搜索与抓取�
 - 核心路径 PR（触发条件命中）的 keyed E2E 失败 = **P1 阻塞**。
 - 非触发的 PR 主动跑了但失败 = P2 记录。
 - 配额成本控制：每 provider 每次验收最多 3 次真实调用。
+
+## dogfooding 日常使用验收（发布前与大改必跑）
+
+keyed E2E 是定向快检：按预先想好的路径验搜索与抓取，只能发现想到的问题。本节以 ego 当真实用户做全流日常体验——打开网页端、走日常操作、撞见没想到的问题。定向验证证明「指定路径没坏」，dogfooding 回答「用户真用起来行不行、项目有没有在进步」。
+
+### 何时跑
+
+- 版本发布（tag）前必跑一轮。
+- PR 改 `lib/`、router、provider、`client.js` 核心交互时必跑。
+- 与 keyed E2E 的关系：keyed 是定向快检（验指定路径），dogfooding 是全流体验（当用户用）。大改两者都跑，先 keyed 后 dogfooding——keyed 先挡掉明确的坏路径，再用 dogfooding 捞剩余体验问题。
+
+### 环境
+
+独立 DSH_HOME + 独立 profile + 独立端口，照「管理路由真机验证」§1 的起实例流程。真实凭据经脚本**导入**隔离库——key 安全纪律与「keyed E2E」的 key 注入节完全一致：key 不进命令行、不回显，注入前后对主凭据库做只读校验和核对，验后删隔离 home。
+
+### ego 用户旅程（模拟真实用户的日常，不是定向测试）
+
+1. 打开带 token 的 URL 进首页，过掉引导弹窗——记录首屏是否正常（标题、布局、有无报错）。
+2. 开一个新会话，问 3 个真实问题，混合形态：一个中文常识性问题、一个英文技术问题、一个需要 `site:` 定向的问题。每个问题等回答完整，记录：回答是否真引用了搜索结果（有来源 / 链接 / 事实内容）、响应耗时、有无报错或空洞回答。
+3. 在同一会话让模型抓取一个指定公开网页并总结（触发 `web_fetch`）——记录：抓到的内容是否真实完整、总结是否基于真内容。
+4. 设置页全走：搜索与抓取设置打开、各 provider 卡片状态（已配置 / 未配置）、点「验证」、刷新额度——记录每步反馈文案与耗时。
+5. 全程留意意外：控制台报错、请求失败提示、明显卡顿（单步超过 10 秒）、界面异常——任何意外都是 finding，不管是不是本 PR 改动面。
+
+### 判定哲学
+
+不做「非空即过」的理论断言——每个问题从用户视角记「能用 / 不能用 / 体验差」。能用的记好在哪（结果带真来源、耗时合理、文案清楚），不能用的记现象与复现步骤。撞见的意外发现开 issue（照常走 PR 流修复），不静默。
+
+### 产出
+
+dogfooding 流水记录，每步记：操作 → 观察 → 耗时 → 判定。追加进 PR Evidence，或版本发布前的检查记录。
 
 ## 判定与记录
 
