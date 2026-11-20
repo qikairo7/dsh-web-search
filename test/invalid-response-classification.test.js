@@ -7,6 +7,7 @@ import { classifyFailure, toWebError } from '../lib/errors.js';
 import { AutoSearchProvider } from '../lib/providers/router.js';
 import { mapExaSearch } from '../lib/providers/exa.js';
 import { mapTavilySearch } from '../lib/providers/tavily.js';
+import { mapZhihuSearch } from '../lib/providers/zhihu.js';
 import { mapKeenableSearch } from '../lib/providers/keenable.js';
 import { mapFirecrawlSearch } from '../lib/providers/firecrawl.js';
 import { mapAihotItems } from '../lib/providers/aihot.js';
@@ -15,6 +16,7 @@ import { mapAihotItems } from '../lib/providers/aihot.js';
 const SEARCH_MAPPERS = [
   ['Exa', () => mapExaSearch({})],
   ['Tavily', () => mapTavilySearch(null)],
+  ['Zhihu', () => mapZhihuSearch(null)],
   ['Keenable', () => mapKeenableSearch({})],
   ['Firecrawl', () => mapFirecrawlSearch(null)],
   ['AIHOT', () => mapAihotItems(null)],
