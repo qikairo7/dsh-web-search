@@ -9,7 +9,7 @@
 - Seen=2：优先把教训「机械化」成守卫测试或机械检查（如 `test/architecture.test.js`、`scripts/verify-docs.mjs`），让门禁替人记住；确实无法机械化才继续留在本表。
 - Seen=3：把规则晋升进 [CODING_STANDARDS.md](CODING_STANDARDS.md) 或该事实的唯一 home 文档；晋升不删旧条目，原条目保留证据与计数，状态改「已晋升」。
 - 验证状态如实标注：没实际跑过的项标 `not-run`，不伪装成已验证；证据缺失的教训先补证据再入表。
-- 本表随 review 累积教训，当前收录 7 条。
+- 本表随 review 累积教训，当前收录 9 条。
 
 ## 教训表
 
@@ -22,5 +22,7 @@
 | 声称修复 issue 的 PR 正文用 Fixes/Closes/Resolves 引用；合并后核对 issue 已关，悬挂的补关 | Refs 不触发 GitHub 自动关闭，issue 悬挂无人发现 | PR#96 正文 Refs #91；#91 OPEN 至 2026-11-19 手动补关；PR#103 正文『修复 #97』无 closing 关键字，#97 手动补关 | 2 | 2026-11-19 | open |
 | 提交前核对提交信息：标题单行、正文非空且末尾独立一行 Verified-by，不得出现字面 \n | 空正文或粘连戳让 §8 审计链断裂，git log --grep 无法区分已验证与未声明 | #89/#93/#94 正文为空无戳；#95 整条字面 \n 单行；#107 要点间字面 \n | 1 | 2026-11-19 | open |
 | PR 对自身产物的描述须与产物实际核对 | 声明与产物不符会误导 | PR#124 CONTRIBUTING.md:30「三节」vs 模板六节 | 1 | 2026-11-19 | open |
+| 新增 npm 脚本须同步更新 CODING_STANDARDS §1 与 development.md 两处事实源 | 旧句称「仓库没有 dev/lint 脚本」与新脚本矛盾，自相矛盾误导 | PR#158 P1(G1)：package.json 加 lint:zh 未同步 CODING_STANDARDS.md:10、development.md:65；grep「没有 dev」一次定位 | 1 | 2026-11-20 | open |
+| 向预算敏感文档增文前先算 doc-budgets 余量，不足按阶梯重定预算 | 余量仅 6（3494/3500）时增节即爆预算，门禁盲区未拦 | PR#158 round1：development.md 3494/3500 增 autocorrect 节，预算提至 4000 | 1 | 2026-11-20 | open |
 
 新条目追加在表尾；一次 review 里同一教训只记一次。
