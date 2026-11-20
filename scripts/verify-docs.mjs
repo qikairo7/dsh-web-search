@@ -171,6 +171,7 @@ const chineseDocs = new Set([
   'AGENTS.md',
   'CODING_STANDARDS.md',
   'REVIEW-LESSONS.md',
+  'REVIEW-LESSONS-archive.md',
   'CONTRIBUTING.md',
   'BENCHMARK.md',
   'docs/AGENTS.md',
