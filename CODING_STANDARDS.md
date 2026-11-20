@@ -109,4 +109,5 @@
 7. **边界与依赖**：根 `AGENTS.md` 的硬边界与本文件 §1、§3 的边界规则全部满足，无未说明的新依赖；依赖方向不被反转（`scripts/check-architecture.mjs` 机械检查，并入 `pnpm check`）。
 8. **实现克制**：除会被测试直接复用的 `mapXxxSearch()` 外，一次性逻辑没有被抽成函数；`try/catch` 只出现在错误边界；没有为未经确认的推测性复杂度增加代码。
 9. **门禁文档同步**：改 `package.json` 的 check 链或 git hook 行为时，`README.md`、`README.en.md`、`docs/development.md`、`docs/AGENTS.md` 中 check 组成的描述同步更新；带顺序声明（「依次」等）的列举与实际链序逐位一致。
+10. **产物数字声明须与实测核对**：PR 正文与 issue 评论中对产物的一切数字声明（计数、余量、尺寸、行数），发布前必须与产物当前实际值核对；执行中基线变化（增删文件/行）后旧数字全部作废重算。
 
