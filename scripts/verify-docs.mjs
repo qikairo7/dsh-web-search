@@ -1,8 +1,9 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { readFile, readdir } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { MIRROR_PAIRS, mirrorLinkErrors, budgetHeadroomWarnings } from './doc-guards.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const errors = [];
@@ -62,13 +63,17 @@ for (const file of required) {
 }
 
 const budgets = JSON.parse(await readFile(path.join(root, 'scripts/doc-budgets.json'), 'utf8'));
-for (const [file, limit] of Object.entries(budgets)) {
+const budgetEntries = Object.entries(budgets).filter(([file]) => file !== 'minHeadroom');
+const budgetLengths = new Map();
+for (const [file, limit] of budgetEntries) {
   const fullPath = path.join(root, file);
   if (!existsSync(fullPath)) continue;
   const text = await readFile(fullPath, 'utf8');
   const count = Array.from(text).length;
+  budgetLengths.set(file, count);
   if (count > limit) errors.push(`${file}: ${count} chars > budget ${limit}`);
 }
+const headroomWarnings = budgetHeadroomWarnings(budgets, (file) => budgetLengths.get(file));
 
 async function sourceFiles(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
@@ -299,12 +304,24 @@ for (const backend of ['Keenable', 'AnySearch', 'Exa', 'Bing', 'Zhihu', 'Tavily'
   if (!configText.includes(`| ${backend} |`)) errors.push(`docs/configuration.md: free-allowance table missing "${backend}"`);
 }
 
+for (const error of mirrorLinkErrors(MIRROR_PAIRS, (rel) => {
+  const fullPath = path.join(root, rel);
+  return existsSync(fullPath) ? readFileSync(fullPath, 'utf8') : undefined;
+})) {
+  errors.push(error);
+}
+
+if (headroomWarnings.length > 0) {
+  console.warn(`docs:check warnings (${headroomWarnings.length})`);
+  for (const warning of headroomWarnings) console.warn(`- WARN ${warning}`);
+}
+
 if (errors.length > 0) {
   console.error(`docs:check failed (${errors.length})`);
   for (const error of errors) console.error(`- ${error}`);
   process.exitCode = 1;
 } else {
   console.log(
-    `docs:check passed: ${markdown.length} markdown files, ${Object.keys(budgets).length} budgets, ${configKeys.length} config fields`,
+    `docs:check passed: ${markdown.length} markdown files, ${budgetEntries.length} budgets, ${configKeys.length} config fields`,
   );
 }
