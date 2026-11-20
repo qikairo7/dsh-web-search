@@ -458,3 +458,58 @@ test('QualityEngine rethrows caller cancellation during an official-docs supplem
     (error) => error.code === 'WEB_ABORTED',
   );
 });
+
+test('QualityEngine returns merged sources when the internal deadline fires during a news supplement', async () => {
+  const controller = new AbortController();
+  const quality = makeEngine({
+    providers: {
+      keenable: fakeProvider({
+        sources: [
+          { url: 'https://www.sohu.com/a/free', title: '旧闻', publishedAt: '2020-01-01T00:00:00Z' },
+        ],
+        truncated: false,
+      }),
+      tavily: {
+        available: () => true,
+        ready: async () => true,
+        search: async () => {
+          controller.abort(new DOMException('search budget expired', 'TimeoutError'));
+          throw webError('news supplement aborted', 'WEB_ABORTED');
+        },
+      },
+    },
+  });
+  const outcome = await quality.search(
+    { query: '2026年11月 行业新闻', maxResults: 10 },
+    controller.signal,
+  );
+  assert.ok(
+    outcome.sources.some((source) => source.url === 'https://www.sohu.com/a/free'),
+  );
+});
+
+test('QualityEngine rethrows caller cancellation during a news supplement', async () => {
+  const controller = new AbortController();
+  const quality = makeEngine({
+    providers: {
+      keenable: fakeProvider({
+        sources: [
+          { url: 'https://www.sohu.com/a/free', title: '旧闻', publishedAt: '2020-01-01T00:00:00Z' },
+        ],
+        truncated: false,
+      }),
+      tavily: {
+        available: () => true,
+        ready: async () => true,
+        search: async () => {
+          controller.abort(new DOMException('caller cancelled', 'AbortError'));
+          throw webError('news supplement aborted', 'WEB_ABORTED');
+        },
+      },
+    },
+  });
+  await assert.rejects(
+    () => quality.search({ query: '2026年11月 行业新闻' }, controller.signal),
+    (error) => error.code === 'WEB_ABORTED',
+  );
+});
