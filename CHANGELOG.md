@@ -1,3 +1,7 @@
+## 0.13.12 — 2026-11-21
+
+- issue 模板标准化：新增治理/审计表单与来源标注，PR 模板增补 Scope 与验证口径。
+
 # Changelog
 
 All notable changes are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver. Releases before 0.8.0 have no tags — see git history.
