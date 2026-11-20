@@ -7,6 +7,7 @@
 | `AGENTS.md` | 每回合加载的硬规则与指针 | 教程、示例、可推导细节 |
 | `CODING_STANDARDS.md` | 实现与 Review 唯一标准：契约、实现原则、测试、完成门禁 | 当前默认值、行为说明 |
 | `REVIEW-LESSONS.md` | 错题本：教训证据、Seen 计数与晋升机制 | 正式实现标准、决策史 |
+| `REVIEW-LESSONS-archive.md` | 已晋升/老化教训条目归档；只搬不改，写入规则见 REVIEW-LESSONS.md 机制节 | 内容编辑 |
 | `README.md`（中文主文档）/ `README.en.md` | 用户可见事实：安装、凭据、行为概览；两份同步 | 实现细节、决策史、配置表、Provider 矩阵与配额 |
 | `docs/configuration.md` | 完整配置字段、默认值与说明；README 链接到此 | 行为教程、实现规则 |
 | `docs/development.md` | 安装、命令、CI 与排错 | 实现规则、产品行为 |
