@@ -106,6 +106,99 @@ test('AnySearchProvider keeps the official 55s HTTP deadline floor', () => {
   assert.equal(longer.client(longer.settings()).timeoutMs, 60_000);
 });
 
+test('AnySearchClient rejects a response body that exceeds the 10MB cap while streaming', async () => {
+  let pulls = 0;
+  const chunk = new Uint8Array(1_000_000);
+  const body = new ReadableStream({
+    pull(controller) {
+      pulls += 1;
+      if (pulls > 20) {
+        controller.close();
+        return;
+      }
+      controller.enqueue(chunk);
+    },
+  });
+  await withFetch(
+    async () => new Response(body, { status: 200, headers: { 'content-type': 'application/json' } }),
+    async () => {
+      const client = new AnySearchClient({
+        baseURL: 'https://api.anysearch.com',
+        resolveApiKey: async () => undefined,
+      });
+      await assert.rejects(
+        () => client.search({ query: 'q' }),
+        (error) => error instanceof AnySearchClientError && /exceeded 10000000 bytes/.test(error.message),
+      );
+      assert.ok(pulls < 20, `read stopped near the cap; pulled ${pulls} MB of a 20 MB stream`);
+    },
+  );
+});
+
+test('AnySearchClient rejects a declared oversized content-length before reading', async () => {
+  let pulls = 0;
+  const chunk = new Uint8Array(1_000_000);
+  const body = new ReadableStream({
+    pull(controller) {
+      pulls += 1;
+      if (pulls > 12) {
+        controller.close();
+        return;
+      }
+      controller.enqueue(chunk);
+    },
+  });
+  await withFetch(
+    async () => new Response(body, {
+      status: 200,
+      headers: { 'content-type': 'application/json', 'content-length': '10000001' },
+    }),
+    async () => {
+      const client = new AnySearchClient({
+        baseURL: 'https://api.anysearch.com',
+        resolveApiKey: async () => undefined,
+      });
+      await assert.rejects(
+        () => client.search({ query: 'q' }),
+        (error) => error instanceof AnySearchClientError && /exceeded 10000000 bytes/.test(error.message),
+      );
+      assert.ok(pulls < 5, `the declared-oversized body must not be read; pulled ${pulls} MB`);
+    },
+  );
+});
+
+test('AnySearchClient still reports invalid JSON within the cap', async () => {
+  await withFetch(
+    { status: 200, headers: { 'content-type': 'application/json' }, body: 'not json' },
+    async () => {
+      const client = new AnySearchClient({
+        baseURL: 'https://api.anysearch.com',
+        resolveApiKey: async () => undefined,
+      });
+      await assert.rejects(
+        () => client.search({ query: 'q' }),
+        (error) => error instanceof AnySearchClientError && /invalid JSON/.test(error.message),
+      );
+    },
+  );
+});
+
+test('AnySearchClient still maps a non-2xx response to an upstream error', async () => {
+  await withFetch(
+    { status: 503, headers: { 'content-type': 'application/json' }, body: { message: 'boom' } },
+    async () => {
+      const client = new AnySearchClient({
+        baseURL: 'https://api.anysearch.com',
+        resolveApiKey: async () => undefined,
+      });
+      await assert.rejects(
+        () => client.search({ query: 'q' }),
+        (error) => error instanceof AnySearchClientError && error.httpStatus === 503 && /boom/.test(error.message),
+      );
+    },
+  );
+});
+
 test('AnySearchClient keeps valid results when a malformed result lacks a title', async () => {
   await withFetch(
     {
