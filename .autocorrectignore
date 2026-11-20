@@ -4,9 +4,9 @@
 !*/
 !*.md
 
-# 历史不改写类：已发版 CHANGELOG、ADR、基准报告、Agent Note、升级指南。
+# 历史不改写类：已发版 CHANGELOG、ADR、基准报告、升级指南。
 CHANGELOG.md
+docs/changelog-archive.md
 docs/adr/**
 docs/benchmarks/**
-.agents/notes/**
 docs/upgrade/**
