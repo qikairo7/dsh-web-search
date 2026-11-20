@@ -1,3 +1,10 @@
+## 0.13.13 — 2026-11-21
+
+### 修复
+
+- 六个搜索映射器（Exa、Tavily、知乎、Keenable、Firecrawl、AIHOT）的坏响应失败分类统一为 `WEB_INVALID_RESPONSE`。此前抛裸 `Error` 会归到 `unknown`，用户只配置对坏响应回退时不触发（#176，修复 #172）。
+- `docs/feature-map.md` 补上 keyless 后端 `bing`，并把 `web_search` 回退顺序写实为「fast 前缀 + bing 地板 + 付费尾」（#176）。
+
 ## 0.13.12 — 2026-11-21
 
 - issue 模板标准化：新增治理/审计表单与来源标注，PR 模板增补 Scope 与验证口径。
