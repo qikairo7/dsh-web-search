@@ -14,7 +14,7 @@
 
 确定性命令：`pnpm check`
 
-|任务|去处|触发时机|
+|任务 | 去处 | 触发时机|
 |---|---|---|
 |配置/配额|docs/configuration.md|查配置|
 |架构|docs/architecture.md、docs/dsh-host-contract.md、codegraph_explore、codegraph init|改代码/查调用/重建|
