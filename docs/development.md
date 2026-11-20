@@ -26,7 +26,7 @@ pnpm docs:check
 pnpm check
 ```
 
-`pnpm check` 依次运行全部八段门禁（见下表）；pre-commit hook 只运行语法检查，pre-push hook 在推送前运行一次全量 `pnpm check`。
+`pnpm check` 依次运行全部八段门禁（见下表）；pre-commit hook 只运行语法检查；全量门禁由 CI 在推送后执行（pre-push 钩子因与 CI 双重记账已移除）。
 
 两份 README 与 DETAIL 双语对同步编辑后，运行 `node scripts/translation-pairing.mjs --record` 重建配对基线；只改一侧会让 `pnpm check` 失败。
 
@@ -69,7 +69,7 @@ node scripts/check-syntax.mjs && node scripts/check-architecture.mjs && node scr
 
 - `.github/workflows/check.yml` 在 Node 22/24 上跑 `pnpm install --frozen-lockfile` 和 `pnpm check`；main 的 check 不被新推送取消，release 等绿跑。
 - `.github/workflows/release.yml` 等被发布 commit 的 check 全绿后发布；等待≤30 分钟，job 预算 45 分钟。
-- `.githooks/pre-commit` 运行 `node scripts/check-syntax.mjs`（仅语法检查）；`.githooks/pre-push` 在推送前运行全量 `pnpm check`。首次 clone 后用 `git config core.hooksPath .githooks` 启用。
+- `.githooks/pre-commit` 运行 `node scripts/check-syntax.mjs`（仅语法检查）。首次 clone 后用 `git config core.hooksPath .githooks` 启用。
 - 仓库没有 `dev` / `build` / `typecheck` 脚本；`lint:zh` 是可选的中文排版检查（见上文），不进 `pnpm check`。不要运行不存在的命令。
 
 ## 环境变量
