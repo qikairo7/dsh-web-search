@@ -438,6 +438,44 @@ test('AutoSearchProvider aborts when the overall search budget expires', async (
   );
 });
 
+test('AutoSearchProvider in quality mode returns merged sources when rerank hits the internal deadline', async () => {
+  const providers = {
+    anysearch: {
+      id: 'anysearch',
+      available: () => true,
+      ready: async () => true,
+      async search() {
+        return {
+          sources: [
+            { url: 'https://a.example/', title: 'A' },
+            { url: 'https://b.example/', title: 'B' },
+          ],
+          truncated: false,
+        };
+      },
+    },
+  };
+  const reranker = {
+    async rerankScored() {
+      // Outlast the 3 ms search budget, then fail like a real rerank request that
+      // was aborted by the router's internal deadline.
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      throw webError('rerank aborted', 'WEB_ABORTED');
+    },
+  };
+  const router = new AutoSearchProvider({
+    settings: () =>
+      settings({ searchMode: 'quality', requestTimeoutMs: 1, defaultSearchOrder: ['anysearch'] }),
+    providers,
+    reranker,
+  });
+  const result = await router.search({ query: 'slow rerank query' });
+  assert.deepEqual(
+    result.sources.map((source) => source.url).sort(),
+    ['https://a.example/', 'https://b.example/'],
+  );
+});
+
 test('AutoFetchProvider honors an explicit order and keys the cache by it', async () => {
   const calls = [];
   const providers = {
