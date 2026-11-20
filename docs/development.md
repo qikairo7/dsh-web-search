@@ -8,7 +8,7 @@
 
 ## 新增机械门禁的节奏
 
-往 `pnpm check` 加新门禁脚本（任意命名，如 verify-docs、translation-pairing）时：先以 **observe 模式**跑一轮（只打印会拦什么，不设退出码），确认没有误伤再转为 enforce。直接 enforce 可能在合法提交上误红，教贡献者绕检查。
+往 `pnpm check` 加新门禁脚本时：先以 **observe 模式**跑一轮（只打印、不设退出码），确认没有误伤再转为 enforce；直接 enforce 可能在合法提交上误红，教贡献者绕检查。
 
 ## 环境要求
 
@@ -26,7 +26,7 @@ pnpm docs:check
 pnpm check
 ```
 
-`pnpm check` 依次运行语法检查、架构检查、order-doc 同步门禁、文档代码块检查、翻译配对门禁、文档门禁和单测；pre-commit hook 只运行语法检查，pre-push hook 在推送前运行一次全量 `pnpm check`。
+`pnpm check` 依次运行语法检查、架构检查、order-doc 同步门禁、文档代码块检查、翻译配对门禁、文档门禁、文档引用存活检查和单测；pre-commit hook 只运行语法检查，pre-push hook 在推送前运行一次全量 `pnpm check`。
 
 两份 README 与 DETAIL 双语对同步编辑后，运行 `node scripts/translation-pairing.mjs --record` 重建配对基线；只改一侧会让 `pnpm check` 失败。
 
@@ -35,7 +35,7 @@ pnpm check
 | 命令 | 用途 |
 |---|---|
 | `pnpm test` | 只跑 `node --test` |
-| `pnpm check` | 语法检查 + 架构检查 + order-doc 同步 + 文档代码块 + 翻译配对门禁 + `docs:check` + 单测，提交前门禁 |
+| `pnpm check` | 语法检查 + 架构检查 + order-doc 同步 + 文档代码块 + 翻译配对门禁 + `docs:check` + 文档引用存活 + 单测，提交前门禁 |
 | `pnpm docs:check` | 只跑文档层级、链接、配置覆盖和预算检查 |
 | `node --test --test-isolation=none test/<name>.test.js` | 跑单个测试文件 |
 | `pnpm benchmark:preflight` | 先验证凭据与各后端连通性 |
