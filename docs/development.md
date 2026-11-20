@@ -49,11 +49,11 @@ pnpm check
 
 ## autocorrect（可选工具）
 
-`pnpm lint:zh` 用 autocorrect 检查中文排版（留白、全角标点），改中文文档前后各跑一次；不进 `pnpm check` 与 CI。
+`pnpm lint:zh` 检查中文排版（留白、标点），改中文文档前后各跑一次；不进 `pnpm check` 与 CI。
 
-安装（Windows）：从 [releases](https://github.com/huacnlee/autocorrect/releases) 下载 `autocorrect-windows-amd64.zip`，把 `autocorrect.exe` 放 PATH（如 `%APPDATA%\npm\`）；macOS 用 `brew install autocorrect`。装好跑 `autocorrect --version` 确认，版本按 2.16.x 校准。
+Windows：从 [releases](https://github.com/huacnlee/autocorrect/releases) 下载 `autocorrect-windows-amd64.zip`，`autocorrect.exe` 放 PATH（如 `%APPDATA%\npm\`）；macOS：`brew install autocorrect`。装好跑 `autocorrect --version` 核对（2.16.x）。
 
-别用 npm 装：npm 上的 `autocorrect` 是无关拼写库，`@huacnlee/autocorrect` 是无 CLI 的 WASM 库。没装时 `pnpm lint:zh` 报 command not found 属预期。
+不要装 `autocorrect`（同名无关库）与 `@huacnlee/autocorrect`（WASM 无 CLI）；要走 npm 用 `autocorrect-node`（官方分发，带 `autocorrect` 命令）。没装时 `pnpm lint:zh` 报 command not found 属预期。
 
 ## DSH 沙箱
 
