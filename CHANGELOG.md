@@ -6,6 +6,12 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 更早版本见 [docs/changelog-archive.md](docs/changelog-archive.md)
 
+## 0.13.11 — 2026-11-21
+
+### 变更
+
+- 错题本 `REVIEW-LESSONS.md` 建立归档机制：满足归档触发（已晋升、Seen=1 且连续 30 天无增量、连续 90 天无 Seen 增量）的教训整行移入新建的 `REVIEW-LESSONS-archive.md`，主表只留 open 条目、预算固定 3000 靠归档腾位；`docs/AGENTS.md` 的文档增长阶梯第 3 级同步改为按归档机制控预算，不再扩预算（#167，修复 #150）。
+
 ## 0.13.10 — 2026-11-20
 
 ### 修复
