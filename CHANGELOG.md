@@ -6,6 +6,13 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 更早版本见 [docs/changelog-archive.md](docs/changelog-archive.md)
 
+## 0.13.6 — 2026-11-20
+
+### 修复
+
+- quality 模式内部超时不再让整条搜索以 `WEB_ABORTED` 失败：语义去重、rerank、官方文档补充、新闻补充遇内部 deadline 时降级返回已合并结果，只有调用方真实取消才向上抛（#144，修复 #137）。
+- 新增 6 条用例（quality 5 条 + router 入口层 1 条），覆盖各阶段内部超时降级返回，以及调用方取消在 rerank、补充阶段仍抛 `WEB_ABORTED`。
+
 ## 0.13.5 — 2026-11-20
 
 ### 变更
