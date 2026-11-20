@@ -10,6 +10,15 @@ import { pathRef, commandRefs, scanMarkdown } from '../scripts/check-doc-refs.mj
 
 const CLI = fileURLToPath(new URL('../scripts/check-doc-refs.mjs', import.meta.url));
 
+// Git exports GIT_DIR & friends to hooks; a hook running `pnpm check` would then
+// make the child git calls below write into the outer repo's index. Strip them so
+// the throwaway repos stay self-contained.
+const GIT_ENV = { ...process.env };
+for (const key of [
+  'GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_COMMON_DIR',
+  'GIT_OBJECT_DIRECTORY', 'GIT_ALTERNATE_OBJECT_DIRECTORIES',
+]) delete GIT_ENV[key];
+
 const ROOTS = new Set(['scripts', 'lib', 'docs', 'test', 'locale', '.agents', '.github']);
 const normal = (p) => p.replaceAll('\\', '/');
 
@@ -107,10 +116,10 @@ function runCliInTmpRepo(files) {
     mkdirSync(path.dirname(target), { recursive: true });
     writeFileSync(target, text);
   }
-  execFileSync('git', ['init', '-q'], { cwd: dir });
-  execFileSync('git', ['-c', 'core.autocrlf=false', 'add', '-A'], { cwd: dir });
+  execFileSync('git', ['init', '-q'], { cwd: dir, env: GIT_ENV });
+  execFileSync('git', ['-c', 'core.autocrlf=false', 'add', '-A'], { cwd: dir, env: GIT_ENV });
   const run = () =>
-    spawnSync(process.execPath, [path.join(dir, 'scripts', 'check-doc-refs.mjs')], { cwd: dir, encoding: 'utf8' });
+    spawnSync(process.execPath, [path.join(dir, 'scripts', 'check-doc-refs.mjs')], { cwd: dir, env: GIT_ENV, encoding: 'utf8' });
   return { dir, run, cleanup: () => rmSync(dir, { recursive: true, force: true }) };
 }
 
@@ -124,7 +133,7 @@ test('CLI entry exits 0 on a clean tree and 1 when tracked markdown cites a miss
     assert.equal(good.status, 0, `expected exit 0, got ${good.status}: ${good.stderr}`);
 
     writeFileSync(path.join(repo.dir, 'docs', 'bad.md'), '见 `scripts/missing.mjs`\n');
-    execFileSync('git', ['-c', 'core.autocrlf=false', 'add', '-A'], { cwd: repo.dir });
+    execFileSync('git', ['-c', 'core.autocrlf=false', 'add', '-A'], { cwd: repo.dir, env: GIT_ENV });
     const bad = repo.run();
     assert.equal(bad.status, 1, `expected exit 1, got ${bad.status}: ${bad.stderr}`);
     assert.match(bad.stderr, /scripts\/missing\.mjs/);
@@ -147,7 +156,7 @@ test('CLI skips historical no-rewrite files but still checks ordinary markdown',
     assert.equal(historical.status, 0, `historical files must be skipped: ${historical.stderr}`);
 
     writeFileSync(path.join(repo.dir, 'docs', 'live.md'), broken);
-    execFileSync('git', ['-c', 'core.autocrlf=false', 'add', '-A'], { cwd: repo.dir });
+    execFileSync('git', ['-c', 'core.autocrlf=false', 'add', '-A'], { cwd: repo.dir, env: GIT_ENV });
     const live = repo.run();
     assert.equal(live.status, 1, `ordinary markdown must still be checked: ${live.stderr}`);
     assert.match(live.stderr, /lib\/gone\.js/);
