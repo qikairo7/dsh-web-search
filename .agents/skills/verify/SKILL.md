@@ -1,6 +1,6 @@
 ---
 name: verify
-description: 在 dsh-web-search 里提交/交付前做端到端冒烟时使用：装包后的真实 web_search 验证规程（keyless 路径可全自动）。机器审查 Evidence 里标 not-run 的装包冒烟，由本 skill 收口。
+description: 在 dsh-web-search 里提交/交付前做端到端冒烟时使用：装包后的真实 web_search / web_fetch 验证规程，分 keyless 与 keyed 两条路径——keyless 免凭据全自动，keyed 用真实 provider key 端到端跑搜索和抓取。机器审查 Evidence 里标 not-run 的装包冒烟，由本 skill 收口。
 ---
 
 # 端到端验证（verify）
@@ -94,10 +94,39 @@ curl -sS -b "$JAR" -X POST -H 'Content-Type: application/json' -d '{}' -w '%{htt
 - Web 端覆盖带 Origin 的同源 + 真实认证 cookie 通道；桌面 `dsh-app://` 无 Origin、带 Host cookie 的转发形态用上面 curl 模拟，不依赖桌面打包。
 - 测试实例用完即关，清掉临时 profile 与 tgz，不动正在运行的实例和主检出。
 
+## keyed E2E（真实凭据端到端）
+
+keyless 冒烟只走免 key 后端；带 key provider 的真实搜索与抓取没有被端到端验证过。本节用真实 provider key 走一遍 keyed 路径，补上这个缺口。
+
+### 何时跑（触发条件）
+
+- 必跑：PR 改 `lib/`、router、provider，或版本发布前（tag 前）。
+- 不跑：纯 UI、文档、测试文件的改动——省配额，也省 key 泄漏面。
+
+### key 注入（安全纪律，硬规则）
+
+1. 验收实例用独立 DSH_HOME（空凭据库起步）——绝不共用主凭据库。
+2. 从主凭据库（`~/.dsh/.credentials.yaml`）用脚本只提取本次要验的 provider key，经文件中转写入隔离库——key 不进命令行参数、不回显，不写进任何仓库文件、日志或汇报。
+3. 注入前后对主凭据库做校验和核对（只读不动它）。
+4. 验后删除隔离 home（keyed E2E 结束即清）。
+
+### ego 实测序列
+
+1. 按上文起独立实例（同「管理路由真机验证」§1-2 的端口 / profile / token 流程）。
+2. 设置页确认目标 provider 卡片「已配置」；点「验证」确认 health 通。
+3. 新建或打开一个 DSH 会话，真发 `web_search` 中文查询（如「Node.js 文件读取」）与英文查询（如 `site:nodejs.org fs.readFile`）各一次——断言返回多来源真实结果（带 key 后端在路由内，结果含其信源特征）；真发 `web_fetch` 一次（如抓 nodejs.org 一个文档页）——断言拿到页面正文内容。
+4. 内容级断言：不是 HTTP 200 就算过——结果列表非空、有标题 / URL / 摘要字段，抓取有正文文本；空结果、报错、只有兜底信源 = 失败，照实记录哪一路、什么错。
+
+### 判定
+
+- 核心路径 PR（触发条件命中）的 keyed E2E 失败 = **P1 阻塞**。
+- 非触发的 PR 主动跑了但失败 = P2 记录。
+- 配额成本控制：每 provider 每次验收最多 3 次真实调用。
+
 ## 判定与记录
 
 - 每步贴原始输出进 Evidence（不是"通过"两个字）。
-- keyless 冒烟失败 = 阻塞（P1）；带 key provider 的失败 = P2 记录并转 followup。
+- keyless 冒烟失败 = 阻塞（P1）；带 key provider 的失败按「keyed E2E（真实凭据端到端）」的分级判定：核心路径 PR 命中触发条件时为 P1 阻塞，非核心路径为 P2 记录。
 - 结果追加进 PR Evidence。
 
 ## 边界
