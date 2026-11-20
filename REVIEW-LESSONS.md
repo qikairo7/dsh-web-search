@@ -7,9 +7,11 @@
 - 每条教训五项齐全：规则（一句话、可执行）、为什么（违反的后果）、证据（commit、issue 链接或实测命令与输出，必须有出处）、Seen 计数、最近一次日期。
 - 同一教训再次出现：Seen 加一、更新日期、追加证据；不改写旧证据。
 - Seen=2：优先把教训「机械化」成守卫测试或机械检查（如 `test/architecture.test.js`、`scripts/verify-docs.mjs`），让门禁替人记住；确实无法机械化才继续留在本表。
-- Seen=3：把规则晋升进 [CODING_STANDARDS.md](CODING_STANDARDS.md) 或该事实的唯一 home 文档；晋升不删旧条目，原条目保留证据与计数，状态改「已晋升」。
+- Seen=3：把规则晋升进 [CODING_STANDARDS.md](CODING_STANDARDS.md) 或该事实的唯一 home 文档；晋升后原条目按归档规则移入 `REVIEW-LESSONS-archive.md`，状态改「已晋升」。
+- 归档触发（满足其一即搬）：状态为「已晋升」；或连续 90 天无 Seen 增量。归档动作：整行原样移入归档表尾，五项与状态不改写；主表只留 open 条目。
+- 归档检查时机：每次入账后（lessons 节点、复盘任务）顺手核对触发条件，命中即搬。主表预算固定 3000，靠归档腾位，不再重定基线扩容。
 - 验证状态如实标注：没实际跑过的项标 `not-run`，不伪装成已验证；证据缺失的教训先补证据再入表。
-- 本表随 review 累积教训，当前收录 11 条。
+- 本表只收 open 教训，当前收录 10 条；历史条目见 [REVIEW-LESSONS-archive.md](REVIEW-LESSONS-archive.md)。
 
 ## 教训表
 
@@ -25,6 +27,5 @@
 | 新增 npm 脚本须同步更新 CODING_STANDARDS §1 与 development.md 两处事实源 | 旧句称「仓库没有 dev/lint 脚本」与新脚本矛盾，自相矛盾误导 | PR#158 P1(G1)：package.json 加 lint:zh 未同步 CODING_STANDARDS.md:10、development.md:65；grep「没有 dev」一次定位 | 1 | 2026-11-20 | open |
 | 向预算敏感文档增文前先算 doc-budgets 余量，不足按阶梯重定预算 | 余量仅 6（3494/3500）时增节即爆预算，门禁盲区未拦 | PR#158 round1：development.md 3494/3500 增 autocorrect 节，预算提至 4000 | 1 | 2026-11-20 | open |
 | 负向/变异验证证据须可独立复跑：附可一键重放的命令或脚本，散文描述不算 | 复核链停在「信不信作者」，变异声明无法独立验证 | PR#144/#147 验证节仅散文描述定点变异结果；对照 PR#133 附命令可复跑 | 1 | 2026-11-20 | open |
-| PR 模板『是否有人参与』：用户参与过决策链（下令/拍板/纠错/终审）即勾『有』，默认勾『有』；勾『无』须有全程零用户消息证据 | 勾『无』失真，用户全程参与却被标成全程无人参与 | PR#151、#162 填『无』，用户 2026-11-20 三次发现纠正；判据已落 issue-lane dev 卡与 pr-merge 手册（记忆仓 c40d943） | 3 | 2026-11-20 | open |
 
 新条目追加在表尾；一次 review 里同一教训只记一次。
