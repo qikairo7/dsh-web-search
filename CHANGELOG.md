@@ -6,6 +6,13 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 更早版本见 [docs/changelog-archive.md](docs/changelog-archive.md)
 
+## 0.13.7 — 2026-11-20
+
+### 新增
+
+- 新增 `scripts/check-doc-refs.mjs` 并接入 `pnpm check`（文档体量校验之后）：扫描仓库全部 md 的行内代码，核对相对文件路径与 `node <path>`、`pnpm <script>` 目标是否存在，失效即让门禁变红（#147，修复 #146）。
+- 新增 8 条用例，覆盖路径与命令解析、报错格式、代码围栏排除；`CONTRIBUTING.md`、`docs/development.md`、`docs/AGENTS.md` 的 check 组成描述同步为八段。
+
 ## 0.13.6 — 2026-11-20
 
 ### 修复
