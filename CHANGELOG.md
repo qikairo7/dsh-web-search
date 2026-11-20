@@ -6,6 +6,13 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 更早版本见 [docs/changelog-archive.md](docs/changelog-archive.md)
 
+## 0.13.8 — 2026-11-20
+
+### 变更
+
+- 文档超预算处置改为四步阶梯（移除空操作 → 渐进披露拆分 → 预算重定基线 → 删减作最后手段），删减须写明删的是冗余还是事实；以 `docs/AGENTS.md` 自举拆出 `docs/schema-inventory.md`、`docs/schema-sync-map.md` 两份子文件（#151，修复 #149）。
+- 注释纪律写进 `CODING_STANDARDS.md`（只写 WHY、禁行内复述与位置注释）；`README.md` / `README.en.md` 新增「文档索引」节，按使用/原理/开发/深入/治理五组补齐 `docs/` 可发现性。
+
 ## 0.13.7 — 2026-11-20
 
 ### 新增
