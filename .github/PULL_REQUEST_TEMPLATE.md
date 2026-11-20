@@ -6,6 +6,12 @@
 
 <!-- 用要点列出改了什么。 -->
 
+- [ ] 纯文档
+- [ ] lib 代码
+- [ ] scripts 工具
+- [ ] CI 配置
+- [ ] schema 文件
+
 ## 关联 issue
 
 <!-- Refs #N / Fixes #N；没有就写「无」。 -->
@@ -25,6 +31,11 @@
 
 ## 验证
 
-<!-- 粘贴 pnpm check 的结果；如做过真机验证，写一句。 -->
+<!-- 贴实际命令输出；未跑的逐条标 not-run，不因没跑而默认通过 -->
+
+## Checklist
+
+- [ ] 相关文档已同步（AGENTS 路由表指向的文档）
+- [ ] 不含密钥/凭据，无越出 issue 范围的改动
 
 [![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)

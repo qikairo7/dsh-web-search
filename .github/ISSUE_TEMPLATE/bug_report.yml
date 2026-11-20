@@ -3,6 +3,16 @@ description: 报告与预期不符的行为
 title: "[Bug] "
 labels: [bug]
 body:
+  - type: dropdown
+    id: issue-origin
+    attributes:
+      label: 来源
+      options:
+        - 真实环境复现
+        - AI 推断未复现
+    validations:
+      required: true
+
   - type: markdown
     attributes:
       value: |

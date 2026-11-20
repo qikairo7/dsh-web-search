@@ -3,6 +3,16 @@ description: 提出新能力或对可观察行为的有意调整
 title: "[Feature] "
 labels: [enhancement]
 body:
+  - type: dropdown
+    id: issue-origin
+    attributes:
+      label: 来源
+      options:
+        - 真实使用场景
+        - 辅助分析建议
+    validations:
+      required: true
+
   - type: textarea
     id: problem
     attributes:
