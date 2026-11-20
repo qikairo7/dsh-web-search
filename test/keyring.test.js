@@ -150,3 +150,43 @@ test('key resolver reads numbered key references in order', async () => {
     else process.env.DSH_TEST_KEY_2 = previous.second;
   }
 });
+
+// #174: the credentialRef -> ctx.credentials.resolve -> resolved?.value branch was only ever
+// exercised through the environment-variable fallback below. A fake ctx pins the resolve hit
+// path and the resolve-throw path so deleting either branch turns these red.
+
+test('key resolver returns the value from the injected credentials service', async () => {
+  const previous = process.env.DSH_TEST_KEY_RESOLVED;
+  delete process.env.DSH_TEST_KEY_RESOLVED;
+  try {
+    let calls = 0;
+    const resolve = createKeyResolver({
+      credentials: {
+        resolve: async () => { calls += 1; return { value: ' from-service ' }; },
+      },
+    });
+    assert.equal(await resolve('DSH_TEST_KEY_RESOLVED'), 'from-service');
+    assert.equal(calls, 1, 'the credentials service must be consulted before any fallback');
+  } finally {
+    if (previous === undefined) delete process.env.DSH_TEST_KEY_RESOLVED;
+    else process.env.DSH_TEST_KEY_RESOLVED = previous;
+  }
+});
+
+test('key resolver falls back to the environment when credentials.resolve throws', async () => {
+  const previous = process.env.DSH_TEST_KEY_THROWS;
+  process.env.DSH_TEST_KEY_THROWS = 'env-key';
+  try {
+    let calls = 0;
+    const resolve = createKeyResolver({
+      credentials: {
+        resolve: async () => { calls += 1; throw new Error('resolver failed'); },
+      },
+    });
+    assert.equal(await resolve('DSH_TEST_KEY_THROWS'), 'env-key');
+    assert.equal(calls, 1, 'the throwing resolve must be attempted before the fallback');
+  } finally {
+    if (previous === undefined) delete process.env.DSH_TEST_KEY_THROWS;
+    else process.env.DSH_TEST_KEY_THROWS = previous;
+  }
+});

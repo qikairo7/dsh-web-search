@@ -52,7 +52,8 @@ const beginKeySave = (plan, setBusy) => {
 /**
  * Run one key save through the settings page path. Invalid plans are refused before any state
  * change so bad input never flashes the saving state (#117); an accepted plan writes its keys and
- * always lowers busy when done. Results are reported through `deps` callbacks.
+ * always lowers busy when done. Results are reported through the `onRefused` / `onSaved` /
+ * `onFailed` callbacks.
  */
 const saveKey = async ({ plan, setBusy, setCredential, onRefused, onSaved, onFailed }) => {
   if (!beginKeySave(plan, setBusy)) {
@@ -68,6 +69,30 @@ const saveKey = async ({ plan, setBusy, setCredential, onRefused, onSaved, onFai
   setBusy(false);
 };
 
+const MAX_KEY_REFS = 8;
+
+/** The primary reference plus its numbered siblings, e.g. KEY, KEY_2 … KEY_8. */
+const keyRefsFor = (reference) => [
+  reference,
+  ...Array.from({ length: MAX_KEY_REFS - 1 }, (_, index) => `${reference}_${index + 2}`),
+];
+
+/**
+ * Component-level key-save handler: build the write plan from the provider's current rows and
+ * the target reference, then run it through saveKey so busy, refusal and result callbacks stay
+ * in one place. Extracted from the settings-page factory so tests can drive the real flow (#174).
+ */
+const handleKeySave = async ({ rows, ref, setBusy, setCredential, onRefused, onSaved, onFailed }) => {
+  await saveKey({
+    plan: planKeyWrites(rows, keyRefsFor(ref)),
+    setBusy,
+    setCredential,
+    onRefused,
+    onSaved,
+    onFailed,
+  });
+};
+
 window.__ModuleLoader__.load({
   id: '@qikairo7/dsh-web-search',
   // Pure helpers exposed for unit tests; the host reads only `id` and `factory`.
@@ -76,6 +101,7 @@ window.__ModuleLoader__.load({
   applyKeyPlan,
   beginKeySave,
   saveKey,
+  handleKeySave,
   factory(require) {
     const React = require('react');
     const h = React.createElement;
@@ -614,15 +640,6 @@ window.__ModuleLoader__.load({
       return result?.ok === true;
     }
 
-    const MAX_KEY_REFS = 8;
-
-    function keyRefsFor(reference) {
-      return [
-        reference,
-        ...Array.from({ length: MAX_KEY_REFS - 1 }, (_, index) => `${reference}_${index + 2}`),
-      ];
-    }
-
     function keyRowsFor(reference, credentials) {
       const refs = keyRefsFor(reference);
       const rows = refs
@@ -775,8 +792,9 @@ window.__ModuleLoader__.load({
       };
 
       const handleSaveKey = async (provider, ref) => {
-        await saveKey({
-          plan: planKeyWrites(keyRows[provider.id] ?? [], keyRefsFor(ref)),
+        await handleKeySave({
+          rows: keyRows[provider.id] ?? [],
+          ref,
           setBusy,
           setCredential: (target, value) => safeCall(() => props.ctx.remote.credentials.set(target, value)),
           onRefused: (kind) => noteKey(provider, t(kind), true),
