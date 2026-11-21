@@ -249,3 +249,30 @@ test('the runner keeps the Bing floor instead of the paid tail when SERP markup 
   );
   assert.deepEqual(result.sources.map((source) => source.url), ['https://doc.example/floor']);
 });
+
+// --- #183 mutation guards: single-quoted href and truncated tail block ---
+
+test('mapBingSearch parses a single-quoted href (#183)', () => {
+  const singleQuote = "'";
+  const href = ckHref('https://a.example/one');
+  const html =
+    '<ol><li class="b_algo"><h2><a href=' + singleQuote + href + singleQuote + '>DeepSeek 指南</a></h2><p>snippet one</p></li></ol>';
+  const result = mapBingSearch(html, 'DeepSeek 指南', 4000);
+  assert.equal(result.sources.length, 1);
+  assert.equal(result.sources[0].url, 'https://a.example/one');
+  assert.equal(result.sources[0].title, 'DeepSeek 指南');
+  assert.equal(result.sources[0].snippet, 'snippet one');
+});
+
+test('mapBingSearch keeps a truncated final block with no closing </li> (#183)', () => {
+  const closed = serpBlock({ href: ckHref('https://a.example/one'), title: 'DeepSeek 指南', snippet: 'first' });
+  const href = ckHref('https://b.example/two');
+  const truncated = '<li class="b_algo"><h2><a href="' + href + '">DeepSeek 教程</a></h2><p>second</p>';
+  const result = mapBingSearch('<ol>' + closed + truncated, 'DeepSeek 指南', 4000);
+  assert.equal(result.sources.length, 2);
+  assert.deepEqual(
+    result.sources.map((source) => source.url),
+    ['https://a.example/one', 'https://b.example/two'],
+  );
+  assert.equal(result.sources[1].snippet, 'second');
+});
