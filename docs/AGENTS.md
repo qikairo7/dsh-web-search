@@ -9,6 +9,7 @@
 | [docs/schema-inventory.md](schema-inventory.md) | 文档层级明细：每个文件的唯一职责与排除项 |
 | [docs/schema-sync-map.md](schema-sync-map.md) | 改代码时改哪份文档：映射表与开发顺序 |
 | [docs/postmortem/](postmortem/README.md) | 事故叙事层：incident-scoped reference，一条事故一份；记时间线、影响、根因、教训，教训回流错题本 |
+| [docs/writing-rules.md](writing-rules.md) | 写作判据：完整命题、覆盖分层、删字 vs 删事实 |
 
 ## 写作规则
 
@@ -21,6 +22,7 @@
 - 不写实现状态注记（「已实现」「未来会」）、测试走读、评审过程或赘述代码。
 - 所有文档（含模板、术语表、ADR 与 Agent Note 新条目）撰写/编辑前必须加载 `zh-tech-writing`；正文一律中文，代码、命令、标识符与机器可读内容原样；英文镜像仅 `README.en.md`、`DETAIL.en.md` 与法律文件对；历史记录（已发版 `CHANGELOG.md` 节、既有 ADR、基准报告、Agent Note 正文）不改写，新条目从中文开始。
 - 两份 README 同步；契约变化先写 ADR。
+- 写作判据见 [写作判据](writing-rules.md)，ADR 写法见 [ADR 索引](adr/README.md)。
 
 ## 篇幅预算
 
