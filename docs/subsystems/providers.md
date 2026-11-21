@@ -2,6 +2,25 @@
 
 后端 provider 是 `ctx.web` 的最小实现单元：一个后端一个文件，注册进 catalog，由 `auto` 路由调用。
 
+## 成员一览表
+
+下表由 `pnpm docs:gen` 从 [lib/catalog.js](../../lib/catalog.js) 生成；手改，或改源码后不重新生成，都会被 `pnpm docs:check` 判红。
+
+<!-- gen:provider-table start -->
+| Provider | 能力 | Tier | 认证方式 |
+|---|---|---|---|
+| `anysearch` | 搜索、抓取 | 免费 | API Key |
+| `keenable` | 搜索、抓取 | 免费 | API Key |
+| `tavily` | 搜索、抓取、域内搜索 | 付费 | API Key |
+| `firecrawl` | 搜索、抓取 | 付费 | API Key |
+| `zhihu` | 搜索 | 免费 | API Key |
+| `zhihu-site` | 搜索 | 免费 | API Key |
+| `aihot` | 搜索 | 免费 | 免 Key |
+| `exa` | 搜索、抓取 | 免费 | API Key |
+| `bing` | 搜索 | 免 Key | 免 Key |
+| `http` | 抓取 | 免费 | 免 Key |
+<!-- gen:provider-table end -->
+
 ## 职责与真源表
 
 | 事实 | 真源 |
