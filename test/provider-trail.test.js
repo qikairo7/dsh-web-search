@@ -120,7 +120,7 @@ test('a quality search records the provider trail (tried + answerers) at debug l
   assert.deepEqual([...trail.fields.answered].sort(), ['anysearch', 'zhihu']);
 });
 
-test('no debug sink means no trail is emitted and the result is unchanged', async () => {
+test('a search without a debug sink wires no trail sink and returns the same result', async () => {
   const calls = [];
   const providers = { good: provider('good', calls) };
   const router = new AutoSearchProvider({
@@ -138,5 +138,37 @@ test('no debug sink means no trail is emitted and the result is unchanged', asyn
     providers,
   });
   const result = await router.search({ query: 'english query' });
+  assert.equal(router.runner.debug, undefined, 'no debug sink is wired');
   assert.equal(result.sources[0].url, 'https://good.example/');
+});
+
+test('skipped providers are not recorded as tried', async () => {
+  const calls = [];
+  const { trails, debug } = recordingSink();
+  const providers = {
+    skip: provider('skip', calls),
+    good: provider('good', calls),
+  };
+  const router = new AutoSearchProvider({
+    settings: () => ({
+      searchMode: 'fast',
+      intentRouting: false,
+      chineseSearchOrder: ['skip', 'good'],
+      defaultSearchOrder: ['skip', 'good'],
+      searchCacheTtlMs: 1_000,
+      searchCacheMaxEntries: 0,
+      breakerFailureThreshold: 3,
+      breakerCooldownMs: 60_000,
+      skip: { enabled: false },
+      good: { enabled: true },
+    }),
+    providers,
+    debug,
+  });
+
+  await router.search({ query: 'english query' });
+
+  assert.deepEqual(calls, ['good'], 'the disabled provider is never called');
+  assert.equal(trails.length, 1);
+  assert.deepEqual(trails[0].fields, { capability: 'search', tried: ['good'], answered: ['good'] });
 });
