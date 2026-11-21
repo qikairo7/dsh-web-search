@@ -4,7 +4,7 @@ Status: Accepted.
 
 ## Context
 
-Keenable publishes an official DeepSeek Harness plugin (`@keenable/dsh-keenable`, MIT) with keyless-capable search and clean Markdown fetch and a 100,000-request monthly allowance with a key. Exa exposes REST `/search` and `/contents`; an Exa key with a monthly balance was available for verification. Both should participate in the existing multi-backend router without replacing it.
+Keenable publishes an official [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) plugin (`@keenable/dsh-keenable`, MIT) with keyless-capable search and clean Markdown fetch and a 100,000-request monthly allowance with a key. Exa exposes REST `/search` and `/contents`; an Exa key with a monthly balance was available for verification. Both should participate in the existing multi-backend router without replacing it.
 
 ## Decision
 

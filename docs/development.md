@@ -14,7 +14,7 @@
 
 - Node.js `22.19+` 或 `24+`。
 - pnpm；只用 pnpm，不生成第二份 lockfile。
-- DeepSeek Harness `0.2.2-rc.5`（本插件实测版本）。
+- [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.2-rc.5`（本插件实测版本）。
 - 一个挂载 `dsh-web` 的 profile；bundle patch 会启用 `dsh-tool-web`。
 
 ## 首次设置
