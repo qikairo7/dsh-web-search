@@ -6,6 +6,12 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 更早版本见 [docs/changelog-archive.md](docs/changelog-archive.md)
 
+## 未发布
+
+### 新增
+
+- 新增可选只读工具 `x_search`：从 catbus（MIT）移植 X 网页端推文搜索，cookie 从浏览器导入、默认关闭、不进 `web_search` 路由（#41，ADR-0013）。
+
 ## 0.15.0 — 2026-11-21
 
 ### 新增

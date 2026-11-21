@@ -37,6 +37,7 @@ test('apply registers every catalog provider and the allowlisted tools', () => {
     'tavily_extract',
     'aihot_latest',
     'aihot_hot',
+    'x_search',
   ]);
   assert.ok(inject.includes('tools'));
   assert.ok(PROVIDER_CATALOG.length > 0);

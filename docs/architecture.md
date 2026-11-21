@@ -20,7 +20,7 @@ keenable / anysearch / exa / bing / tavily / firecrawl / zhihu / zhihu-site / ai
         external search / fetch services
 ```
 
-插件默认只在 `ctx.web` 注册 Provider；例外是 `lib/tools/` 下的 AnySearch、Tavily 与 AIHOT 高级工具。`dsh-tool-web` 仍负责 `web_search` / `web_fetch` 的 schema、展示和结果形状。
+插件默认只在 `ctx.web` 注册 Provider；例外是 `lib/tools/` 下的 AnySearch、Tavily、AIHOT 与 X 搜索高级工具。`dsh-tool-web` 仍负责 `web_search` / `web_fetch` 的 schema、展示和结果形状。
 
 ## 入口与注册
 
@@ -81,7 +81,7 @@ Provider 的能力矩阵与默认顺序见下节；注册列表在 `lib/index.js
 | `lib/summarize.js` | 查询相关摘要与证据摘要 |
 | `lib/clean.js` | Markdown 正文清洗与 HTML 转文本 |
 | `lib/text.js` | 汉字检测与中英文语言判断 |
-| `lib/tools/*.js` | 可选高级工具：AnySearch 三件与共用 formatter / 限额、`tavily_search` / `tavily_extract`、`aihot_latest` / `aihot_hot`；`index.js` 负责注册 |
+| `lib/tools/*.js` | 可选高级工具：AnySearch 三件、formatter/限额、`tavily_*`、`aihot_*`、`x_search`（X，ADR-0013）；`index.js` 负责注册 |
 | `test/*.test.js` | 按 lib 模块对应的 `node:test` 单测，不访问网络；HTTP 拦截用 `test/helpers/withFetch.js` |
 
 ## 搜索流程
