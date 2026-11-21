@@ -69,6 +69,8 @@ const saveKey = async ({ plan, setBusy, setCredential, onRefused, onSaved, onFai
   setBusy(false);
 };
 
+const MAX_KEY_REFS = 8;
+
 /**
  * Turn a verification failure body into readable, actionable Chinese. The
  * health route reports an internal `code` plus a message such as
@@ -109,8 +111,6 @@ const maskSavedKey = (masked) => {
   if (value.length <= 4) return '••••';
   return `••••${value.slice(-4)}`;
 };
-
-const MAX_KEY_REFS = 8;
 
 /** The primary reference plus its numbered siblings, e.g. KEY, KEY_2 … KEY_8. */
 const keyRefsFor = (reference) => [
