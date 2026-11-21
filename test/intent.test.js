@@ -58,6 +58,7 @@ test('fast order applies intent routing only when enabled', () => {
   assert.deepEqual(fastOrder('Node.js fetch timeout', settings, 'technical'), [
     'keenable',
     'anysearch',
+    'github',
     'exa',
     'bing',
     'tavily',

@@ -22,6 +22,7 @@ test('catalog lists every standard provider in registration order', () => {
     'aihot',
     'exa',
     'bing',
+    'github',
     'http',
   ]);
   for (const entry of PROVIDER_CATALOG) {
@@ -43,6 +44,7 @@ test('catalog exposes the search and fetch capability lists', () => {
     'aihot',
     'exa',
     'bing',
+    'github',
   ]);
   assert.deepEqual(providersWithCapability('fetch'), [
     'anysearch',
@@ -50,6 +52,7 @@ test('catalog exposes the search and fetch capability lists', () => {
     'tavily',
     'firecrawl',
     'exa',
+    'github',
     'http',
   ]);
 });

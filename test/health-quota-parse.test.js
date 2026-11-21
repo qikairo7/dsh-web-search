@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { parseTavilyQuota, parseZhihuQuota, parseFirecrawlQuota } from '../lib/health.js';
+import { parseTavilyQuota, parseZhihuQuota, parseFirecrawlQuota, parseGithubQuota } from '../lib/health.js';
 
 // Field-parsing coverage for the three quota mappers that used to live inline in
 // fetchProviderQuota (#174). Each provider is exercised on a normal envelope, a
@@ -60,6 +60,17 @@ test('firecrawl parser leaves a missing field undefined', () => {
 
 test('firecrawl parser leaves quota fields undefined for a broken envelope', () => {
   const result = parseFirecrawlQuota(null, 'firecrawl');
+  assert.equal(result.remaining, undefined);
+  assert.equal(result.limit, undefined);
+});
+
+test('github parser reads the search resource allowance', () => {
+  const result = parseGithubQuota({ resources: { search: { limit: 30, remaining: 27, reset: 1 } } }, 'github');
+  assert.deepEqual(result, { ok: true, providerId: 'github', remaining: 27, limit: 30 });
+});
+
+test('github parser leaves fields undefined for a broken envelope', () => {
+  const result = parseGithubQuota(null, 'github');
   assert.equal(result.remaining, undefined);
   assert.equal(result.limit, undefined);
 });

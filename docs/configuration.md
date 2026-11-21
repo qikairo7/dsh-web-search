@@ -14,6 +14,7 @@
 | AnySearch | 注册后 1000 次搜索/天；匿名也可用 | 搜索 | [anysearch.com](https://anysearch.com) |
 | Exa | 每月 10 美元免费额度（docs.exa.ai）+ 一次性 10 美元注册奖励 | 语义搜索 + Contents 抓取；免费深度回退 | [exa.ai](https://exa.ai) |
 | Bing | 免 Key HTML SERP，无计量配额 | 免费栈之后、付费尾之前的兜底搜索地板 | [www.bing.com](https://www.bing.com) |
+| GitHub | 匿名 10 次/分钟（按 IP）；PAT 30 次/分钟 | 仓库与 issue 搜索、issue/README 结构化抓取 | [github.com](https://github.com) |
 | Zhihu | 全网 5000 次/天 + 站内 5000 次/天 | 中文搜索 | [developer.zhihu.com](https://developer.zhihu.com) |
 | Tavily | 1000 credits/月 | 仅兜底：免费源空结果、缺官方文档、新闻时效不足、Fetch 失败链 | [tavily.com](https://tavily.com) |
 | Firecrawl | 1000 credits/月 | Fetch 最后兜底：难抓的 JS/PDF 页面 | [firecrawl.dev](https://firecrawl.dev) |
@@ -56,6 +57,9 @@
 | `bingEnabled` | `true` | 启用免 Key 的 Bing 兜底搜索地板 |
 | `bingBaseURL` | `https://www.bing.com` | Bing SERP 地址 |
 | `bingMarket` | `` | 非空时才发送 `mkt`；留空用 Bing 自行本地化 |
+| `githubEnabled` | `true` | 启用 GitHub Provider |
+| `githubApiKeyEnv` | `GITHUB_TOKEN` | GitHub PAT 引用（可选，匿名也可用） |
+| `githubBaseURL` | `https://api.github.com` | GitHub API 地址 |
 | `tavilyEnabled` | `true` | 启用 Tavily |
 | `tavilyApiKeyEnv` | `TAVILY_API_KEY` | Tavily 凭据引用 |
 | `tavilyBaseURL` | `https://api.tavily.com` | Tavily API 地址 |
