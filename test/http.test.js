@@ -205,12 +205,22 @@ test('HTTP fetch blocks loopback, private, link-local and metadata addresses', a
   assert.equal(requested, false, 'a blocked URL must never be fetched');
 });
 
-test('HTTP fetch blocks a redirect into a private address', async () => {
+test('HTTP fetch blocks a redirect into a private address and cancels the redirect body', async () => {
   let calls = 0;
+  let cancelled = false;
+  const redirectBody = () =>
+    new ReadableStream({
+      start(controller) {
+        controller.enqueue(new Uint8Array([1]));
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
   await withFetch(
     async () => {
       calls += 1;
-      return new Response(null, { status: 302, headers: { location: 'http://127.0.0.1/secret' } });
+      return new Response(redirectBody(), { status: 302, headers: { location: 'http://127.0.0.1/secret' } });
     },
     async () => {
       const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
@@ -221,6 +231,55 @@ test('HTTP fetch blocks a redirect into a private address', async () => {
     },
   );
   assert.equal(calls, 1, 'the private redirect target must not be fetched');
+  assert.equal(cancelled, true, 'the private redirect response body must be cancelled before throwing');
+});
+
+test('HTTP fetch cancels the redirect body before throwing on a non-HTTP redirect', async () => {
+  let cancelled = false;
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new Uint8Array([1]));
+    },
+    cancel() {
+      cancelled = true;
+    },
+  });
+  await withFetch(
+    async () => new Response(stream, { status: 302, headers: { location: 'ftp://example.com/file' } }),
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+      await assert.rejects(
+        () => provider.fetch({ url: 'https://example.com/start' }),
+        (error) => error.code === 'WEB_REDIRECT_BLOCKED',
+      );
+    },
+  );
+  assert.equal(cancelled, true, 'a non-HTTP redirect body must be cancelled before throwing');
+});
+
+test('HTTP fetch cancels each redirect body before throwing when redirects are exhausted', async () => {
+  let cancelled = 0;
+  const redirectBody = () =>
+    new ReadableStream({
+      start(controller) {
+        controller.enqueue(new Uint8Array([1]));
+      },
+      cancel() {
+        cancelled += 1;
+      },
+    });
+  await withFetch(
+    async () => new Response(redirectBody(), { status: 302, headers: { location: 'https://example.com/loop' } }),
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+      await assert.rejects(
+        () => provider.fetch({ url: 'https://example.com/start' }),
+        (error) => error.code === 'WEB_REDIRECT_BLOCKED',
+      );
+    },
+  );
+  // Hops 0..MAX_REDIRECTS all return 302; the last body is cancelled before throwing.
+  assert.equal(cancelled, 6, 'every redirect body must be cancelled');
 });
 
 test('HTTP fetch blocks a public hostname that resolves to a private address', async () => {

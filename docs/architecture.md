@@ -68,7 +68,7 @@ Provider 的能力矩阵与默认顺序见下节；注册列表在 `lib/index.js
 | `lib/keyring.js` | Provider 多 Key 包装：按顺序尝试 Key，额度/限流/鉴权失败切换到下一个 |
 | `lib/quotaStore.js` | 缓存 Provider 响应中的最近一次额度读数（Keenable 的 `credits_remaining`） |
 | `lib/http.js` | `joinURL`、`requestJSON` / `requestText`、超时、取消与 HTTP 错误 |
-| `lib/host.js` | host 归一化与域名匹配的唯一实现 |
+| `lib/host.js` | host 归一化、域名匹配与直连 HTTP 私网地址判定/解析校验的唯一实现；读取 `DSH_WEB_HTTP_ALLOW_PRIVATE` 逃生门 |
 | `lib/errors.js` | `WebError` 适配与 `WEB_*` 错误码；`toWebError` 保留调用方已带的 `WEB_*` code |
 | `lib/intent.js` | intent 路由分类；quality/fast 顺序查询 `lib/roles.js` 角色表 |
 | `lib/technical.js` | 技术文本与查询词启发式 |
