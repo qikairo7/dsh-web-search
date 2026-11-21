@@ -711,9 +711,10 @@ test('AutoSearchProvider fast mode still aborts without fallback when the caller
     id: 'slow',
     available: () => true,
     ready: async () => true,
-    async search() {
+    async search(_request, signal) {
       calls.push('slow');
       controller.abort(new DOMException('caller cancelled', 'AbortError'));
+      assert.equal(signal?.aborted, true, 'provider must receive the aborted caller signal');
       throw webError('slow aborted', 'WEB_ABORTED');
     },
   };
