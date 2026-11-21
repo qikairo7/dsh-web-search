@@ -14,4 +14,4 @@
 
 ## 范围
 
-本策略覆盖本仓库的插件代码。DeepSeek Harness、第三方搜索/抓取服务或依赖的问题，请报告给对应项目。风险模型见 [SAFETY.md](SAFETY.md)。
+本策略覆盖本仓库的插件代码。[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)、第三方搜索/抓取服务或依赖的问题，请报告给对应项目。风险模型见 [SAFETY.md](SAFETY.md)。

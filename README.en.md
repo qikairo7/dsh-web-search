@@ -4,7 +4,7 @@
   <img alt="dsh-web-search" src="icon.svg" width="96" height="96">
 </a>
 
-### Free web search and fetch plugin for DeepSeek Harness — keyless-ready out of the box
+### Free web search and fetch plugin for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — keyless-ready out of the box
 
 [中文](README.md) / English
 

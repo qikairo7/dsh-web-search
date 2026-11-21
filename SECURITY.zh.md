@@ -14,4 +14,4 @@ Include the affected version, the reproduction steps, and the impact. We aim to 
 
 ## Scope
 
-This policy covers the plugin code in this repository. Problems in DeepSeek Harness, in a third-party search or fetch provider, or in a dependency should be reported to that project. See [SAFETY.md](SAFETY.md) for the risk model.
+This policy covers the plugin code in this repository. Problems in [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness), in a third-party search or fetch provider, or in a dependency should be reported to that project. See [SAFETY.md](SAFETY.md) for the risk model.

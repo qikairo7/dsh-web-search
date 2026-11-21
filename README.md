@@ -4,7 +4,7 @@
   <img alt="dsh-web-search" src="icon.svg" width="96" height="96">
 </a>
 
-### DeepSeek Harness 的免费联网插件：免 Key 即用的网络搜索与网页抓取
+### [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的免费联网插件：免 Key 即用的网络搜索与网页抓取
 
 中文 / [English](README.en.md)
 
