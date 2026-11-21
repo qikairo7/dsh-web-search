@@ -1,17 +1,17 @@
-# Security policy
+# 安全策略
 
-English | [中文](SECURITY.zh.md)
+中文 / [English](SECURITY.zh.md)
 
-## Supported versions
+## 支持的版本
 
-Only the latest release receives security fixes. Pre-release versions are supported on a best-effort basis.
+只有最新版本会获得安全修复。预发布版本按尽力而为处理。
 
-## Reporting a vulnerability
+## 报告漏洞
 
-Report vulnerabilities through GitHub private vulnerability reporting: open the repository's **Security** tab, then **Advisories**, then **Report a vulnerability**. Do not open a public issue.
+请通过 GitHub 私密漏洞报告提交：打开仓库的 **Security** 页，进入 **Advisories**，再点 **Report a vulnerability**。不要开公开 Issue。
 
-Include the affected version, the reproduction steps, and the impact. We aim to acknowledge a report within 7 days and to publish a fix or mitigation as soon as practical.
+报告中请包含受影响版本、复现步骤和影响。我们会在 7 天内确认收到，并尽快发布修复或缓解措施。
 
-## Scope
+## 范围
 
-This policy covers the plugin code in this repository. Problems in DeepSeek Harness, in a third-party search or fetch provider, or in a dependency should be reported to that project. See [SAFETY.md](SAFETY.md) for the risk model.
+本策略覆盖本仓库的插件代码。DeepSeek Harness、第三方搜索/抓取服务或依赖的问题，请报告给对应项目。风险模型见 [SAFETY.md](SAFETY.md)。
