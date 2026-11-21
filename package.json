@@ -1,6 +1,6 @@
 {
   "name": "@qikairo7/dsh-web-search",
-  "version": "0.15.0",
+  "version": "0.15.1",
   "private": true,
   "description": "DeepSeek Harness 的免费联网插件：免 Key 即用的网络搜索与网页抓取，多后端聚合、失败自动回退",
   "keywords": [
