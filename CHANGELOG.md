@@ -6,7 +6,7 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 更早版本见 [docs/changelog-archive.md](docs/changelog-archive.md)
 
-## 未发布
+## 0.15.1 — 2026-11-21
 
 ### 新增
 
