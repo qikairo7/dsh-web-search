@@ -661,3 +661,78 @@ test('disallowed failure classes do not feed the circuit breaker', async () => {
   }
   assert.deepEqual(calls, ['bad', 'bad', 'bad']);
 });
+
+test('AutoSearchProvider fast fallback reaches the Bing floor after the internal deadline aborts a slow provider (#195)', async () => {
+  // A slow provider exhausts the router's internal deadline, so the shared
+  // requestSignal is already aborted when the fast fallback runs. The floor
+  // must still answer: it gets the caller signal only, never the dead one.
+  const calls = [];
+  const slow = {
+    id: 'slow',
+    available: () => true,
+    ready: async () => true,
+    async search() {
+      calls.push('slow');
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      throw webError('slow provider failed', 'WEB_PROVIDER_ERROR');
+    },
+  };
+  const bing = {
+    id: 'bing',
+    available: () => true,
+    ready: async () => true,
+    async search(_request, signal) {
+      calls.push('bing');
+      if (signal?.aborted === true) throw webError('bing aborted', 'WEB_ABORTED');
+      return { sources: [{ url: 'https://bing.example/floor' }], truncated: false };
+    },
+  };
+  const router = new AutoSearchProvider({
+    settings: () =>
+      settings({
+        searchMode: 'fast',
+        intentRouting: false,
+        defaultSearchOrder: ['slow', 'bing'],
+        requestTimeoutMs: 1,
+      }),
+    providers: { slow, bing },
+  });
+  const result = await router.search({ query: 'slow floor query' });
+  assert.deepEqual(calls, ['slow', 'bing']);
+  assert.equal(result.sources[0].url, 'https://bing.example/floor');
+});
+
+test('AutoSearchProvider fast mode still aborts without fallback when the caller cancels (#195)', async () => {
+  // Caller cancellation is not the internal deadline: it must end the whole
+  // search with WEB_ABORTED and never reach the floor.
+  const controller = new AbortController();
+  const calls = [];
+  const slow = {
+    id: 'slow',
+    available: () => true,
+    ready: async () => true,
+    async search() {
+      calls.push('slow');
+      controller.abort(new DOMException('caller cancelled', 'AbortError'));
+      throw webError('slow aborted', 'WEB_ABORTED');
+    },
+  };
+  const bing = {
+    id: 'bing',
+    available: () => true,
+    ready: async () => true,
+    async search() {
+      calls.push('bing');
+      return { sources: [{ url: 'https://bing.example/floor' }], truncated: false };
+    },
+  };
+  const router = new AutoSearchProvider({
+    settings: () => settings({ searchMode: 'fast', intentRouting: false, defaultSearchOrder: ['slow', 'bing'] }),
+    providers: { slow, bing },
+  });
+  await assert.rejects(
+    () => router.search({ query: 'cancel fast query' }, controller.signal),
+    (error) => error.code === 'WEB_ABORTED',
+  );
+  assert.deepEqual(calls, ['slow']);
+});

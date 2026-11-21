@@ -67,8 +67,8 @@
 
 1. quality 交给 `QualityEngine`：并行、去重、重排降级、加权、增强。
 2. 补充缝由 catalog 条目声明，各触发一次。
-3. engine 无结果回落 fast（`result ??=`）。
-4. 总 deadline 为 3 × `requestTimeoutMs`，与 signal 取交集。
+3. engine 无结果回落 fast（`result ??=`）；回落链只用调用方信号，内部 deadline 不污染地板。
+4. 总 deadline 为 3 × `requestTimeoutMs`，只并进 quality 引擎与 realtime 的信号。
 
 ### 一次抓取
 
