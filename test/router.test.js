@@ -356,6 +356,31 @@ test('AutoFetchProvider does not fall back for an invalid URL', async () => {
   assert.deepEqual(calls, ['http']);
 });
 
+test('AutoFetchProvider does not fall back when the direct fetch blocks a private host', async () => {
+  const calls = [];
+  const providers = {
+    http: {
+      id: 'http',
+      available: () => true,
+      ready: async () => true,
+      async fetch() {
+        calls.push('http');
+        const error = new Error('HTTP fetch blocked: host resolves to a private or reserved address (10.0.0.5)');
+        error.name = 'WebError';
+        error.code = 'WEB_PRIVATE_URL';
+        throw error;
+      },
+    },
+    tavily: fetchProvider('tavily', calls),
+  };
+  const router = new AutoFetchProvider({ settings: () => settings(), providers });
+  await assert.rejects(
+    () => router.fetch({ url: 'http://internal.example/' }),
+    (error) => error.code === 'WEB_PRIVATE_URL',
+  );
+  assert.deepEqual(calls, ['http']);
+});
+
 test('AutoSearchProvider continues with the fast order when quality returns empty sources', async () => {
   const calls = [];
   const empty = (name) => ({

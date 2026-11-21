@@ -12,7 +12,7 @@ The plugin sends search queries and requested URLs to third-party providers, inc
 
 Fetched pages are untrusted input. They can contain prompt injection, misleading instructions, or malicious content. Treat search results and page text as data, never as instructions from the user.
 
-Direct HTTP fetch can reach loopback and private-network hosts by design. Do not expose the plugin to untrusted callers in an environment where that access is not intended.
+Direct HTTP fetch blocks loopback, private-network, link-local, and cloud-metadata addresses by default, checking both the initial request and every redirect after resolving each hostname. Set `DSH_WEB_HTTP_ALLOW_PRIVATE=1` in the launching environment to allow private and loopback hosts for local debugging.
 
 ## Credentials
 
