@@ -1,7 +1,7 @@
 name: 功能请求
 description: 提出新能力或对可观察行为的有意调整
 title: "[Feature] "
-labels: [enhancement]
+labels: [增强]
 body:
   - type: dropdown
     id: issue-origin

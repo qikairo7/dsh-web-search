@@ -30,6 +30,6 @@ Read it as in **Read an issue** above.
 
 ## 本仓约定（dsh-web-search）
 
-- 所有入口开的单（人工、审计定时任务、复盘 follow-up）初始都挂 `needs-triage`，由维护者分诊后转其它状态——不直接进 `ready-for-agent` 队列。
-- issue 转 `ready-for-agent` 时补齐元数据：type（Bug/Feature/Task，REST PATCH）、assignee、label（category + state 之外的内容标签）、milestone（当前规划批次）。命令模板见仓库 `CODING_STANDARDS.md` 引用的元数据参考。
+- 所有入口开的单（人工、审计定时任务、复盘跟进）初始都挂 `待分诊`，由维护者分诊后转其它状态——不直接进 `可交代理` 队列。
+- issue 转 `可交代理` 时补齐元数据：type（Bug/Feature/Task，REST PATCH）、assignee、label（category + state 之外的内容标签）、milestone（当前规划批次）。命令模板见仓库 `CODING_STANDARDS.md` 引用的元数据参考。
 - commit 与 push 的作者身份、token 纪律见仓库 `CODING_STANDARDS.md`（三权分立：qikairo-bot 创作、qikairo-review 评审、qikairo7 合并）。

@@ -2,7 +2,7 @@
 name: 问题咨询
 about: 询问用法、配置或行为，不等于 Bug 或功能请求
 title: "[Question] "
-labels: [question]
+labels: [任务]
 ---
 
 ## 场景
