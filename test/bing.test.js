@@ -165,3 +165,114 @@ test('the runner advances to the next provider after Bing maps zero results', as
     runner.run({ capability: 'search', order: ['bing', 'exa'], request: { query: 'deepsearch harness' } }));
   assert.deepEqual(result.sources.map((source) => source.url), ['https://exa.example/answer']);
 });
+
+// --- #183: markup micro-variations must not collapse the whole batch to zero ---
+
+/** One result block with a variable class attribute and optional middle markup. */
+function variantHtml(classAttr, middle, { href, title, snippet }) {
+  return '<li ' + classAttr + '><h2><a href="' + href + '">' + title + '</a></h2>' + middle + '<p>' + snippet + '</p></li>';
+}
+
+const variantResults = [
+  { href: ckHref('https://a.example/one'), title: 'DeepSeek 指南', snippet: 'snippet one' },
+  { href: ckHref('https://b.example/two'), title: 'DeepSeek 教程', snippet: 'snippet two' },
+];
+
+const variantCases = [
+  ['extra class token', 'class="b_algo b_algoExtra"', ''],
+  ['single-quoted class', "class='b_algo'", ''],
+  [
+    'nested li before snippet',
+    'class="b_algo"',
+    '<ul><li class="b_sitelink"><a href="https://sitelink.example/x">sub</a></li></ul>',
+  ],
+];
+
+for (const [name, classAttr, middle] of variantCases) {
+  test('mapBingSearch parses results when markup varies (' + name + ') (#183)', () => {
+    const variant = mapBingSearch(
+      '<ol>' + variantResults.map((result) => variantHtml(classAttr, middle, result)).join('') + '</ol>',
+      'DeepSeek 指南',
+      4000,
+    );
+    const standard = mapBingSearch('<ol>' + variantResults.map(serpBlock).join('') + '</ol>', 'DeepSeek 指南', 4000);
+    assert.equal(variant.sources.length, 2);
+    assert.deepEqual(variant.sources.map((source) => source.url), standard.sources.map((source) => source.url));
+    assert.deepEqual(variant.sources.map((source) => source.title), standard.sources.map((source) => source.title));
+    assert.equal(variant.sources[0].snippet, 'snippet one');
+    assert.equal(variant.sources[1].snippet, 'snippet two');
+  });
+
+  test('BingProvider.search keeps the floor result when markup varies (' + name + ') (#183)', async () => {
+    const html =
+      '<ol>' +
+      variantHtml(classAttr, middle, {
+        href: ckHref('https://doc.example/guide'),
+        title: 'DeepSeek Harness 插件开发指南',
+        snippet: 'How to develop the plugin',
+      }) +
+      '</ol>';
+    await withFetch({ body: html, headers: { 'content-type': 'text/html' } }, async () => {
+      const provider = new BingProvider({ settings: () => bingSettings() });
+      const result = await provider.search({ query: 'DeepSeek Harness 插件开发', maxResults: 20 });
+      assert.deepEqual(result.sources.map((source) => source.url), ['https://doc.example/guide']);
+      assert.equal(result.sources[0].title, 'DeepSeek Harness 插件开发指南');
+      assert.equal(result.sources[0].snippet, 'How to develop the plugin');
+    });
+  });
+}
+
+test('the runner keeps the Bing floor instead of the paid tail when SERP markup gains a class token (#183)', async () => {
+  const settings = () => bingSettings();
+  const providers = {
+    bing: new BingProvider({ settings }),
+    exa: {
+      id: 'exa',
+      available: () => true,
+      ready: async () => true,
+      async search() {
+        return { sources: [{ url: 'https://exa.example/answer', title: 'Exa answer' }], truncated: false };
+      },
+    },
+  };
+  const runner = new ProviderRunner({ settings, providers });
+  const html =
+    '<ol>' +
+    variantHtml('class="b_algo b_algoExtra"', '', {
+      href: ckHref('https://doc.example/floor'),
+      title: 'DeepSeek Harness plugin guide',
+      snippet: 'develop plugins with harness',
+    }) +
+    '</ol>';
+  const result = await withFetch({ body: html, headers: { 'content-type': 'text/html' } }, () =>
+    runner.run({ capability: 'search', order: ['bing', 'exa'], request: { query: 'DeepSeek Harness plugin' } }),
+  );
+  assert.deepEqual(result.sources.map((source) => source.url), ['https://doc.example/floor']);
+});
+
+// --- #183 mutation guards: single-quoted href and truncated tail block ---
+
+test('mapBingSearch parses a single-quoted href (#183)', () => {
+  const singleQuote = "'";
+  const href = ckHref('https://a.example/one');
+  const html =
+    '<ol><li class="b_algo"><h2><a href=' + singleQuote + href + singleQuote + '>DeepSeek 指南</a></h2><p>snippet one</p></li></ol>';
+  const result = mapBingSearch(html, 'DeepSeek 指南', 4000);
+  assert.equal(result.sources.length, 1);
+  assert.equal(result.sources[0].url, 'https://a.example/one');
+  assert.equal(result.sources[0].title, 'DeepSeek 指南');
+  assert.equal(result.sources[0].snippet, 'snippet one');
+});
+
+test('mapBingSearch keeps a truncated final block with no closing </li> (#183)', () => {
+  const closed = serpBlock({ href: ckHref('https://a.example/one'), title: 'DeepSeek 指南', snippet: 'first' });
+  const href = ckHref('https://b.example/two');
+  const truncated = '<li class="b_algo"><h2><a href="' + href + '">DeepSeek 教程</a></h2><p>second</p>';
+  const result = mapBingSearch('<ol>' + closed + truncated, 'DeepSeek 指南', 4000);
+  assert.equal(result.sources.length, 2);
+  assert.deepEqual(
+    result.sources.map((source) => source.url),
+    ['https://a.example/one', 'https://b.example/two'],
+  );
+  assert.equal(result.sources[1].snippet, 'second');
+});
