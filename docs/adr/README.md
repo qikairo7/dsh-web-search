@@ -28,3 +28,4 @@ ADR 记录的事实随代码改：路径、名字、默认值、行为变了，�
 - [ADR-0012](0012-github-provider.md)
 - [ADR-0013](0013-x-catbus-port.md)
 - [ADR-0014](0014-direct-http-private-address-guard.md)
+- [ADR-0015](0015-weak-result-fallback.md)

@@ -85,8 +85,8 @@
 - 回退双重门：取消 / 非法 URL 立即结束；其余须在允许类里。
 - 失败类：402/429 → quota，401/403 → auth，408/5xx → transient。
 - 熔断只计可回退失败；全败抛 `WEB_PROVIDER_ERROR` 并附原因。
-- 空结果语义归 provider 定夺。
-- Bing 空 SERP 抛错，成功空返回会吞掉回退。
+- 空结果即弱结果：搜索 0 条、抓取空正文由 router 判为弱，沿免费栈再试 1 家（ADR-0015）。
+- Bing 空 SERP 抛错属失败轴；空返回不再吞掉回退，而是走弱回退。
 - routing 注记由路由层下发一次，provider 只消费。
 - `settings()` 是 thunk，每次操作读一次，不缓存进实例字段。
 - `USER_AGENT` 由包版本拼出。

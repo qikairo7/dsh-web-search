@@ -737,3 +737,196 @@ test('AutoSearchProvider fast mode still aborts without fallback when the caller
   );
   assert.deepEqual(calls, ['slow']);
 });
+
+// --- ADR-0015: weak-result fallback for fast search and fetch chains ---
+
+function weakSettings(overrides = {}) {
+  return {
+    searchMode: 'fast',
+    fetchMode: 'fast',
+    intentRouting: false,
+    chineseSearchOrder: [],
+    defaultSearchOrder: [],
+    fetchOrder: [],
+    searchCacheTtlMs: 10_000,
+    searchCacheMaxEntries: 10,
+    fetchCacheTtlMs: 10_000,
+    fetchCacheMaxEntries: 10,
+    breakerFailureThreshold: 3,
+    breakerCooldownMs: 60_000,
+    ...overrides,
+  };
+}
+
+function emptySearchProvider(name, calls) {
+  return {
+    id: name,
+    available: () => true,
+    ready: async () => true,
+    async search() {
+      calls.push(name);
+      return { sources: [], truncated: false };
+    },
+  };
+}
+
+function strongSearchProvider(name, calls) {
+  return {
+    id: name,
+    available: () => true,
+    ready: async () => true,
+    async search() {
+      calls.push(name);
+      return { sources: [{ url: `https://${name}.example/` }], truncated: false };
+    },
+  };
+}
+
+function failingSearchProvider(name, calls) {
+  return {
+    id: name,
+    available: () => true,
+    ready: async () => true,
+    async search() {
+      calls.push(name);
+      throw new Error(`${name} failed`);
+    },
+  };
+}
+
+function bodyFetchProvider(name, calls, body) {
+  return {
+    id: name,
+    available: () => true,
+    ready: async () => true,
+    async fetch() {
+      calls.push(name);
+      return { url: `https://${name}.example/`, statusCode: 200, body, truncated: false };
+    },
+  };
+}
+
+test('AutoSearchProvider retries the next free provider when the first returns no sources (ADR-0015)', async () => {
+  const calls = [];
+  const router = new AutoSearchProvider({
+    settings: () => weakSettings({ defaultSearchOrder: ['keenable', 'anysearch', 'tavily'] }),
+    providers: {
+      keenable: emptySearchProvider('keenable', calls),
+      anysearch: strongSearchProvider('anysearch', calls),
+      tavily: strongSearchProvider('tavily', calls),
+    },
+  });
+  const result = await router.search({ query: 'english query' });
+  assert.deepEqual(calls, ['keenable', 'anysearch']);
+  assert.equal(result.sources[0].url, 'https://anysearch.example/');
+});
+
+test('AutoSearchProvider weak fallback stops after one extra free provider (ADR-0015)', async () => {
+  const calls = [];
+  const router = new AutoSearchProvider({
+    settings: () => weakSettings({ defaultSearchOrder: ['keenable', 'anysearch', 'exa'] }),
+    providers: {
+      keenable: emptySearchProvider('keenable', calls),
+      anysearch: emptySearchProvider('anysearch', calls),
+      exa: strongSearchProvider('exa', calls),
+    },
+  });
+  const result = await router.search({ query: 'english query' });
+  assert.deepEqual(calls, ['keenable', 'anysearch']);
+  assert.equal(result.sources.length, 0);
+});
+
+test('AutoSearchProvider does not cache an all-weak fast result (ADR-0015)', async () => {
+  const calls = [];
+  const router = new AutoSearchProvider({
+    settings: () => weakSettings({ defaultSearchOrder: ['keenable'] }),
+    providers: { keenable: emptySearchProvider('keenable', calls) },
+  });
+  const first = await router.search({ query: 'english query' });
+  const second = await router.search({ query: 'english query' });
+  assert.deepEqual(calls, ['keenable', 'keenable']);
+  assert.equal(first.sources.length, 0);
+  assert.equal(second.sources.length, 0);
+});
+
+test('AutoSearchProvider weak fallback never calls the paid tail (ADR-0015)', async () => {
+  const calls = [];
+  const router = new AutoSearchProvider({
+    settings: () => weakSettings({ defaultSearchOrder: ['keenable', 'tavily'] }),
+    providers: {
+      keenable: emptySearchProvider('keenable', calls),
+      tavily: strongSearchProvider('tavily', calls),
+    },
+  });
+  const result = await router.search({ query: 'english query' });
+  assert.deepEqual(calls, ['keenable']);
+  assert.equal(result.sources.length, 0);
+});
+
+test('AutoSearchProvider still reaches the paid tail when free providers error (ADR-0015)', async () => {
+  const calls = [];
+  const router = new AutoSearchProvider({
+    settings: () => weakSettings({ defaultSearchOrder: ['keenable', 'tavily'] }),
+    providers: {
+      keenable: failingSearchProvider('keenable', calls),
+      tavily: strongSearchProvider('tavily', calls),
+    },
+  });
+  const result = await router.search({ query: 'english query' });
+  assert.deepEqual(calls, ['keenable', 'tavily']);
+  assert.equal(result.sources[0].url, 'https://tavily.example/');
+});
+
+test('AutoFetchProvider retries the next free provider when the first returns an empty body (ADR-0015)', async () => {
+  const calls = [];
+  const router = new AutoFetchProvider({
+    settings: () => weakSettings({ fetchOrder: ['http', 'anysearch', 'tavily'] }),
+    providers: {
+      http: bodyFetchProvider('http', calls, { kind: 'text', content: '' }),
+      anysearch: bodyFetchProvider('anysearch', calls, { kind: 'text', content: 'anysearch body' }),
+      tavily: bodyFetchProvider('tavily', calls, { kind: 'text', content: 'tavily body' }),
+    },
+  });
+  const result = await router.fetch({ url: 'https://example.com/' });
+  assert.deepEqual(calls, ['http', 'anysearch']);
+  assert.equal(result.body.content, 'anysearch body');
+});
+
+test('AutoFetchProvider treats an empty HTML shell as a weak fetch result (ADR-0015)', async () => {
+  const calls = [];
+  const router = new AutoFetchProvider({
+    settings: () => weakSettings({ fetchOrder: ['http', 'anysearch'] }),
+    providers: {
+      http: bodyFetchProvider('http', calls, { kind: 'html', content: '<div id="root"></div>' }),
+      anysearch: bodyFetchProvider('anysearch', calls, { kind: 'text', content: 'real body' }),
+    },
+  });
+  const result = await router.fetch({ url: 'https://example.com/' });
+  assert.deepEqual(calls, ['http', 'anysearch']);
+  assert.equal(result.body.content, 'real body');
+});
+
+test('AutoFetchProvider does not cache an all-weak fetch result (ADR-0015)', async () => {
+  const calls = [];
+  const router = new AutoFetchProvider({
+    settings: () => weakSettings({ fetchOrder: ['http'] }),
+    providers: { http: bodyFetchProvider('http', calls, { kind: 'text', content: '' }) },
+  });
+  await router.fetch({ url: 'https://example.com/' });
+  await router.fetch({ url: 'https://example.com/' });
+  assert.deepEqual(calls, ['http', 'http']);
+});
+
+test('AutoFetchProvider weak fallback never calls the paid tail (ADR-0015)', async () => {
+  const calls = [];
+  const router = new AutoFetchProvider({
+    settings: () => weakSettings({ fetchOrder: ['http', 'tavily'] }),
+    providers: {
+      http: bodyFetchProvider('http', calls, { kind: 'text', content: '' }),
+      tavily: bodyFetchProvider('tavily', calls, { kind: 'text', content: 'tavily body' }),
+    },
+  });
+  const result = await router.fetch({ url: 'https://example.com/' });
+  assert.deepEqual(calls, ['http']);
+  assert.equal(result.body.content, '');
+});
