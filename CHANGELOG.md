@@ -6,6 +6,17 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 更早版本见 [docs/changelog-archive.md](docs/changelog-archive.md)
 
+## 0.16.0 — 2026-11-21
+
+### 新增
+
+- 新增 `github` 标准 provider：仓库与 issue 搜索、issue/README 结构化抓取，匿名可用、PAT 提额（#219，修复 #40）。
+- 新增可选只读工具 `x_search`：从 catbus（MIT）移植 X 网页端推文搜索，cookie 从浏览器导入、默认关闭（#218，修复 #41；0.15.1 已发布）。
+
+### 变更
+
+- 新增历史修复回放考卷与基线趋势，修过的 bug 每周重跑（#217，修复 #203；0.15.1 已交付）。
+
 ## 0.15.1 — 2026-11-21
 
 ### 新增
