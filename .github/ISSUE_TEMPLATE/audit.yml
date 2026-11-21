@@ -1,7 +1,7 @@
 name: 审计发现
-description: 审查/实测/复盘发现的代码或文档问题（[audit] 类）
+description: 审查/实测/复盘发现的代码或文档问题（审计类）
 title: "[audit] "
-labels: [audit]
+labels: [审计]
 body:
   - type: dropdown
     id: issue-origin
