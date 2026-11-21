@@ -172,3 +172,66 @@ test('skipped providers are not recorded as tried', async () => {
   assert.equal(trails.length, 1);
   assert.deepEqual(trails[0].fields, { capability: 'search', tried: ['good'], answered: ['good'] });
 });
+
+test('a quality search records only the providers it actually attempted as tried', async () => {
+  const calls = [];
+  const { trails, debug } = recordingSink();
+  const providers = {
+    // available() false: skipped before any call.
+    aihot: {
+      id: 'aihot',
+      available: () => false,
+      ready: async () => true,
+      search: async () => {
+        calls.push('aihot');
+        return { sources: [], truncated: false };
+      },
+    },
+    // ready() false: skipped for a missing credential.
+    keenable: {
+      id: 'keenable',
+      available: () => true,
+      ready: async () => false,
+      search: async () => {
+        calls.push('keenable');
+        return { sources: [], truncated: false };
+      },
+    },
+    // Cooling down in the breaker: skipped before any call.
+    anysearch: {
+      id: 'anysearch',
+      available: () => true,
+      ready: async () => true,
+      search: async () => {
+        calls.push('anysearch');
+        return { sources: [], truncated: false };
+      },
+    },
+    // Really attempted and answers.
+    zhihu: provider('zhihu', calls),
+  };
+  const settingsObj = {
+    searchMode: 'quality',
+    intentRouting: false,
+    officialDocsEnabled: false,
+    enrichEnabled: false,
+    breakerFailureThreshold: 1,
+    breakerCooldownMs: 60_000,
+    aihot: { enabled: true },
+    keenable: { enabled: true },
+    anysearch: { enabled: true },
+    zhihu: { enabled: true },
+    searchCacheTtlMs: 10_000,
+    searchCacheMaxEntries: 10,
+  };
+  const router = new AutoSearchProvider({ settings: () => settingsObj, providers, debug });
+  router.runner.health.failure('anysearch', settingsObj);
+
+  await router.search({ query: '2026年11月 AI 行业新闻' });
+
+  assert.deepEqual(calls, ['zhihu'], 'skipped providers are never called');
+  const trail = trails.find((entry) => entry.fields?.capability === 'search');
+  assert.ok(trail, 'expected a search trail');
+  assert.deepEqual([...trail.fields.tried].sort(), ['zhihu']);
+  assert.deepEqual([...trail.fields.answered].sort(), ['zhihu']);
+});
