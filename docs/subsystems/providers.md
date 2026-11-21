@@ -9,14 +9,14 @@
 <!-- gen:provider-table start -->
 | Provider | 能力 | Tier | 认证方式 |
 |---|---|---|---|
-| `anysearch` | 搜索、抓取 | 免费 | API Key（`ANYSEARCH_API_KEY`） |
-| `keenable` | 搜索、抓取 | 免费 | API Key（`KEENABLE_API_KEY`） |
-| `tavily` | 搜索、抓取、域内搜索 | 付费 | API Key（`TAVILY_API_KEY`） |
-| `firecrawl` | 搜索、抓取 | 付费 | API Key（`FIRECRAWL_API_KEY`） |
-| `zhihu` | 搜索 | 免费 | API Key（`ZHIHU_API_KEY`） |
-| `zhihu-site` | 搜索 | 免费 | API Key（`ZHIHU_API_KEY`） |
+| `anysearch` | 搜索、抓取 | 免费 | API Key |
+| `keenable` | 搜索、抓取 | 免费 | API Key |
+| `tavily` | 搜索、抓取、域内搜索 | 付费 | API Key |
+| `firecrawl` | 搜索、抓取 | 付费 | API Key |
+| `zhihu` | 搜索 | 免费 | API Key |
+| `zhihu-site` | 搜索 | 免费 | API Key |
 | `aihot` | 搜索 | 免费 | 免 Key |
-| `exa` | 搜索、抓取 | 免费 | API Key（`EXA_API_KEY`） |
+| `exa` | 搜索、抓取 | 免费 | API Key |
 | `bing` | 搜索 | 免 Key | 免 Key |
 | `http` | 抓取 | 免费 | 免 Key |
 <!-- gen:provider-table end -->

@@ -18,11 +18,15 @@ test('renderProviderTable has a header plus one row per catalog entry', () => {
   assert.match(lines[0], /Provider.*能力.*Tier.*认证方式/);
 });
 
-test('renderProviderTable maps capability, tier and auth from catalog + defaults', () => {
+test('renderProviderTable maps capability, tier and auth class from catalog', () => {
   const table = renderProviderTable();
   assert.match(table, /\| `bing` \| 搜索 \| 免 Key \| 免 Key \|/);
-  assert.match(table, /\| `tavily` \| 搜索、抓取、域内搜索 \| 付费 \| API Key（`TAVILY_API_KEY`） \|/);
+  assert.match(table, /\| `tavily` \| 搜索、抓取、域内搜索 \| 付费 \| API Key \|/);
   assert.match(table, /\| `http` \| 抓取 \| 免费 \| 免 Key \|/);
+});
+
+test('renderProviderTable never copies env var names into the table', () => {
+  assert.ok(!/ANYSEARCH_API_KEY|TAVILY_API_KEY/.test(renderProviderTable()));
 });
 
 test('checkRegionDrift is green when the region matches the generated table', () => {

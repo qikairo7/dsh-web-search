@@ -17,14 +17,16 @@ export const END = '<!-- gen:provider-table end -->';
 const CAPABILITY_LABEL = { search: '搜索', fetch: '抓取', domainSearch: '域内搜索' };
 const TIER_LABEL = { free: '免费', keyless: '免 Key', paid: '付费' };
 
-/** Render the provider table from catalog entries plus their default auth. */
+/** Render the provider table from catalog entries plus their tier/auth class.
+ * The auth column stays coarse (API Key / 免 Key); env var names live only in
+ * docs/configuration.md, so this table never copies them. */
 export function renderProviderTable(catalog = PROVIDER_CATALOG, defaults = DEFAULT_SETTINGS) {
   const lines = ['| Provider | 能力 | Tier | 认证方式 |', '|---|---|---|---|'];
   for (const entry of catalog) {
     const capabilities = entry.capabilities.map((cap) => CAPABILITY_LABEL[cap] ?? cap).join('、');
     const tier = TIER_LABEL[entry.tier] ?? entry.tier;
-    const apiKeyEnv = defaults[entry.settingsKey]?.apiKeyEnv;
-    const auth = apiKeyEnv ? `API Key（\`${apiKeyEnv}\`）` : '免 Key';
+    const requiresKey = Object.hasOwn(defaults[entry.settingsKey] ?? {}, 'apiKeyEnv');
+    const auth = requiresKey ? 'API Key' : '免 Key';
     lines.push(`| \`${entry.id}\` | ${capabilities} | ${tier} | ${auth} |`);
   }
   return lines.join('\n');
