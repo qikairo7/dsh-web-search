@@ -1,3 +1,14 @@
+## 0.14.0 — 2026-11-21
+
+### 变更
+
+- Bing SERP 解析改结构化，markup 微变不再整批归零（#192，fix）。
+- resolve.all 恢复「a gap stops the list」断链契约，quality fan-out 遇内部 deadline 降级、不整条取消（#193，fix）。
+- 直连 HTTP 默认拦截私网地址并在错误路径取消响应体，堵住 SSRF；SAFETY 中英双语与 ADR-0014 同步（#194，fix，安全行为变更）。
+- 内部文档退出公开仓库改本地维护，BENCHMARK 归位 docs（#196，chore）。
+- 补 client.js `handleSaveKey` 工厂闭包组件级红测（#197，test）。
+- 新增 postmortem 目录、providers 生成式表格与文档新鲜度门禁（#199，docs）。
+
 ## 0.13.15 — 2026-11-21
 
 ### 变更
