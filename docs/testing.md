@@ -42,6 +42,10 @@
 
 `pnpm benchmark` 先读 `scripts/fixtures/public-benchmark-sample.json`，fixture 不足时才回退到公开 rows API。结果写 `.research/public-benchmark.json`（gitignored），不提交。当前报告见 `docs/benchmarks/`。
 
+## 回放考卷
+
+历史修复的回归题：`node scripts/replay-suite.mjs` 读场景库 `scripts/replay/scenarios.mjs`（15-25 条，逐条可追溯到修复 commit 或 CHANGELOG 条目），对每条两跑——干净树守卫须过（修复码 PASS），注入旧 bug 须红（旧码 FAIL），证明守卫仍抓得住旧坑。结果写 `.research/replay/<日期>.json` 与同名 `.md`，每周一行趋势追加到 `.research/replay/trend.md`（gitignored，同 `pnpm probe`）。
+
 ## 相关文档
 
 - [开发指南](development.md)
