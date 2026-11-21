@@ -39,7 +39,7 @@ It needs DeepSeek Harness `0.2.2-rc.5` (verified), Node.js `22.19+` or `24+`, an
 - Free-tier-first backend pool with automatic failover and a keyless Bing floor (ADR-0011); paid backends only when free quota is gone. → [Architecture](docs/architecture.md) · [Configuration](docs/configuration.md)
 - Quality pipeline: URL dedupe, BGE rerank with a domain-authority prior, evidence enrichment on the top 5. → [Architecture](docs/architecture.md)
 - Failure-class fallback gating: `fallbackFailureClasses` decides which failures may move to the next provider; fast mode also retries one more free backend on an empty result (ADR-0015). → [Configuration](docs/configuration.md) · [Architecture decisions](docs/adr/)
-- Optional [AnySearch](https://anysearch.com) / [Tavily](https://tavily.com) / [AIHOT](https://aihot.news) tools, plus live weather and FX; reranking and semantic dedupe use [SiliconFlow](https://cloud.siliconflow.cn/i/E3nhNFP4). All backends and quotas: [Configuration](docs/configuration.md).
+- Optional [AnySearch](https://anysearch.com) / [Tavily](https://tavily.com) / [AIHOT](https://aihot.news) / [GitHub](https://github.com) backends; weather/FX; rerank/dedupe via [SiliconFlow](https://cloud.siliconflow.cn/i/E3nhNFP4). All backends: [Configuration](docs/configuration.md).
 
 ## Quick start
 

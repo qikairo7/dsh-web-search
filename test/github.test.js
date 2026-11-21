@@ -10,6 +10,8 @@ import {
 import { wantsGithub, looksLikeErrorText } from '../lib/technical.js';
 import { githubFetchTarget } from '../lib/host.js';
 import { AutoFetchProvider } from '../lib/providers/router.js';
+import { webError } from '../lib/errors.js';
+import { providerEntry } from '../lib/catalog.js';
 import { resolveSettings } from '../lib/settings.js';
 import { readProviderUsage } from '../lib/quotaStore.js';
 import { withFetch } from './helpers/withFetch.js';
@@ -150,6 +152,11 @@ test('GithubProvider.search maps a 403 to a recoverable rate-limited error', asy
         assert.equal(error.code, 'WEB_RATE_LIMITED');
         return true;
       });
+      // Retry-After: 60 must put the provider into roughly a 60s cooldown, so the
+      // chain skips it instead of calling again (ADR-0012).
+      assert.equal(provider.available(), false);
+      const remaining = provider.cooldownUntil - Date.now();
+      assert.ok(remaining > 55_000 && remaining <= 60_000, `cooldown ${remaining}ms`);
     },
   );
 });
@@ -210,10 +217,18 @@ test('githubFetchTarget and wantsGithub classify github targets', () => {
   assert.deepEqual(githubFetchTarget('https://github.com/o/r/issues/3'), { kind: 'issue', owner: 'o', repo: 'r', number: 3 });
   assert.deepEqual(githubFetchTarget('https://github.com/o/r'), { kind: 'readme', owner: 'o', repo: 'r' });
   assert.equal(githubFetchTarget('https://github.com/o/r/blob/main/x.js'), undefined);
-  assert.equal(githubFetchTarget('https://example.com/x'), undefined);
+  assert.equal(githubFetchTarget('https://example.com/o/r'), undefined);
   assert.equal(wantsGithub('site:github.com dsh-web-search'), true);
   assert.equal(wantsGithub('qikairo7/dsh-web-search'), true);
   assert.equal(wantsGithub('TypeError: spawn EPERM'), true);
+  // Ordinary word pairs are not owner/repo slugs and must not route to GitHub (F6).
+  assert.equal(wantsGithub('input/output format'), false);
+  assert.equal(wantsGithub('and/or'), false);
+  assert.equal(wantsGithub('A/B test'), false);
+  assert.equal(wantsGithub('npm/pnpm 差别'), false);
+  assert.equal(wantsGithub('TCP/IP 设置'), false);
+  // A bare package/repo name is still recognised (F8).
+  assert.equal(wantsGithub('dsh-web-search'), true);
   assert.equal(wantsGithub('红烧肉做法'), false);
   assert.equal(looksLikeErrorText('ModuleNotFoundError: no module named x'), true);
   assert.equal(looksLikeErrorText('best hiking trails'), false);
@@ -238,6 +253,67 @@ test('AutoFetchProvider routes a github issue URL straight to the github provide
   const auto = new AutoFetchProvider({ settings: () => settings, providers });
   const result = await auto.fetch({ url: 'https://github.com/o/r/issues/3' });
   assert.equal(result.url, 'github-hit');
+});
+
+test('AutoFetchProvider keeps a non-GitHub URL on the HTTP path', async () => {
+  const settings = { ...resolveSettings(), fetchMode: 'fast', fetchOrder: ['http'] };
+  let githubCalled = false;
+  const providers = {
+    github: {
+      id: 'github',
+      available: () => true,
+      ready: async () => true,
+      fetch: async () => {
+        githubCalled = true;
+        throw webError('GitHub fetch supports issue and repository pages only', 'WEB_INVALID_URL');
+      },
+    },
+    http: {
+      id: 'http',
+      available: () => true,
+      ready: async () => true,
+      fetch: async () => ({ url: 'http-hit', statusCode: 200, body: { kind: 'text', content: 'from http' }, truncated: false }),
+    },
+  };
+  const auto = new AutoFetchProvider({ settings: () => settings, providers });
+  const result = await auto.fetch({ url: 'https://example.com/article' });
+  assert.equal(result.url, 'http-hit');
+  assert.equal(githubCalled, false);
+});
+
+test('GithubProvider.search keeps a site:github.com/<owner>/<repo> path as a repo: filter', async () => {
+  let seen;
+  await withFetch(
+    async (url) => {
+      seen = new URL(String(url));
+      return jsonResponse({ items: [] });
+    },
+    async () => {
+      const provider = new GithubProvider({ settings: () => ghSettings(), resolveKey: async () => undefined });
+      await provider.search({ query: 'site:github.com/qikairo7/dsh-web-search' });
+      assert.equal(seen.pathname, '/search/repositories');
+      assert.equal(seen.searchParams.get('q'), 'repo:qikairo7/dsh-web-search');
+    },
+  );
+});
+
+test('GithubProvider.search strips the provider-neutral lang: operator', async () => {
+  let seen;
+  await withFetch(
+    async (url) => {
+      seen = new URL(String(url));
+      return jsonResponse({ items: [] });
+    },
+    async () => {
+      const provider = new GithubProvider({ settings: () => ghSettings(), resolveKey: async () => undefined });
+      await provider.search({ query: 'lang:zh vue' });
+      assert.equal(seen.searchParams.get('q'), 'vue');
+    },
+  );
+});
+
+test('github does not declare the natural-language operator it cannot honor', () => {
+  assert.equal(providerEntry('github').operators.includes('language'), false);
 });
 
 test('QualityEngine adds github to the fan-out for a github/error query', async () => {

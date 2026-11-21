@@ -114,7 +114,7 @@ DEFAULT_SETTINGS + resolveSettings() (lib/settings.js)
 settings() thunk ──→ Provider / Router
 ```
 
-用户可见默认值与配额由 [配置](configuration.md) 拥有；代码事实由 `DEFAULT_SETTINGS` 拥有。
+用户可见默认值与配额由 [配置](configuration.md) 拥有；代码事实由 `DEFAULT_SETTINGS` 拥有；两份 README 必须同步。
 
 ## 扩展点
 
