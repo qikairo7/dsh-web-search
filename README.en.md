@@ -40,6 +40,7 @@ It needs DeepSeek Harness `0.2.2-rc.5` (verified), Node.js `22.19+` or `24+`, an
 - Quality pipeline: URL dedupe, BGE rerank with a domain-authority prior, evidence enrichment on the top 5. → [Architecture](docs/architecture.md)
 - Failure-class fallback gating: `fallbackFailureClasses` decides which failures may move to the next provider. → [Configuration](docs/configuration.md)
 - Bing keyless search floor between the free stack and the paid tail (ADR-0011). → [Architecture decisions](docs/adr/)
+- Weak-result fallback: fast mode retries one more free backend when the first returns no results or body text; the paid tail stays fallback-only (ADR-0015). → [Architecture decisions](docs/adr/)
 - Optional AnySearch / Tavily / AIHOT advanced tools, plus live weather and FX. → [Configuration](docs/configuration.md)
 
 ## Quick start

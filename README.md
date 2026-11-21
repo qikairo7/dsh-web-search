@@ -40,6 +40,7 @@
 - 质量管线：URL 去重、BGE 重排叠加域名权威，前 5 条做证据增强。 → [架构](docs/architecture.md)
 - 失败分类回退门控：`fallbackFailureClasses` 决定何时换下一后端。 → [配置](docs/configuration.md)
 - Bing 免 Key 搜索地板，在免费栈与付费尾之间（ADR-0011）。 → [架构决策](docs/adr/)
+- 弱结果回退：fast 模式首个免费后端返回 0 条或抽不出正文时，按原序再试一家免费后端，付费尾仍只兜底（ADR-0015）。 → [架构决策](docs/adr/)
 - 可选 AnySearch / Tavily / AIHOT，天气汇率直连实时。 → [配置](docs/configuration.md)
 
 ## 快速开始

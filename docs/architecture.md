@@ -91,14 +91,14 @@ Provider 的能力矩阵与默认顺序见下节；注册列表在 `lib/index.js
 3. 天气/汇率查询先由 `realtime.js`（Open-Meteo、ExchangeRate-API/Frankfurter）应答；失败则继续正常搜索。
 4. `quality`：`QualityEngine.search()` 从角色表取该语言免费 Provider 并行调用，合并去重后走 BGE 重排（一次尝试，失败降级为提供方优先序）、权威加权与证据增强。补充缝各触发一次、不计熔断：官方文档补充由 `domainSearch` 声明者承担（缺官方域且无 `site:` 时）；新闻时效补充由 `newsSupplement` 声明者承担（条件见 README）。
 5. `fast`：`ProviderRunner.run()` 按 `fastOrder()` 顺序逐个尝试（付费尾由 catalog tier 派生）；只有 `isRecoverable(error)` 为真才进入下一个 Provider。
-6. 所有 Provider 都失败时返回最后一个可恢复错误；空结果不写缓存。
+6. 所有 Provider 都失败时返回最后一个可恢复错误；空结果不写缓存；弱结果沿原序再试 1 家免费后端（ADR-0015）。
 
 ## 抓取流程
 
 1. `web_fetch` 进入 `AutoFetchProvider.fetch()`；读取 `fetchMode` 与对应顺序，显式 order 计入缓存键。
 2. `ProviderRunner.run({ capability: 'fetch' })` 执行回退；`fast` 默认 `keenable → http → anysearch → exa → tavily → firecrawl`，`clean` 默认 `keenable → anysearch → exa → http → tavily → firecrawl`。付费尾只在免费路径失败后使用；证据增强经显式 `order: fetchOrder` 复用缓存与熔断。
 3. 直连 HTTP 自己实现最多 5 跳重定向、5 MB 上限、HTML/text/JSON/XML 类型判断和 SPA 空壳回退。
-4. 成功结果写缓存；回退与熔断规则同搜索（见不变量）。
+4. 非弱成功结果写缓存；回退与熔断规则同搜索（见不变量）。
 
 ## 配置流
 
