@@ -6,10 +6,12 @@ import {
   GITHUB_PROVIDER_ID,
   mapGithubRepoSearch,
   mapGithubIssueSearch,
+  mapGithubRepo,
 } from '../lib/providers/github.js';
-import { wantsGithub, looksLikeErrorText } from '../lib/technical.js';
+import { wantsGithub, looksLikeErrorText, parseRepoSlug } from '../lib/technical.js';
 import { githubFetchTarget } from '../lib/host.js';
 import { AutoFetchProvider } from '../lib/providers/router.js';
+import { fastOrder, classifyIntent } from '../lib/intent.js';
 import { webError } from '../lib/errors.js';
 import { providerEntry } from '../lib/catalog.js';
 import { resolveSettings } from '../lib/settings.js';
@@ -115,20 +117,51 @@ test('GithubProvider.search hits the issue endpoint for error text and stays ano
   );
 });
 
-test('GithubProvider.search hits the repository endpoint for a repo slug and sends the PAT when present', async () => {
+test('GithubProvider.search resolves a bare owner/repo slug through /repos and sends the PAT when present', async () => {
   let seen;
   await withFetch(
     async (url, init) => {
-      seen = { url: new URL(String(url)), headers: init.headers };
-      return jsonResponse({ items: [] });
+      seen = { url: new URL(String(url)), headers: init.headers, redirect: init.redirect };
+      return jsonResponse({ full_name: 'qikairo7/dsh-web-search', html_url: 'https://github.com/qikairo7/dsh-web-search', stargazers_count: 7 });
     },
     async () => {
       const provider = new GithubProvider({ settings: () => ghSettings(), resolveKey: async () => 'ghp_test' });
-      await provider.search({ query: 'qikairo7/dsh-web-search', maxResults: 10 });
-      assert.equal(seen.url.pathname, '/search/repositories');
+      const result = await provider.search({ query: 'qikairo7/dsh-web-search', maxResults: 10 });
+      assert.equal(seen.url.pathname, '/repos/qikairo7/dsh-web-search');
+      assert.equal(seen.redirect, 'follow', 'a renamed repo 301 must be followed so the exact repository resolves');
       assert.equal(seen.headers.authorization, 'Bearer ghp_test');
+      assert.equal(result.sources.length, 1);
+      assert.equal(result.sources[0].url, 'https://github.com/qikairo7/dsh-web-search');
     },
   );
+});
+
+test('GithubProvider.search falls back to text search when a bare slug is not a repository', async () => {
+  const paths = [];
+  await withFetch(
+    async (url) => {
+      const u = new URL(String(url));
+      paths.push(u.pathname);
+      if (u.pathname.startsWith('/repos/')) {
+        return new Response(JSON.stringify({ message: 'Not Found' }), { status: 404, headers: { 'content-type': 'application/json' } });
+      }
+      return jsonResponse({ items: [{ full_name: 'x/y', html_url: 'https://github.com/x/y' }] });
+    },
+    async () => {
+      const provider = new GithubProvider({ settings: () => ghSettings(), resolveKey: async () => undefined });
+      const result = await provider.search({ query: 'ghostowner/ghostrepo', maxResults: 5 });
+      assert.equal(paths[0], '/repos/ghostowner/ghostrepo');
+      assert.equal(paths[1], '/search/repositories');
+      assert.equal(result.sources.length, 1);
+    },
+  );
+});
+
+test('mapGithubRepo maps a single /repos payload into one source and rejects a non-repo body', () => {
+  const result = mapGithubRepo({ full_name: 'facebook/react', html_url: 'https://github.com/react/react', stargazers_count: 200000, language: 'JavaScript' }, 4_000);
+  assert.equal(result.sources.length, 1);
+  assert.match(result.sources[0].snippet, /JavaScript/u);
+  assert.throws(() => mapGithubRepo({ message: 'Not Found' }), /not a GitHub repository/u);
 });
 
 test('GithubProvider.search records the search rate-limit reading', async () => {
@@ -136,7 +169,7 @@ test('GithubProvider.search records the search rate-limit reading', async () => 
     () => jsonResponse({ items: [] }, { 'x-ratelimit-remaining': '57', 'x-ratelimit-limit': '60', 'x-ratelimit-resource': 'search' }),
     async () => {
       const provider = new GithubProvider({ settings: () => ghSettings(), resolveKey: async () => undefined });
-      await provider.search({ query: 'qikairo7/dsh-web-search' });
+      await provider.search({ query: 'TypeError: spawn EPERM' });
       assert.equal(readProviderUsage('github').remaining, 57);
     },
   );
@@ -219,19 +252,48 @@ test('githubFetchTarget and wantsGithub classify github targets', () => {
   assert.equal(githubFetchTarget('https://github.com/o/r/blob/main/x.js'), undefined);
   assert.equal(githubFetchTarget('https://example.com/o/r'), undefined);
   assert.equal(wantsGithub('site:github.com dsh-web-search'), true);
-  assert.equal(wantsGithub('qikairo7/dsh-web-search'), true);
   assert.equal(wantsGithub('TypeError: spawn EPERM'), true);
-  // Ordinary word pairs are not owner/repo slugs and must not route to GitHub (F6).
-  assert.equal(wantsGithub('input/output format'), false);
-  assert.equal(wantsGithub('and/or'), false);
-  assert.equal(wantsGithub('A/B test'), false);
-  assert.equal(wantsGithub('npm/pnpm 差别'), false);
-  assert.equal(wantsGithub('TCP/IP 设置'), false);
-  // A bare package/repo name is still recognised (F8).
-  assert.equal(wantsGithub('dsh-web-search'), true);
+  // Class 1: real owner/repo slugs and a bare repo name route to GitHub (F11).
+  for (const query of [
+    'facebook/react', 'vuejs/core', 'nodejs/node', 'vercel/next.js',
+    'openai/gpt', 'microsoft/vscode', 'torvalds/linux',
+    'qikairo7/dsh-web-search', 'dsh-web-search',
+  ]) {
+    assert.equal(wantsGithub(query), true, `${query} must route to GitHub`);
+  }
+  // Class 2: generic word pairs are excluded by the vocabulary, not by digits (F6).
+  for (const query of ['input/output format', 'and/or', 'A/B test', 'npm/pnpm 差别', 'TCP/IP 设置']) {
+    assert.equal(wantsGithub(query), false, `${query} is a word pair, not a repo`);
+  }
+  // Class 3: technical standard words are not bare repo names (F11).
+  for (const query of ['node.js', 'vue.js', 'utf-8', 'sha-256', 'python3.11', 'w3.org', 'how-to', 'read-me', 'e-mail']) {
+    assert.equal(wantsGithub(query), false, `${query} is a standard term, not a repo`);
+  }
+  // A lone owner/repo parses to its halves; prose and operators do not (A direct lookup).
+  assert.deepEqual(parseRepoSlug('facebook/react'), { owner: 'facebook', repo: 'react' });
+  assert.deepEqual(parseRepoSlug('vercel/next.js'), { owner: 'vercel', repo: 'next.js' });
+  assert.equal(parseRepoSlug('site:github.com/o/r'), undefined);
+  assert.equal(parseRepoSlug('node.js/utf-8'), undefined);
+  assert.equal(parseRepoSlug('input/output format'), undefined);
+  // A dotted left segment is a file path, not an owner (walkthrough P2).
+  assert.equal(wantsGithub('node.js/utf-8'), false);
   assert.equal(wantsGithub('红烧肉做法'), false);
+  // Class 4 (kept): the original error text still routes to GitHub, and Node
+  // error codes with underscores are recognised (F11 / walkthrough P2).
   assert.equal(looksLikeErrorText('ModuleNotFoundError: no module named x'), true);
+  assert.equal(looksLikeErrorText('ERR_MODULE_NOT_FOUND'), true);
+  assert.equal(looksLikeErrorText('Cannot find module ./x'), true);
+  assert.equal(wantsGithub('ERR_MODULE_NOT_FOUND'), true);
   assert.equal(looksLikeErrorText('best hiking trails'), false);
+});
+
+test('fast mode leads with github for a repo query without dropping the other backends', () => {
+  const settings = resolveSettings();
+  const repoOrder = fastOrder('facebook/react', settings, classifyIntent('facebook/react'));
+  assert.equal(repoOrder[0], 'github', 'a repo query must try github first');
+  assert.ok(repoOrder.length > 1 && repoOrder.includes('keenable'), 'github leads but must not monopolise the chain');
+  const proseOrder = fastOrder('how to bake sourdough bread', settings, classifyIntent('how to bake sourdough bread'));
+  assert.equal(proseOrder.includes('github'), false, 'a non-repo query keeps github out of the fast order');
 });
 
 test('AutoFetchProvider routes a github issue URL straight to the github provider', async () => {

@@ -69,6 +69,47 @@ const saveKey = async ({ plan, setBusy, setCredential, onRefused, onSaved, onFai
   setBusy(false);
 };
 
+/**
+ * Turn a verification failure body into readable, actionable Chinese. The
+ * health route reports an internal `code` plus a message such as
+ * "WEB_PROVIDER_ERROR: GitHub search failed: GitHub search failed (HTTP 401):
+ * Bad credentials"; this drops the internal code, collapses a repeated
+ * "<label>: <label>" prefix, and maps a known HTTP status to a hint. The
+ * thrown WebError keeps its `cause` chain on the server; only the shown text
+ * changes.
+ * @param {{ code?: string, message?: string }} data - failed health response.
+ * @returns {string} display text without an internal code or duplicated prefix.
+ */
+const humanizeVerifyError = (data) => {
+  const code = typeof data?.code === 'string' ? data.code : '';
+  const message = typeof data?.message === 'string' ? data.message : '';
+  const raw = message.length > 0 ? message : code;
+  const stripped = raw.replace(/^[A-Z][A-Z0-9_]*:\s*/u, '').trim();
+  const status = (
+    /\(\s*HTTP\s+(\d{3})\s*\)/iu.exec(stripped)
+    || /\bHTTP\s+(\d{3})\b/iu.exec(stripped)
+    || /(?:status|code)\s*[:=]?\s*(\d{3})\b/iu.exec(stripped)
+    || []
+  )[1] ?? '';
+  if (status === '401' || status === '403') return `PAT 无效或已过期（HTTP ${status}），请重新生成后保存`;
+  if (status === '429') return `触发限流（HTTP ${status}），请稍后重试`;
+  if (status.length === 3 && Number(status) >= 500) return `Provider 暂时不可用（HTTP ${status}），请稍后重试`;
+  return stripped.replace(/^([^:]{2,60}):\s*\1:\s*/u, '$1: ');
+};
+
+/**
+ * Tighten a saved-key preview to its last four characters behind a fixed mask,
+ * so a stored PAT never shows more than its tail (e.g. "••••4qWU").
+ * @param {string} masked - provider-supplied masked preview.
+ * @returns {string} bullets plus at most the last four characters.
+ */
+const maskSavedKey = (masked) => {
+  const value = typeof masked === 'string' ? masked : '';
+  if (value.length === 0) return '';
+  if (value.length <= 4) return '••••';
+  return `••••${value.slice(-4)}`;
+};
+
 const MAX_KEY_REFS = 8;
 
 /** The primary reference plus its numbered siblings, e.g. KEY, KEY_2 … KEY_8. */
@@ -102,6 +143,8 @@ window.__ModuleLoader__.load({
   beginKeySave,
   saveKey,
   handleKeySave,
+  humanizeVerifyError,
+  maskSavedKey,
   factory(require) {
     const React = require('react');
     const h = React.createElement;
@@ -896,7 +939,7 @@ window.__ModuleLoader__.load({
               count: data.count ?? 0,
             }));
           } else {
-            const reason = serverReason(data);
+            const reason = humanizeVerifyError(data);
             noteKey(provider, reason
               ? t('testFailedDetail', { name: provider.label, reason })
               : t('testFailed'), true);
@@ -1056,7 +1099,7 @@ window.__ModuleLoader__.load({
                   }));
                 },
               })
-              : h('span', { style: styles.keyValue }, row.masked || t('savedKeyMasked')),
+              : h('span', { style: styles.keyValue }, row.masked ? maskSavedKey(row.masked) : t('savedKeyMasked')),
             h('button', {
               type: 'button',
               style: { ...styles.button, ...((busy || !writable) ? styles.disabled : {}) },
