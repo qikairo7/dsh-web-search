@@ -15,3 +15,8 @@ tmp/
 *.tgz
 .codegraph/
 .workflow-lite/
+
+# 维护者本地文件：不进公开仓库，仅本地保留
+REVIEW-LESSONS.md
+REVIEW-LESSONS-archive.md
+.agents/

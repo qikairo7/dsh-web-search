@@ -6,8 +6,6 @@
 |---|---|---|
 | `AGENTS.md` | 每回合加载的硬规则与指针 | 教程、示例、可推导细节 |
 | `CODING_STANDARDS.md` | 实现与 Review 唯一标准：契约、实现原则、测试、完成门禁 | 当前默认值、行为说明 |
-| `REVIEW-LESSONS.md` | 错题本：教训证据、Seen 计数与晋升机制 | 正式实现标准、决策史 |
-| `REVIEW-LESSONS-archive.md` | 已晋升/老化教训条目归档；只搬不改，写入规则见 REVIEW-LESSONS.md 机制节 | 内容编辑 |
 | `README.md`（中文主文档）/ `README.en.md` | 用户可见事实：安装、凭据、行为概览；两份同步 | 实现细节、决策史、配置表、Provider 矩阵与配额 |
 | `docs/configuration.md` | 完整配置字段、默认值与说明；README 链接到此 | 行为教程、实现规则 |
 | `docs/development.md` | 安装、命令、CI 与排错 | 实现规则、产品行为 |
@@ -20,15 +18,13 @@
 | `docs/subsystems/` | 子系统参考页：职责真源表、运行路径、约束与验证命令 | 行为教程、决策史、实现规则 |
 | `docs/dsh-host-contract.md` | DSH 宿主契约、tool-web 渲染与 preset 作用域、内部排查路径 | 插件行为、配置默认值 |
 | `docs/adr/` | 已接受的契约级决策；一条一份，历史不改写 | 当前行为、迁移计划 |
-| `.agents/notes/` | 保留「为什么、放弃了什么」的决策记录；格式见目录 README | 当前行为、任务清单、测试走读 |
 | `GLOSSARY.md` | 项目术语唯一写法 | 实现细节 |
 | `docs/agents/` | 代理工作流：领域文档 | 产品行为 |
 | `docs/benchmarks/` | 历史基准报告与复现命令；数字与日期不改写 | 当前配置默认值 |
 | `CONTRIBUTING.md` / `CONTRIBUTING.zh.md` | 贡献入口与阅读顺序 | 详细实现规则 |
 | `SAFETY.md` / `SECURITY.md` / `TRADEMARKS.md` / `THIRD_PARTY_NOTICES.md` | 风险模型、漏洞报告、项目身份与第三方归属 | 使用教程、实现规则 |
 | `CHANGELOG.md` | 面向用户的版本变化公告，每个已发版一条 | 实现细节、决策理由、未发版重构 |
-| `BENCHMARK.md` | 基准入口、运行规则与指标说明 | 历史报告数据 |
+| `docs/benchmarks/BENCHMARK.md` | 基准入口、运行规则与指标说明 | 历史报告数据 |
 | `docs/AGENTS.md` | 文档体系 schema 主文件：概要、目录、写作规则、预算与检查 | 实现规则、明细表 |
 | `docs/schema-inventory.md` | 本表：文档层级明细 | 写作规则、实现规则 |
 | `docs/schema-sync-map.md` | 改代码时改哪份文档的映射与开发顺序 | 写作规则、实现规则 |
-| `.agents/skills/` | 仓库内 skill | 成文流程复制 |

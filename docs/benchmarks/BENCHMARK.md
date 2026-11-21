@@ -1,8 +1,8 @@
 # Benchmark
 
-基准用于比较搜索质量与延迟，不作为 CI 门禁。当前报告在 [docs/benchmarks](docs/benchmarks/)，runner 是 [scripts/public-benchmark.mjs](scripts/public-benchmark.mjs)。
+基准用于比较搜索质量与延迟，不作为 CI 门禁。当前报告在 [docs/benchmarks](./)，runner 是 [scripts/public-benchmark.mjs](../../scripts/public-benchmark.mjs)。
 
-定位：基准是**发版时的验证手段**（改动路由、摘要、Provider 行为后跑一轮对比），日常回归监测用 `pnpm probe`（见 [测试策略](docs/testing.md)），不要日常跑全量基准。
+定位：基准是**发版时的验证手段**（改动路由、摘要、Provider 行为后跑一轮对比），日常回归监测用 `pnpm probe`（见 [测试策略](../testing.md)），不要日常跑全量基准。
 
 ## 运行
 

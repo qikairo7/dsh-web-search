@@ -79,7 +79,7 @@
 提交前逐条自检：
 
 - `pnpm check` 退出码为 0；DSH 沙箱按 `docs/development.md` 的单进程命令验证，并在汇报中注明沙箱限制。
-- 证据贴原始输出：行为改动附实际命令与输出摘录；界面或交互改动附截图（web/ego 路径见 .agents/skills/verify/SKILL.md）。
+- 证据贴原始输出：行为改动附实际命令与输出摘录；界面或交互改动附截图（web/ego 路径见根 AGENTS.md 的「维护者本地文件」节）。
 - 测试满足 §5；纯文档或格式改动确认无需新增测试。
 - 涉及后端协议、凭据解析、路由顺序或 DSH 注册的改动：有凭据时跑 `pnpm benchmark`，或安装并重启 DSH 后用 `web_search`（中英文各一次）和 `web_fetch` 各验证一次；纯逻辑改动以单测为准。
 - 新配置字段满足 §4；新 Provider 同时完成：provider 文件、`lib/catalog.js` 条目与 `lib/index.js` factory（注册顺序由 catalog 派生）、配置与默认值、`docs/configuration.md` 配置表、`docs/architecture.md` 的 Provider 矩阵、映射测试、路由顺序与回退测试。

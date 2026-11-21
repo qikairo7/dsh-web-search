@@ -38,4 +38,4 @@
 ## 验证
 
 - 提交前跑 `pnpm check`：语法、架构、order-doc 同步、文档代码块、翻译配对、docs:check、文档引用存活、单测共八段。
-- 涉设置页或抓取行为的改动，按 [.agents/skills/verify/SKILL.md](.agents/skills/verify/SKILL.md) 做真机验证，把原始输出放进 PR 证据。
+- 涉设置页或抓取行为的改动，按维护者本地 verify skill 规程（见根 AGENTS.md 的「维护者本地文件」节）做真机验证，把原始输出放进 PR 证据。
