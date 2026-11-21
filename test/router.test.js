@@ -416,7 +416,9 @@ test('AutoSearchProvider annotates the request with routing facts once', async (
   assert.equal(typeof seen[0].routing.syntax, 'object');
 });
 
-test('AutoSearchProvider aborts when the overall search budget expires', async () => {
+test('AutoSearchProvider keeps successful sources when the overall search budget expires', async () => {
+  // Budget expiry is an internal deadline, not caller cancellation (#186): the
+  // slow provider's eventual result must not turn the whole search into WEB_ABORTED.
   const providers = {
     anysearch: {
       id: 'anysearch',
@@ -432,8 +434,30 @@ test('AutoSearchProvider aborts when the overall search budget expires', async (
     settings: () => settings({ searchMode: 'quality', requestTimeoutMs: 1, defaultSearchOrder: ['anysearch'] }),
     providers,
   });
+  const result = await router.search({ query: 'slow query test' });
+  assert.equal(result.sources[0].url, 'https://anysearch.example/');
+});
+
+test('AutoSearchProvider rethrows caller cancellation during the search', async () => {
+  const controller = new AbortController();
+  const providers = {
+    anysearch: {
+      id: 'anysearch',
+      available: () => true,
+      ready: async () => true,
+      async search() {
+        controller.abort(new DOMException('caller cancelled', 'AbortError'));
+        throw webError('search aborted', 'WEB_ABORTED');
+      },
+    },
+  };
+  const router = new AutoSearchProvider({
+    settings: () =>
+      settings({ searchMode: 'quality', requestTimeoutMs: 100_000, defaultSearchOrder: ['anysearch'] }),
+    providers,
+  });
   await assert.rejects(
-    () => router.search({ query: 'slow query test' }),
+    () => router.search({ query: 'cancel query test' }, controller.signal),
     (error) => error.code === 'WEB_ABORTED',
   );
 });

@@ -151,6 +151,50 @@ test('key resolver reads numbered key references in order', async () => {
   }
 });
 
+// #185: a missing primary key is a gap at the head of the ring. Leftover
+// numbered keys must not rejoin it, or a stale _2/_3 makes a keyless provider
+// look keyed and get selected with the wrong credential.
+test('key resolver stops the ring when the primary key is missing, ignoring leftover numbered keys', async () => {
+  const names = ['DSH_TEST_GAP', 'DSH_TEST_GAP_2', 'DSH_TEST_GAP_3'];
+  const previous = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  delete process.env.DSH_TEST_GAP;
+  process.env.DSH_TEST_GAP_2 = 'second';
+  process.env.DSH_TEST_GAP_3 = 'third';
+  try {
+    const resolve = createKeyResolver({});
+    assert.deepEqual(
+      await resolve.all('DSH_TEST_GAP'),
+      [],
+      'a missing primary key must stop the list instead of skipping to _2/_3',
+    );
+    const wrapped = createMultiKeyProvider({
+      provider: {
+        id: 'fake',
+        available: () => true,
+        ready: async () => false,
+        search: async () => ({ sources: [], truncated: false }),
+      },
+      factory: () => ({
+        id: 'fake',
+        available: () => true,
+        ready: async () => true,
+        search: async () => ({ sources: [], truncated: false }),
+      }),
+      resolveKeys: () => resolve.all('DSH_TEST_GAP'),
+    });
+    assert.equal(
+      await wrapped.ready(),
+      false,
+      'with only secondary keys left, the provider must report not ready',
+    );
+  } finally {
+    for (const name of names) {
+      if (previous[name] === undefined) delete process.env[name];
+      else process.env[name] = previous[name];
+    }
+  }
+});
+
 // #174: the credentialRef -> ctx.credentials.resolve -> resolved?.value branch was only ever
 // exercised through the environment-variable fallback below. A fake ctx pins the resolve hit
 // path and the resolve-throw path so deleting either branch turns these red.
