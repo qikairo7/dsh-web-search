@@ -113,3 +113,9 @@ test('anchorSlugs: a fragment that matches no heading or manual id stays absent'
   const anchors = anchorSlugs('## 只有这个标题\n');
   assert.equal(anchors.has('no-such-heading'), false);
 });
+test('anchorSlugs: a natural slug colliding with an earlier dedupe suffix becomes -1-1', () => {
+  const anchors = anchorSlugs('## Foo\n\n## Foo\n\n## Foo 1\n');
+  assert.ok(anchors.has('foo'));
+  assert.ok(anchors.has('foo-1'));
+  assert.ok(anchors.has('foo-1-1'));
+});

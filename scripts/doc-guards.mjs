@@ -73,8 +73,7 @@ export function budgetHeadroomWarnings(budgets, readLength) {
   return warnings;
 }
 
-/** GitHub-style slug for one heading's text: lowercase, drop punctuation, spaces to hyphens.
- * Matches the historical heading-slug rule in verify-docs so existing anchors keep resolving. */
+/** Keeps verify-docs' historical slug shape, so anchors already written against the old gate keep resolving. */
 const slugify = (headingText) =>
   headingText
     .toLowerCase()
@@ -87,14 +86,23 @@ const slugify = (headingText) =>
  * Used by verify-docs to stop flagging real anchors as broken. */
 export function anchorSlugs(text) {
   const anchors = new Set();
-  const seen = new Map();
+  // Occupy every emitted slug (generated suffixes included), like GitHub's slugger, so a
+  // later heading whose natural slug collides with an earlier -1 becomes -1-1 instead of
+  // silently reusing it and mis-reporting real anchors.
+  const taken = new Map();
+  const uniqueSlug = (base) => {
+    let slug = base;
+    while (taken.has(slug)) {
+      taken.set(base, (taken.get(base) ?? 0) + 1);
+      slug = `${base}-${taken.get(base)}`;
+    }
+    taken.set(slug, 0);
+    return slug;
+  };
   for (const line of text.split(/\r?\n/)) {
     const heading = line.match(/^#{1,6}\s+(.*)$/);
     if (heading !== null) {
-      const base = slugify(heading[1]);
-      const count = seen.get(base) ?? 0;
-      seen.set(base, count + 1);
-      anchors.add(count === 0 ? base : `${base}-${count}`);
+      anchors.add(uniqueSlug(slugify(heading[1])));
     }
     for (const match of line.matchAll(/<a\s+[^>]*?\b(?:id|name)\s*=\s*["']([^"']+)["']/gi)) {
       anchors.add(match[1]);

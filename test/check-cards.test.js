@@ -1,7 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { scoreCard, formatRubricTable } from '../scripts/card-rubric.mjs';
+
+const CLI = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'scripts', 'check-cards.mjs');
 
 test('scoreCard: a card with role, task, constraints and examples scores 4/4', () => {
   const text = [
@@ -56,4 +63,20 @@ test('formatRubricTable: header carries the four dimensions and each row shows p
   assert.match(table, /示例/);
   assert.match(table, /总数|合计/);
   assert.match(table, /3\/4/);
+});
+
+// --- CLI contract (F1): observe-only WARN + exit 0 must stay locked -----------
+
+test('CLI: a card without a constraints section prints the WARN line and exits 0', async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), 'check-cards-'));
+  try {
+    const cards = path.join(dir, 'cards');
+    await mkdir(cards);
+    await writeFile(path.join(cards, 'implement.md'), '你是 implementer\n\n## 任务\n\n实现功能。\n');
+    const result = spawnSync(process.execPath, [CLI, '--cards', cards], { encoding: 'utf8' });
+    assert.equal(result.status, 0, 'observe-only: exit code must stay 0');
+    assert.match(result.stderr, /WARN implement\.md: 缺约束节/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
 });
