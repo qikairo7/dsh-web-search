@@ -71,6 +71,47 @@ const saveKey = async ({ plan, setBusy, setCredential, onRefused, onSaved, onFai
 
 const MAX_KEY_REFS = 8;
 
+/**
+ * Turn a verification failure body into readable, actionable Chinese. The
+ * health route reports an internal `code` plus a message such as
+ * "WEB_PROVIDER_ERROR: GitHub search failed: GitHub search failed (HTTP 401):
+ * Bad credentials"; this drops the internal code, collapses a repeated
+ * "<label>: <label>" prefix, and maps a known HTTP status to a hint. The
+ * thrown WebError keeps its `cause` chain on the server; only the shown text
+ * changes.
+ * @param {{ code?: string, message?: string }} data - failed health response.
+ * @returns {string} display text without an internal code or duplicated prefix.
+ */
+const humanizeVerifyError = (data) => {
+  const code = typeof data?.code === 'string' ? data.code : '';
+  const message = typeof data?.message === 'string' ? data.message : '';
+  const raw = message.length > 0 ? message : code;
+  const stripped = raw.replace(/^[A-Z][A-Z0-9_]*:\s*/u, '').trim();
+  const status = (
+    /\(\s*HTTP\s+(\d{3})\s*\)/iu.exec(stripped)
+    || /\bHTTP\s+(\d{3})\b/iu.exec(stripped)
+    || /(?:status|code)\s*[:=]?\s*(\d{3})\b/iu.exec(stripped)
+    || []
+  )[1] ?? '';
+  if (status === '401' || status === '403') return `PAT 无效或已过期（HTTP ${status}），请重新生成后保存`;
+  if (status === '429') return `触发限流（HTTP ${status}），请稍后重试`;
+  if (status.length === 3 && Number(status) >= 500) return `Provider 暂时不可用（HTTP ${status}），请稍后重试`;
+  return stripped.replace(/^([^:]{2,60}):\s*\1:\s*/u, '$1: ');
+};
+
+/**
+ * Tighten a saved-key preview to its last four characters behind a fixed mask,
+ * so a stored PAT never shows more than its tail (e.g. "••••4qWU").
+ * @param {string} masked - provider-supplied masked preview.
+ * @returns {string} bullets plus at most the last four characters.
+ */
+const maskSavedKey = (masked) => {
+  const value = typeof masked === 'string' ? masked : '';
+  if (value.length === 0) return '';
+  if (value.length <= 4) return '••••';
+  return `••••${value.slice(-4)}`;
+};
+
 /** The primary reference plus its numbered siblings, e.g. KEY, KEY_2 … KEY_8. */
 const keyRefsFor = (reference) => [
   reference,
@@ -102,6 +143,8 @@ window.__ModuleLoader__.load({
   beginKeySave,
   saveKey,
   handleKeySave,
+  humanizeVerifyError,
+  maskSavedKey,
   factory(require) {
     const React = require('react');
     const h = React.createElement;
@@ -126,6 +169,15 @@ window.__ModuleLoader__.load({
         defaultRef: 'ANYSEARCH_API_KEY',
         toggleKey: 'anysearchEnabled',
         hintKey: 'hintAnysearch',
+        anonymous: true,
+      },
+      {
+        id: 'github',
+        label: 'GitHub',
+        refKey: 'githubApiKeyEnv',
+        defaultRef: 'GITHUB_TOKEN',
+        toggleKey: 'githubEnabled',
+        hintKey: 'hintGithub',
         anonymous: true,
       },
       {
@@ -196,6 +248,7 @@ window.__ModuleLoader__.load({
     const QUOTA_FIELDS = [
       { id: 'keenable', label: 'Keenable', freeKey: 'quotaKeenable' },
       { id: 'anysearch', label: 'AnySearch', freeKey: 'quotaAnysearch' },
+      { id: 'github', label: 'GitHub', freeKey: 'quotaGithub' },
       { id: 'exa', label: 'Exa', freeKey: 'quotaExa' },
       { id: 'tavily', label: 'Tavily', freeKey: 'quotaTavily' },
       { id: 'firecrawl', label: 'Firecrawl', freeKey: 'quotaFirecrawl' },
@@ -240,6 +293,7 @@ window.__ModuleLoader__.load({
       quotaFailed: 'Could not query allowance.',
       quotaKeenable: '100,000 requests/month with a key; 1,000/hour anonymous',
       quotaAnysearch: '1,000 searches/day with a key; anonymous access also works',
+      quotaGithub: 'Anonymous 10 requests/min; 30/min with a PAT',
       quotaExa: '$10 free credits/month plus a one-time $10 bonus',
       quotaTavily: '1,000 credits/month',
       quotaFirecrawl: '1,000 credits/month',
@@ -299,6 +353,7 @@ window.__ModuleLoader__.load({
       readOnly: 'This deployment stores settings read-only. API keys can still be saved to the credential store.',
       hintKeenable: 'Free quota; anonymous access works, a key raises the quota.',
       hintAnysearch: 'Anonymous access works; a registered key raises the daily quota.',
+      hintGithub: 'GitHub API search for repositories and issues; anonymous works, a PAT raises the quota.',
       hintExa: 'Semantic search and Contents fetch; required for the free depth hop.',
       hintTavily: 'Fallback search, news freshness, and PDF extraction; paid credits.',
       hintFirecrawl: 'Last-resort fetch for JS and PDF pages; paid credits.',
@@ -345,6 +400,7 @@ window.__ModuleLoader__.load({
       quotaFailed: '额度查询失败。',
       quotaKeenable: '有 Key 时 100,000 次/月；匿名 1,000 次/小时',
       quotaAnysearch: '有 Key 时 1,000 次搜索/天；匿名也可用',
+      quotaGithub: '匿名 10 次/分钟；配置 PAT 后 30 次/分钟',
       quotaExa: '每月 10 美元免费额度 + 一次性 10 美元奖励',
       quotaTavily: '1,000 credits/月',
       quotaFirecrawl: '1,000 credits/月',
@@ -404,6 +460,7 @@ window.__ModuleLoader__.load({
       readOnly: '当前部署以只读方式保存设置；API Key 仍可写入凭据库。',
       hintKeenable: '免费额度；可匿名使用，配置 Key 后额度更高。',
       hintAnysearch: '可匿名使用；注册 Key 后每日额度更高。',
+      hintGithub: 'GitHub 官方 API：仓库与 issue 搜索；匿名可用，PAT 提额。',
       hintExa: '语义搜索与 Contents 抓取；免费深度回退需要它。',
       hintTavily: '搜索兜底、新闻时效与 PDF 抽取；消耗付费额度。',
       hintFirecrawl: 'JS/PDF 页面的最后兜底抓取；消耗付费额度。',
@@ -882,7 +939,7 @@ window.__ModuleLoader__.load({
               count: data.count ?? 0,
             }));
           } else {
-            const reason = serverReason(data);
+            const reason = humanizeVerifyError(data);
             noteKey(provider, reason
               ? t('testFailedDetail', { name: provider.label, reason })
               : t('testFailed'), true);
@@ -1042,7 +1099,7 @@ window.__ModuleLoader__.load({
                   }));
                 },
               })
-              : h('span', { style: styles.keyValue }, row.masked || t('savedKeyMasked')),
+              : h('span', { style: styles.keyValue }, row.masked ? maskSavedKey(row.masked) : t('savedKeyMasked')),
             h('button', {
               type: 'button',
               style: { ...styles.button, ...((busy || !writable) ? styles.disabled : {}) },

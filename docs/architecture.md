@@ -14,7 +14,7 @@ web-search-router (lib/index.js) ───────────────�
         └── AutoFetchProvider  (fetchMode: fast | clean)
                 │
                 ▼
-keenable / anysearch / exa / bing / tavily / firecrawl / zhihu / zhihu-site / aihot / http
+keenable / anysearch / exa / bing / tavily / firecrawl / zhihu / zhihu-site / aihot / github / http
                 │
                 ▼
         external search / fetch services
@@ -26,8 +26,6 @@ keenable / anysearch / exa / bing / tavily / firecrawl / zhihu / zhihu-site / ai
 
 `lib/index.js` 导出 `name`、`inject`、`Config` 和 `apply()`。`apply()` 经 `createProviders()` 按 catalog 顺序构造各 Provider 实例与 SiliconFlow 客户端，注册 search / fetch Provider、`auto` 路由与可选高级工具。
 
-Provider 的能力矩阵与默认顺序见下节；注册列表在 `lib/index.js`。
-
 ## Provider 能力与默认顺序
 
 | Provider id | 搜索 | 抓取 | 默认角色 |
@@ -36,6 +34,7 @@ Provider 的能力矩阵与默认顺序见下节；注册列表在 `lib/index.js
 | `keenable` | 是 | 是 | 免费额度首选；搜索 + 干净 Markdown 抓取 |
 | `exa` | 是 | 是 | 语义搜索 + Contents 抓取；免费栈之后的免费深度回退 |
 | `bing` | 是 | 否 | 免 Key HTML SERP 兜底；免费栈之后、付费尾之前 |
+| `github` | 是 | 是 | GitHub API：仓库/issue 搜索 + issue/README 抓取 |
 | `tavily` | 是 | 是 | 搜索兜底；新闻时效/官方文档补充；可选生成答案；PDF Extract |
 | `firecrawl` | 是 | 是 | 仅 Fetch 最后兜底；SPA/PDF 抓取最强 |
 | `zhihu` | 是 | 否 | 中文搜索首选；全网 + 站内补充 |
@@ -96,7 +95,7 @@ Provider 的能力矩阵与默认顺序见下节；注册列表在 `lib/index.js
 ## 抓取流程
 
 1. `web_fetch` 进入 `AutoFetchProvider.fetch()`；读取 `fetchMode` 与对应顺序，显式 order 计入缓存键。
-2. `ProviderRunner.run({ capability: 'fetch' })` 执行回退；`fast` 默认 `keenable → http → anysearch → exa → tavily → firecrawl`，`clean` 默认 `keenable → anysearch → exa → http → tavily → firecrawl`。付费尾只在免费路径失败后使用；证据增强经显式 `order: fetchOrder` 复用缓存与熔断。
+2. `ProviderRunner.run({ capability: 'fetch' })` 执行回退；顺序由 `fetchOrder` / `cleanFetchOrder` 拥有（见[配置](configuration.md)）；github.com 的 issue 与仓库主页直取 GitHub API。付费尾只在免费路径失败后使用；证据增强经显式 `order: fetchOrder` 复用缓存与熔断。
 3. 直连 HTTP 自己实现最多 5 跳重定向、5 MB 上限、HTML/text/JSON/XML 类型判断和 SPA 空壳回退。
 4. 非弱成功结果写缓存；回退与熔断规则同搜索（见不变量）。
 
@@ -115,7 +114,7 @@ DEFAULT_SETTINGS + resolveSettings() (lib/settings.js)
 settings() thunk ──→ Provider / Router
 ```
 
-用户可见默认值与配额由 README 的 Configuration 拥有；代码事实由 `DEFAULT_SETTINGS` 拥有；两份 README 必须同步。
+用户可见默认值与配额由 [配置](configuration.md) 拥有；代码事实由 `DEFAULT_SETTINGS` 拥有；两份 README 必须同步。
 
 ## 扩展点
 

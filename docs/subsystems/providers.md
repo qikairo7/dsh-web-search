@@ -18,6 +18,7 @@
 | `aihot` | 搜索 | 免费 | 免 Key |
 | `exa` | 搜索、抓取 | 免费 | API Key |
 | `bing` | 搜索 | 免 Key | 免 Key |
+| `github` | 搜索、抓取 | 免费 | API Key |
 | `http` | 抓取 | 免费 | 免 Key |
 <!-- gen:provider-table end -->
 
@@ -65,7 +66,7 @@
 
 ### 一次搜索（quality）
 
-1. quality 交给 `QualityEngine`：并行、去重、重排降级、加权、增强。
+1. quality 交给 `QualityEngine`：并行、去重、重排降级、加权、增强。github 引用、仓库 slug 或报错原文查询额外并入 `github`。
 2. 补充缝由 catalog 条目声明，各触发一次。
 3. engine 无结果回落 fast（`result ??=`）；回落链只用调用方信号，内部 deadline 不污染地板。
 4. 总 deadline 为 3 × `requestTimeoutMs`，只并进 quality 引擎与 realtime 的信号。
