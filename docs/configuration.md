@@ -96,3 +96,12 @@
 | `breakerCooldownMs` | `300000` | 后端冷却时长 |
 
 所有 `*BaseURL` 字段（包括 `anysearchBaseURL`、`tavilyBaseURL`、`firecrawlBaseURL`）都在上面的表格中，可在设置页或 profile patch 中覆盖。
+
+## X 搜索工具（可选，默认关）
+
+`x_search` 是从 catbus（MIT）移植的独立只读推文搜索工具，不进 `web_search` 路由矩阵。默认关闭；cookie 从浏览器导入，存入 DSH 凭据库。X 站点抓取处于服务条款灰区，风险见 [SAFETY](../SAFETY.md)。
+
+| 字段 | 默认值 | 说明 |
+|---|---|---|
+| `xToolsEnabled` | `false` | 启用 `x_search` 只读推文搜索；默认关闭 |
+| `xToolsCookieRef` | `X_COOKIE` | X cookie 的凭据引用（浏览器导出，存 `~/.dsh/.credentials.yaml` 的 `refs` 节） |

@@ -14,6 +14,10 @@ Fetched pages are untrusted input. They can contain prompt injection, misleading
 
 Direct HTTP fetch blocks loopback, private-network, link-local, and cloud-metadata addresses by default, checking both the initial request and every redirect after resolving each hostname. Set `DSH_WEB_HTTP_ALLOW_PRIVATE=1` in the launching environment to allow all of those hosts, including link-local and cloud metadata (169.254.169.254), for local debugging; never enable it in a cloud environment, where it would expose the instance metadata endpoint. When a proxy resolves public domains into its own range (for example Clash fake-ip returning 198.18.x), the hostname-based check cannot see the real destination and no longer applies.
 
+## X search (experimental)
+
+`x_search` performs read-only X (Twitter) web search with a cookie and is off by default. It is not a free search backend and is not part of the `web_search` route. Scraping X sits in a gray area of X's Terms of Service: accounts may be rate-limited or suspended, and the risk is the user's. The cookie is imported from the browser and stored in the DSH credential store; the plugin implements no login and stores no account password. X endpoints can change at any time; on failure the tool explicitly reports "X 上游已变，等待移植更新".
+
 ## Credentials
 
 API keys are read through the DSH credentials service from `~/.dsh/.credentials.yaml` or the launching environment. Do not put keys in the repository, shared configuration files, or shell history. The plugin does not write keys to disk.

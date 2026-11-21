@@ -1,0 +1,109 @@
+{
+  "data": {
+    "search_by_raw_query": {
+      "search_timeline": {
+        "timeline": {
+          "instructions": [
+            {
+              "type": "TimelineAddEntries",
+              "entries": [
+                {
+                  "entryId": "tweet-111",
+                  "content": {
+                    "itemContent": {
+                      "tweet_results": {
+                        "result": {
+                          "__typename": "Tweet",
+                          "rest_id": "111",
+                          "core": {
+                            "user_results": {
+                              "result": {
+                                "rest_id": "u-alice",
+                                "core": {
+                                  "screen_name": "alice",
+                                  "name": "Alice"
+                                }
+                              }
+                            }
+                          },
+                          "legacy": {
+                            "full_text": "hello from alice",
+                            "created_at": "Wed Nov 20 12:00:00 +0000 2026",
+                            "favorite_count": 42,
+                            "reply_count": 7,
+                            "bookmark_count": 3,
+                            "retweet_count": 9
+                          },
+                          "views": {
+                            "count": "1234"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "entryId": "tweet-222",
+                  "content": {
+                    "itemContent": {
+                      "tweet_results": {
+                        "result": {
+                          "__typename": "TweetWithVisibilityResults",
+                          "tweet": {
+                            "__typename": "Tweet",
+                            "rest_id": "222",
+                            "core": {
+                              "user_results": {
+                                "result": {
+                                  "rest_id": "u-bob",
+                                  "core": {
+                                    "screen_name": "bob",
+                                    "name": "Bob"
+                                  }
+                                }
+                              }
+                            },
+                            "legacy": {
+                              "full_text": "a photo tweet",
+                              "created_at": "Thu Nov 21 01:30:00 +0000 2026",
+                              "favorite_count": 5,
+                              "reply_count": 1,
+                              "extended_entities": {
+                                "media": [
+                                  {
+                                    "type": "photo",
+                                    "id_str": "m1",
+                                    "media_url_https": "https://pbs.twimg.com/media/m1.jpg",
+                                    "original_info": {
+                                      "width": 800,
+                                      "height": 600
+                                    }
+                                  }
+                                ]
+                              }
+                            },
+                            "views": {
+                              "count": "99"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "entryId": "cursor-bottom-0",
+                  "content": {
+                    "entryType": "TimelineTimelineCursor",
+                    "cursorType": "Bottom",
+                    "value": "CURSOR-NEXT"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}
