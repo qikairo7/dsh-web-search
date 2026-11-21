@@ -32,15 +32,15 @@
 > **非目标**：
 > - 不接入官方收费 Search/Fetch API
 > - 不依赖 MCP
-> - 不安装第三方 DeepSeek Harness 插件
+> - 不依赖、不捆绑其他第三方 DSH 插件
 
 ## 为什么
 
-- 免费额度优先、自动故障切换的多后端池，用尽才落到付费尾。 → [架构](docs/architecture.md) · [配置](docs/configuration.md)
+- 免费额度优先、自动故障切换的多后端池，用尽才落到付费后端兜底。 → [架构](docs/architecture.md) · [配置](docs/configuration.md)
 - 质量管线：URL 去重、BGE 重排叠加域名权威，前 5 条做证据增强。 → [架构](docs/architecture.md)
 - 失败分类回退门控：`fallbackFailureClasses` 决定何时换下一后端。 → [配置](docs/configuration.md)
-- Bing 免 Key 搜索地板，在免费栈与付费尾之间（ADR-0011）。 → [架构决策](docs/adr/)
-- 可选 AnySearch / Tavily / AIHOT，天气汇率直连实时。 → [配置](docs/configuration.md)
+- Bing 免 Key 搜索保底，在免费栈与付费后端兜底之间（ADR-0011）。 → [架构决策](docs/adr/)
+- 可选 [AnySearch](https://anysearch.com) / [Tavily](https://tavily.com) / [AIHOT](https://aihot.news)，天气汇率直连实时；重排与语义去重由 [硅基流动](https://cloud.siliconflow.cn/i/E3nhNFP4) 提供。全部后端与免费额度见[配置](docs/configuration.md)。
 
 ## 快速开始
 

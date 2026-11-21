@@ -32,15 +32,15 @@ It needs DeepSeek Harness `0.2.2-rc.5` (verified), Node.js `22.19+` or `24+`, an
 > **Non-goals**:
 > - the paid official Search/Fetch APIs
 > - an MCP server
-> - third-party DeepSeek Harness plugins
+> - depending on or bundling other third-party DSH plugins
 
 ## Why
 
-- A free-tier-first pool of backends that fails over automatically and only reaches the paid tail when free quota is gone. → [Architecture](docs/architecture.md) · [Configuration](docs/configuration.md)
+- A free-tier-first pool of backends that fails over automatically and only falls back to paid backends when free quota is gone. → [Architecture](docs/architecture.md) · [Configuration](docs/configuration.md)
 - Quality pipeline: URL dedupe, BGE rerank with a domain-authority prior, evidence enrichment on the top 5. → [Architecture](docs/architecture.md)
 - Failure-class fallback gating: `fallbackFailureClasses` decides which failures may move to the next provider. → [Configuration](docs/configuration.md)
-- Bing keyless search floor between the free stack and the paid tail (ADR-0011). → [Architecture decisions](docs/adr/)
-- Optional AnySearch / Tavily / AIHOT advanced tools, plus live weather and FX. → [Configuration](docs/configuration.md)
+- Bing keyless search floor between the free stack and the paid backends (ADR-0011). → [Architecture decisions](docs/adr/)
+- Optional [AnySearch](https://anysearch.com) / [Tavily](https://tavily.com) / [AIHOT](https://aihot.news) tools, plus live weather and FX; reranking and semantic dedupe use [SiliconFlow](https://cloud.siliconflow.cn/i/E3nhNFP4). All backends and quotas: [Configuration](docs/configuration.md).
 
 ## Quick start
 
