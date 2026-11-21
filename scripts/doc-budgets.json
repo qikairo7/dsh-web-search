@@ -25,5 +25,6 @@
   "docs/subsystems/dsh-host.md": 2500,
   "docs/subsystems/settings.md": 2500,
   "docs/feature-map.md": 2500,
-  "docs/postmortem/README.md": 900
+  "docs/postmortem/README.md": 900,
+  "docs/writing-rules.md": 400
 }
