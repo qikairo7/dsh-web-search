@@ -72,3 +72,33 @@ export function budgetHeadroomWarnings(budgets, readLength) {
   }
   return warnings;
 }
+
+/** GitHub-style slug for one heading's text: lowercase, drop punctuation, spaces to hyphens.
+ * Matches the historical heading-slug rule in verify-docs so existing anchors keep resolving. */
+const slugify = (headingText) =>
+  headingText
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s_-]/gu, '')
+    .trim()
+    .replace(/\s+/g, '-');
+
+/** Guard 3: every fragment a document can legitimately expose — heading slugs with GitHub's
+ * -1/-2 dedupe suffix for repeated headings, plus hand-written <a id> / <a name> targets.
+ * Used by verify-docs to stop flagging real anchors as broken. */
+export function anchorSlugs(text) {
+  const anchors = new Set();
+  const seen = new Map();
+  for (const line of text.split(/\r?\n/)) {
+    const heading = line.match(/^#{1,6}\s+(.*)$/);
+    if (heading !== null) {
+      const base = slugify(heading[1]);
+      const count = seen.get(base) ?? 0;
+      seen.set(base, count + 1);
+      anchors.add(count === 0 ? base : `${base}-${count}`);
+    }
+    for (const match of line.matchAll(/<a\s+[^>]*?\b(?:id|name)\s*=\s*["']([^"']+)["']/gi)) {
+      anchors.add(match[1]);
+    }
+  }
+  return anchors;
+}

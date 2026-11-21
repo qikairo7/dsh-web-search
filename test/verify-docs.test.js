@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mirrorLinkErrors, budgetHeadroomWarnings } from '../scripts/doc-guards.mjs';
+import { mirrorLinkErrors, budgetHeadroomWarnings, anchorSlugs } from '../scripts/doc-guards.mjs';
 
 // --- Guard 1: mirror link language pairing ---------------------------------
 
@@ -92,4 +92,24 @@ test('budget headroom: a custom minHeadroom field is honoured', () => {
 
 test('budget headroom: over-budget files do not raise a WARN (they fail elsewhere)', () => {
   assert.deepEqual(budgetHeadroomWarnings({ minHeadroom: 10, 'a.md': 100 }, () => 120), []);
+});
+
+// --- Anchor extraction: duplicate headings + hand-written <a id> -------------
+
+test('anchorSlugs: repeated headings get GitHub -1/-2 dedupe suffixes', () => {
+  const anchors = anchorSlugs('## 安装\n\n正文\n\n## 安装\n\n## 安装\n');
+  assert.ok(anchors.has('安装'));
+  assert.ok(anchors.has('安装-1'));
+  assert.ok(anchors.has('安装-2'));
+});
+
+test('anchorSlugs: hand-written <a id> and <a name> anchors are recognised', () => {
+  const anchors = anchorSlugs('## 标题\n\n<a id="manual-anchor"></a>\n<a name="legacy-anchor"></a>\n');
+  assert.ok(anchors.has('manual-anchor'));
+  assert.ok(anchors.has('legacy-anchor'));
+});
+
+test('anchorSlugs: a fragment that matches no heading or manual id stays absent', () => {
+  const anchors = anchorSlugs('## 只有这个标题\n');
+  assert.equal(anchors.has('no-such-heading'), false);
 });
