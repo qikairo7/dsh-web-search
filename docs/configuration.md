@@ -8,18 +8,18 @@
 
 各后端文档化的免费额度；Tavily 与 Firecrawl 的实时剩余值显示在设置页。
 
-| 后端 | 免费额度 | 用途 |
-|---|---|---|
-| Keenable | 100,000 次/月（Key）；匿名 1,000 次/小时 | 默认搜索 + 干净 Markdown 抓取 |
-| AnySearch | 注册后 1000 次搜索/天；匿名也可用 | 搜索 |
-| Exa | 每月 10 美元免费额度（docs.exa.ai）+ 一次性 10 美元注册奖励 | 语义搜索 + Contents 抓取；免费深度回退 |
-| Bing | 免 Key HTML SERP，无计量配额 | 免费栈之后、付费尾之前的兜底搜索地板 |
-| Zhihu | 全网 5000 次/天 + 站内 5000 次/天 | 中文搜索 |
-| Tavily | 1000 credits/月 | 仅兜底：免费源空结果、缺官方文档、新闻时效不足、Fetch 失败链 |
-| Firecrawl | 1000 credits/月 | Fetch 最后兜底：难抓的 JS/PDF 页面 |
-| AIHOT | 匿名只读 | AI 新闻搜索/精选（免费） |
-| 直连 HTTP | 无 API 成本 | 静态页面抓取 |
-| SiliconFlow | 免费额度 | BGE 重排 + embeddings |
+| 后端 | 免费额度 | 用途 | 官网/注册 |
+|---|---|---|---|
+| Keenable | 100,000 次/月（Key）；匿名 1,000 次/小时 | 默认搜索 + 干净 Markdown 抓取 | [keenable.ai](https://keenable.ai) |
+| AnySearch | 注册后 1000 次搜索/天；匿名也可用 | 搜索 | [anysearch.com](https://anysearch.com) |
+| Exa | 每月 10 美元免费额度（docs.exa.ai）+ 一次性 10 美元注册奖励 | 语义搜索 + Contents 抓取；免费深度回退 | [exa.ai](https://exa.ai) |
+| Bing | 免 Key HTML SERP，无计量配额 | 免费栈之后、付费尾之前的兜底搜索地板 | [www.bing.com](https://www.bing.com) |
+| Zhihu | 全网 5000 次/天 + 站内 5000 次/天 | 中文搜索 | [developer.zhihu.com](https://developer.zhihu.com) |
+| Tavily | 1000 credits/月 | 仅兜底：免费源空结果、缺官方文档、新闻时效不足、Fetch 失败链 | [tavily.com](https://tavily.com) |
+| Firecrawl | 1000 credits/月 | Fetch 最后兜底：难抓的 JS/PDF 页面 | [firecrawl.dev](https://firecrawl.dev) |
+| AIHOT | 匿名只读 | AI 新闻搜索/精选（免费） | [aihot.news](https://aihot.news) |
+| 直连 HTTP | 无 API 成本 | 静态页面抓取 | — |
+| SiliconFlow | BAAI/bge-reranker-v2-m3（重排）与 BAAI/bge-m3（embeddings）两个模型免费；RPM 2000 / TPM 500,000 | BGE 重排 + embeddings | [邀请注册](https://cloud.siliconflow.cn/i/E3nhNFP4) |
 
 ## 模式与路由
 
@@ -70,9 +70,9 @@
 | `siliconflowEnabled` | `true` | 启用 SiliconFlow 重排 |
 | `siliconflowApiKeyEnv` | `SILICONFLOW_API_KEY` | SiliconFlow 凭据引用 |
 | `siliconflowBaseURL` | `https://api.siliconflow.cn/v1` | SiliconFlow API 地址 |
-| `siliconflowRerankModel` | `BAAI/bge-reranker-v2-m3` | 重排模型 |
+| `siliconflowRerankModel` | `BAAI/bge-reranker-v2-m3` | 重排模型；见[官方文档](https://api-docs.siliconflow.cn/docs/api/rerank-post) |
 | `siliconflowEmbeddingsEnabled` | `true` | 启用语义去重 |
-| `siliconflowEmbeddingModel` | `BAAI/bge-m3` | Embedding 模型 |
+| `siliconflowEmbeddingModel` | `BAAI/bge-m3` | Embedding 模型；见[官方文档](https://api-docs.siliconflow.cn/docs/api/embeddings-post) |
 
 ## 质量、限制与缓存
 
