@@ -26,7 +26,7 @@ pnpm docs:check
 pnpm check
 ```
 
-`pnpm check` 依次运行全部八段门禁（见下表）；pre-commit hook 只运行语法检查；全量门禁由 CI 在推送后执行（pre-push 钩子因与 CI 双重记账已移除）。
+`pnpm check` 依次运行全部八段门禁（见下表）；pre-commit hook 只运行语法检查；全量门禁由 CI 在推送后执行。
 
 两份 README 与 DETAIL 双语对同步编辑后，运行 `node scripts/translation-pairing.mjs --record` 重建配对基线；只改一侧会让 `pnpm check` 失败。
 
@@ -42,6 +42,7 @@ pnpm check
 | `pnpm benchmark` | live 基准；需要 `.env` 中的凭据（见环境变量） |
 | `pnpm benchmark:refresh` | 刷新基准 fixture |
 | `pnpm quality:probe` | 免费后端 14 条日常质量探针；结果写 `.research/quality-probe.json` |
+| `node scripts/check-cards.mjs` | 卡面四维评分（只提醒不拦提交） |
 | `dsh plugin --profile desktop add "<仓库路径>"` | 安装到本机 DSH，安装后重启 DSH |
 | `codegraph init` | 重建代码图谱索引；查函数调用关系用 `codegraph_explore`；处理本仓库 PR 前后随手跑一次 |
 

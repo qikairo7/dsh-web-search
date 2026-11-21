@@ -72,3 +72,41 @@ export function budgetHeadroomWarnings(budgets, readLength) {
   }
   return warnings;
 }
+
+/** Keeps verify-docs' historical slug shape, so anchors already written against the old gate keep resolving. */
+const slugify = (headingText) =>
+  headingText
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s_-]/gu, '')
+    .trim()
+    .replace(/\s+/g, '-');
+
+/** Guard 3: every fragment a document can legitimately expose — heading slugs with GitHub's
+ * -1/-2 dedupe suffix for repeated headings, plus hand-written <a id> / <a name> targets.
+ * Used by verify-docs to stop flagging real anchors as broken. */
+export function anchorSlugs(text) {
+  const anchors = new Set();
+  // Occupy every emitted slug (generated suffixes included), like GitHub's slugger, so a
+  // later heading whose natural slug collides with an earlier -1 becomes -1-1 instead of
+  // silently reusing it and mis-reporting real anchors.
+  const taken = new Map();
+  const uniqueSlug = (base) => {
+    let slug = base;
+    while (taken.has(slug)) {
+      taken.set(base, (taken.get(base) ?? 0) + 1);
+      slug = `${base}-${taken.get(base)}`;
+    }
+    taken.set(slug, 0);
+    return slug;
+  };
+  for (const line of text.split(/\r?\n/)) {
+    const heading = line.match(/^#{1,6}\s+(.*)$/);
+    if (heading !== null) {
+      anchors.add(uniqueSlug(slugify(heading[1])));
+    }
+    for (const match of line.matchAll(/<a\s+[^>]*?\b(?:id|name)\s*=\s*["']([^"']+)["']/gi)) {
+      anchors.add(match[1]);
+    }
+  }
+  return anchors;
+}

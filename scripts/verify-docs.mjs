@@ -3,28 +3,10 @@ import { readFile, readdir } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { MIRROR_PAIRS, mirrorLinkErrors, budgetHeadroomWarnings } from './doc-guards.mjs';
+import { MIRROR_PAIRS, mirrorLinkErrors, budgetHeadroomWarnings, anchorSlugs } from './doc-guards.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const errors = [];
-
-// GitHub-style heading slug for one heading line: lowercase, drop punctuation, spaces to hyphens.
-const headingSlugs = async (file) => {
-  const target = await readFile(file, 'utf8');
-  return new Set(
-    target
-      .split(/\r?\n/)
-      .filter((line) => /^#{1,6}\s/.test(line))
-      .map((line) =>
-        line
-          .replace(/^#{1,6}\s+/, '')
-          .toLowerCase()
-          .replace(/[^\p{L}\p{N}\s_-]/gu, '')
-          .trim()
-          .replace(/\s+/g, '-'),
-      ),
-  );
-};
 
 const required = [
   'AGENTS.md',
@@ -145,8 +127,8 @@ for (const file of markdown) {
       continue;
     }
     if (rawFragment === undefined || rawFragment === '' || !absolute.endsWith('.md')) continue;
-    const slugs = await headingSlugs(absolute);
-    if (!slugs.has(rawFragment)) {
+    const anchors = anchorSlugs(await readFile(absolute, 'utf8'));
+    if (!anchors.has(rawFragment)) {
       errors.push(`${file}: broken anchor: ${target} (no heading matches "#${rawFragment}")`);
     }
   }
