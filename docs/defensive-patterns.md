@@ -24,7 +24,7 @@
 - 最多 5 跳重定向，允许跨域；超过上限抛 `WEB_REDIRECT_BLOCKED`。
 - 5 MB 响应上限；只接受 HTML/text/JSON/XML，PDF 和二进制抛 `WEB_UNSUPPORTED_CONTENT_TYPE`。
 - 小型 SPA 空壳由 `minDirectHtmlChars` 判定并回退到 API provider。
-- 直连 HTTP 可以访问回环和私有网段，这是与官方 `dsh-web-fetch-http` 一致的行为，不要擅自加网络封锁。
+- 直连 HTTP 默认拦截回环、私有网段、链路本地与云元数据地址，首次请求和每次重定向都先解析域名再校验；`DSH_WEB_HTTP_ALLOW_PRIVATE=1` 是放行本机调试的逃生门，不要去掉这层防护。
 
 ## 防御性构造
 
