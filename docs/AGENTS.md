@@ -8,6 +8,7 @@
 |---|---|
 | [docs/schema-inventory.md](schema-inventory.md) | 文档层级明细：每个文件的唯一职责与排除项 |
 | [docs/schema-sync-map.md](schema-sync-map.md) | 改代码时改哪份文档：映射表与开发顺序 |
+| [docs/postmortem/](postmortem/README.md) | 事故叙事层：incident-scoped reference，一条事故一份；记时间线、影响、根因、教训，教训回流错题本 |
 
 ## 写作规则
 
@@ -24,7 +25,7 @@
 ## 篇幅预算
 
 - 预算在 `scripts/doc-budgets.json`，按 Unicode 字符数计算。
-- `pnpm docs:check` 检查预算、必需文件、相对链接、代码围栏、尾随空格、`docs/configuration.md` 的 Config 字段覆盖、默认值一致性和双语结构，及 Agent Note 格式。
+- `pnpm docs:check` 检查预算、必需文件、相对链接、代码围栏、尾随空格、`docs/configuration.md` 的 Config 字段覆盖、默认值一致性、双语结构、Agent Note 格式，以及 `docs/subsystems/providers.md` 生成表与 `lib/catalog.js` 的新鲜度（`pnpm docs:gen` 重生成）。
 - 预算重定基线只发生在「文档增长处置阶梯」第 3 级授权的时点；发布之间的增量先按阶梯处置。不要为让门禁变绿改预算或跳过检查。
 
 ## 文档增长处置阶梯
