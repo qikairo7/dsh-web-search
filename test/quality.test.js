@@ -324,6 +324,53 @@ test('QualityEngine enriches through the pipeline with a bounded summary when bo
 
 // --- internal deadline must degrade, not fail the whole search (issue #137) ---
 
+test('QualityEngine keeps successful sources when the first fan-out hits the internal deadline', async () => {
+  // #186: the router's internal deadline fires while a slow provider is still
+  // running. A successful peer must survive; only caller cancellation may abort.
+  const controller = new AbortController();
+  const quality = makeEngine({
+    providers: {
+      keenable: fakeProvider({
+        sources: [{ url: 'https://k1.example/', title: 'K1' }],
+        truncated: false,
+      }),
+      anysearch: {
+        available: () => true,
+        ready: async () => true,
+        search: async () => {
+          controller.abort(new DOMException('search budget expired', 'TimeoutError'));
+          throw webError('fan-out aborted', 'WEB_ABORTED');
+        },
+      },
+    },
+  });
+  const outcome = await quality.search({ query: 'fan-out budget query' }, controller.signal);
+  assert.deepEqual(
+    outcome.sources.map((source) => source.url),
+    ['https://k1.example/'],
+  );
+});
+
+test('QualityEngine rethrows caller cancellation during the first fan-out', async () => {
+  const controller = new AbortController();
+  const quality = makeEngine({
+    providers: {
+      anysearch: {
+        available: () => true,
+        ready: async () => true,
+        search: async () => {
+          controller.abort(new DOMException('caller cancelled', 'AbortError'));
+          throw webError('fan-out aborted', 'WEB_ABORTED');
+        },
+      },
+    },
+  });
+  await assert.rejects(
+    () => quality.search({ query: 'cancel fan-out query' }, controller.signal),
+    (error) => error.code === 'WEB_ABORTED',
+  );
+});
+
 test('QualityEngine returns merged sources when rerank hits the internal deadline', async () => {
   const controller = new AbortController();
   const quality = makeEngine({
