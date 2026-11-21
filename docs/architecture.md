@@ -54,7 +54,7 @@ Provider 的能力矩阵与默认顺序见下节；注册列表在 `lib/index.js
 | `lib/providers/shared.js` | 适配器共用层：`providerOperation` 骨架（超时、错误边界、诊断标签）、`USER_AGENT`、计数夹取、凭据检查 |
 | `lib/providers/anysearchClient.js` | AnySearch HTTP 客户端（移植自 `anysearch-dsh`） |
 | `lib/providers/router.js` | `AutoSearchProvider` / `AutoFetchProvider`：模式分流、routing 注解、缓存回退；fetch 支持显式 order |
-| `lib/providerRunner.js` | 搜索/抓取共用的资格判定、熔断、attempt 与有序回退 |
+| `lib/providerRunner.js` | 搜索/抓取共用的资格判定、熔断、attempt 与有序回退；成功路径播报 debug 级 provider trail |
 | `lib/routing.js` | routing 事实的唯一家：`routingFacts` 注记构造与 `resolveRouting` 缺省推导（intent / syntax / language） |
 | `lib/roles.js` | 路由角色单一表：quality 组合、fast 免费前缀、settings 级默认顺序（拼 keyless 地板与付费尾） |
 | `lib/quality.js` | `QualityEngine`：单入口编排合并、去重、重排降级、权威排序、证据增强与官方文档补充 |
@@ -132,6 +132,7 @@ settings() thunk ──→ Provider / Router
 - 依赖方向、标准 Provider id、工具层归属和付费 API/MCP 禁例：以 [CODING_STANDARDS.md](../CODING_STANDARDS.md) 第 1 节与根 [AGENTS.md](../AGENTS.md) 的「硬边界」为准。
 - Provider 边界只抛 `WEB_*` 错误；只有 `isRecoverable(error)` 为真才触发下一个 Provider，取消和非法 URL 立即返回。
 - 搜索与抓取的缓存 key 覆盖所有影响结果的设置；循环必须有界。
+- 成功调用在 debug 级播报 provider trail（尝试名单 + 应答家）；默认级别无输出，返回结构与行为不变。
 
 ## 相关文档
 
