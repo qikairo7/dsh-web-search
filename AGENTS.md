@@ -19,12 +19,20 @@
 |配置/配额|docs/configuration.md|查配置|
 |架构|docs/architecture.md、docs/dsh-host-contract.md、codegraph_explore、codegraph init|改代码/查调用/重建|
 |标准/Review|CODING_STANDARDS.md、docs/cookbook/adding-a-provider.md|写/评审|
-|文档/术语/ADR/决策|docs/AGENTS.md、GLOSSARY.md、docs/agents/domain.md、docs/adr/、.agents/notes/|文档/术语|
-|发版/推前/排错|CHANGELOG.md、.agents/skills/、docs/development.md|发版/推前/排错|
+|文档/术语/ADR/决策|docs/AGENTS.md、GLOSSARY.md、docs/agents/domain.md、docs/adr/、维护者本地文件（见下）|文档/术语|
+|发版/推前/排错|CHANGELOG.md、维护者本地文件（见下）、docs/development.md|发版/推前/排错|
 
 改功能必同步改相关文档（去处见上表），PR 里文档与代码同 diff；只改代码不改文档的 PR 退回。
 
 ## Agent skills
 
 Agent 侧配置（issue tracker、triage labels、domain docs）见 `docs/agents/` 下的 issue-tracker.md、triage-labels.md、domain.md。
+
+## 维护者本地文件
+
+下面这些只在维护者本地维护，gitignored，不进公开仓库；agent 按路径直读，贡献者无需：
+
+- `REVIEW-LESSONS.md`：评审错题本。
+- `REVIEW-LESSONS-archive.md`：错题本归档。
+- `.agents/`：验收 skill 规程，如 verify。
 

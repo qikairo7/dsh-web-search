@@ -43,7 +43,7 @@ const required = [
   'THIRD_PARTY_NOTICES.md',
   'LICENSE',
   'CHANGELOG.md',
-  'BENCHMARK.md',
+  'docs/benchmarks/BENCHMARK.md',
   'docs/agents/domain.md',
   'docs/cookbook/raising-summary-cap.md',
   'docs/AGENTS.md',
@@ -55,7 +55,6 @@ const required = [
   'docs/feature-map.md',
   'docs/cookbook/adding-a-provider.md',
   'docs/defensive-patterns.md',
-  '.agents/notes/README.md',
   'scripts/doc-budgets.json',
 ];
 for (const file of required) {
@@ -175,10 +174,8 @@ const chineseDocs = new Set([
   'README.md',
   'AGENTS.md',
   'CODING_STANDARDS.md',
-  'REVIEW-LESSONS.md',
-  'REVIEW-LESSONS-archive.md',
   'CONTRIBUTING.md',
-  'BENCHMARK.md',
+  'docs/benchmarks/BENCHMARK.md',
   'docs/AGENTS.md',
   'docs/architecture.md',
   'docs/development.md',
@@ -190,7 +187,6 @@ const chineseDocs = new Set([
   'docs/subsystems/providers.md',
   'docs/subsystems/dsh-host.md',
   'docs/subsystems/settings.md',
-  '.agents/notes/README.md',
 ]);
 for (const file of chineseDocs) {
   const lines = (await readFile(path.join(root, file), 'utf8')).split(/\r?\n/);
