@@ -7,18 +7,16 @@ const hasHeading = (text, pattern) =>
     return heading !== null && pattern.test(heading[1]);
   });
 
-// A card states its role up front ("你是 reviewer"), or names a 角色/身份 section.
+// Role can be stated up front or in a dedicated section; accepting only one shape would flag valid cards.
 const roleSignals = (text) => hasHeading(text, /角色|身份/) || /你是|你作为|作为一名|扮演|you are|act as/i.test(text);
 
-// 任务/目标/职责 heading, or an explicit task line, marks the job to do.
+// Only an explicit task section or cue counts; prose that mentions work in passing must not score a task.
 const taskSignals = (text) => hasHeading(text, /任务|目标|职责|goal|task/i) || /^(?:任务|目标)[：:]/m.test(text);
 
-// 约束/Dos/Don'ts section heading marks the constraints block.
-// shortcut: heading-based only — scattered modal words in prose do not count, so the
-// reminder tracks a named section (issue's "约束节") rather than defensive prose density.
+// shortcut: constraints are scored as the named section issue #200 asks about — scattered modal words in prose are too noisy to detect reliably; upgrade to semantic detection if that changes.
 const constraintsSignals = (text) => hasHeading(text, /约束|纪律|规则|禁忌|禁止|限制|dos|don'ts|constraints/i);
 
-// 示例/例子/范例 heading, or a fenced block introduced as an example.
+// A bare fenced block is often just a command sample; only an explicit example cue counts.
 const examplesSignals = (text) =>
   hasHeading(text, /示例|例子|样例|范例|example/i) ||
   (/(?:^|\n)\s*```/.test(text) && /示例|例如|例[：:]|example/i.test(text));
