@@ -43,7 +43,7 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 ### 修复
 
-- PR 模板「是否有人参与」改为默认勾「有」，勾「无」须全程零用户消息证据（参与决策链——下令/拍板/纠错/终审——即算有人参与）。
+- 发版流程等待检查通过时，不再因为检查项尚未全部出现而提前判定失败。
 
 ## 0.0.0003 — 2026-11-23
 

@@ -13,7 +13,7 @@
 | 新增 Provider 或其他扩展步骤 | `docs/cookbook/` |
 | Review 的 artifact 级细节 | `docs/defensive-patterns.md` |
 | 契约级决策（provider id、能力缝、持久格式） | `docs/adr/` 新增 ADR，不改写已接受 ADR |
-| 需保留理由与被放弃方案 | 维护者本地 Agent Note（见 [docs/AGENTS.md](AGENTS.md) 的「维护者本地文件」节） |
+| 需保留理由与被放弃方案 | 同上，写进该 ADR |
 | 术语 | `GLOSSARY.md` |
 | 基准结果 | `docs/benchmarks/`；保留原始数据与复现命令 |
 | 实现规则、Review 门禁 | `CODING_STANDARDS.md` |
@@ -21,6 +21,6 @@
 
 ## 开发顺序
 
-1. 先确定改动改变哪条事实、找到唯一 home；需要新决策先写 ADR 或 Agent Note。
+1. 先确定改动改变哪条事实、找到唯一 home；需要新决策先写 ADR。
 2. 先改文档中的目标行为（信息不足标「待确认」），再改代码与测试。
-3. 最后同步 README、架构文档或 Agent Note，并跑机械检查。
+3. 最后同步 README 或架构文档，并跑机械检查。

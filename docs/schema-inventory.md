@@ -17,9 +17,9 @@
 | `docs/subsystems/` | 子系统参考页：职责真源表、运行路径、约束与验证命令 | 行为教程、决策史、实现规则 |
 | `docs/dsh-host-contract.md` | DSH 宿主契约、tool-web 渲染与 preset 作用域、内部排查路径 | 插件行为、配置默认值 |
 | `docs/adr/` | 已接受的契约级决策；一条一份，历史不改写 | 当前行为、迁移计划 |
-| `docs/postmortem/` | 事故叙事唯一归属层：单次事故的时间线、影响、根因与教训；教训经 inbox 回流错题本 | 规则化教训（那是错题本）、当前行为说明 |
+| `docs/postmortem/` | 事故叙事唯一归属层：单次事故的时间线、影响、根因与教训 | 当前行为说明 |
 | `GLOSSARY.md` | 项目术语唯一写法 | 实现细节 |
-| `docs/agents/` | 代理工作流：领域文档 | 产品行为 |
+| `docs/agents/` | 领域文档阅读顺序 | 产品行为 |
 | `docs/benchmarks/` | 历史基准报告与复现命令；数字与日期不改写 | 当前配置默认值 |
 | `CONTRIBUTING.md` / `CONTRIBUTING.zh.md` | 贡献入口与阅读顺序 | 详细实现规则 |
 | `SAFETY.md` / `SECURITY.md` / `TRADEMARKS.md` / `THIRD_PARTY_NOTICES.md` | 风险模型、漏洞报告、项目身份与第三方归属 | 使用教程、实现规则 |
