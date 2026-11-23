@@ -1,4 +1,5 @@
 # ElevenLabs — Style Reference
+
 > Warm cream editorial with whispered headlines. A Bauhaus studio notebook — eggshell paper, black ink, a single violet and orange spark for product moments.
 
 **Theme:** light
