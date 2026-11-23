@@ -36,6 +36,146 @@
       "zh": "fd702a967451c4ff"
     }
   },
+  "SAFETY.md": {
+    "0": {
+      "heading": "(preamble)",
+      "en": "414ebe00c7897cf0",
+      "zh": "a31675ac36eca8f6"
+    },
+    "1": {
+      "heading": "Experimental status",
+      "en": "554f42327adccc77",
+      "zh": "c598279314456e1a"
+    },
+    "2": {
+      "heading": "Network and third-party services",
+      "en": "ef2dba9377d9a52e",
+      "zh": "cddaa609e66bdf6c"
+    },
+    "3": {
+      "heading": "X search (experimental)",
+      "en": "df67253ba699f4dd",
+      "zh": "61c5ba364f99a165"
+    },
+    "4": {
+      "heading": "Credentials",
+      "en": "d8c132005a4b64c4",
+      "zh": "0c011b207a7427bc"
+    },
+    "5": {
+      "heading": "No warranty or liability",
+      "en": "ac90fef663708e70",
+      "zh": "23a1bc5d09427140"
+    }
+  },
+  "SECURITY.md": {
+    "0": {
+      "heading": "(preamble)",
+      "en": "1c7e8632d9b80693",
+      "zh": "8f4a93c5f8298d60"
+    },
+    "1": {
+      "heading": "Supported versions",
+      "en": "939b55e1579985f0",
+      "zh": "d3da851771b7802f"
+    },
+    "2": {
+      "heading": "Reporting a vulnerability",
+      "en": "052dfbec0d62ad9f",
+      "zh": "3293079ae52ba54f"
+    },
+    "3": {
+      "heading": "Scope",
+      "en": "328b6ca89abcc48c",
+      "zh": "cb9f7fdd89e38d1a"
+    }
+  },
+  "TRADEMARKS.md": {
+    "0": {
+      "heading": "(preamble)",
+      "en": "760899dda60ca999",
+      "zh": "7195cea6ff64053b"
+    }
+  },
+  "CODE_OF_CONDUCT.md": {
+    "0": {
+      "heading": "(preamble)",
+      "en": "dfe91409ff1d1e68",
+      "zh": "9498e7c4c06c74d1"
+    },
+    "1": {
+      "heading": "Our Pledge",
+      "en": "7e7137bcdb070067",
+      "zh": "5fde1ed598a54bb4"
+    },
+    "2": {
+      "heading": "Our Standards",
+      "en": "8857c07081483199",
+      "zh": "41912f779bd69d6e"
+    },
+    "3": {
+      "heading": "Enforcement Responsibilities",
+      "en": "5cf2b7eefb0bb319",
+      "zh": "bcac37aa14082292"
+    },
+    "4": {
+      "heading": "Scope",
+      "en": "f5cbd2fd62c25a34",
+      "zh": "052bb4e094ab80c0"
+    },
+    "5": {
+      "heading": "Enforcement",
+      "en": "83f051938fbe1135",
+      "zh": "9d1b8f3892bc6a3d"
+    },
+    "6": {
+      "heading": "Enforcement Guidelines",
+      "en": "38c87d36acaa59d7",
+      "zh": "2542b3716951bdd9"
+    },
+    "7": {
+      "heading": "Attribution",
+      "en": "c87b7a8a818fa194",
+      "zh": "c9d8416eb706ad7c"
+    }
+  },
+  "CONTRIBUTING.md": {
+    "0": {
+      "heading": "(preamble)",
+      "en": "4d422db1979fe9f0",
+      "zh": "28e671f9040c14ea"
+    },
+    "1": {
+      "heading": "What we value",
+      "en": "d68db38ccb4f8707",
+      "zh": "bfd2e37a489f53f4"
+    },
+    "2": {
+      "heading": "Before you start",
+      "en": "68640a4d9b61025a",
+      "zh": "ad88d98a87ec8b8c"
+    },
+    "3": {
+      "heading": "Development docs",
+      "en": "28a0987315f671a2",
+      "zh": "8a7c3cd54218b30a"
+    },
+    "4": {
+      "heading": "Security boundary",
+      "en": "af82fe50942d1333",
+      "zh": "049c5b67efd17af6"
+    },
+    "5": {
+      "heading": "Commits and pull requests",
+      "en": "c02f18da3c1ab0e5",
+      "zh": "273a9d110ebb682b"
+    },
+    "6": {
+      "heading": "Validation",
+      "en": "6b1c4ca9bdc3099f",
+      "zh": "a1977dd9b4ba6767"
+    }
+  },
   "docs/DETAIL.en.md": {
     "0": {
       "heading": "(preamble)",
