@@ -47,27 +47,14 @@ jobs:
             'full-matrix (windows-latest, 24)'
           )
           # 预算：60 轮 × 30 秒 ≈ 30 分钟，须落在 job 的 timeout-minutes: 45 之内。
-          first_check=1
+          # 首检快败已删（审计#10：tag 后 check-run 逐个创建，首帧常只有本 workflow 自身，快败误杀 v0.0.0004）；
+          # matrix 漂移由超时报错兜底提示，不再快判。
           for attempt in $(seq 1 60); do
             if ! runs=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${SHA}/check-runs?per_page=100" \
               --jq '.check_runs[] | [.name, .status, (.conclusion // "")] | @tsv'); then
               echo "waiting: gh api failed (attempt $attempt/60); retry after 30s"
               [[ "$attempt" == "60" ]] || sleep 30
               continue
-            fi
-            # 首检：required 名单是 check.yml matrix 的手抄拷贝，第一次拿到结果时校验名字是否对得上，
-            # 对不上说明 matrix 已改、名单漂移，立即失败而不是空等 30 分钟。
-            # 空 runs（tag 后 check 尚未创建）不算漂移，跳过首检走正常等待分支。
-            if [[ "$first_check" == "1" && -n "$runs" ]]; then
-              first_check=0
-              missing=()
-              for want in "${required[@]}"; do
-                printf '%s\n' "$runs" | awk -F'\t' -v n="$want" '$1 == n { found = 1 } END { if (found) exit 0; exit 1 }' || missing+=("$want")
-              done
-              if (( ${#missing[@]} > 0 )); then
-                echo "::error::required check 名单与实际 check 不符，检查 check.yml matrix 是否已变（缺少：${missing[*]}）"
-                exit 1
-              fi
             fi
             ok=1
             for want in "${required[@]}"; do
@@ -93,7 +80,7 @@ jobs:
             fi
             [[ "$attempt" == "60" ]] || sleep 30
           done
-          echo "::error::timed out after ~30 minutes waiting for green checks on $SHA"
+          echo "::error::timed out after ~30 minutes waiting for green checks on $SHA（若 check.yml matrix 已改名，需同步本文件 required 名单）"
           exit 1
 
       - uses: pnpm/action-setup@v6

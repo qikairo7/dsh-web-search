@@ -1617,7 +1617,7 @@ window.__ModuleLoader__.load({
       draft.anysearchBatchEnabled = truthy(value.anysearchBatchEnabled, true);
       draft.zhihuSearchMode = value.zhihuSearchMode === 'site' ? 'site' : 'global';
       const maxEngines = Number(value.qualityMaxEngines);
-      draft.qualityMaxEngines = Number.isSafeInteger(maxEngines) && maxEngines >= 1 && maxEngines <= 8 ? maxEngines : 3;
+      draft.qualityMaxEngines = Number.isSafeInteger(maxEngines) && maxEngines >= 1 && maxEngines <= 8 ? maxEngines : 4;
       draft.qualityRerankEnabled = truthy(value.qualityRerankEnabled, true);
       draft.qualityExcludedProviders = Array.isArray(value.qualityExcludedProviders) ? [...value.qualityExcludedProviders] : [];
       draft.fastPrimaryProvider = typeof value.fastPrimaryProvider === 'string' ? value.fastPrimaryProvider : '';
@@ -2444,7 +2444,7 @@ window.__ModuleLoader__.load({
           ? [...new Set([...current.cleanExtractProviders, id])]
           : current.cleanExtractProviders.filter((name) => name !== id),
       }));
-      const qualityCustomized = draft.qualityMaxEngines !== 3
+      const qualityCustomized = draft.qualityMaxEngines !== 4
         || draft.qualityRerankEnabled !== true
         || draft.qualityExcludedProviders.length > 0;
       const fastCustomized = draft.fastPrimaryProvider !== '' || draft.fastMaxFallbacks !== 1;
@@ -2465,7 +2465,7 @@ window.__ModuleLoader__.load({
       const qualityParams = h('div', { style: styles.modeParams },
         paramHeader(t('qualityParams'), qualityCustomized, () => setDraft((current) => ({
           ...current,
-          qualityMaxEngines: 3,
+          qualityMaxEngines: 4,
           qualityRerankEnabled: true,
           qualityExcludedProviders: [],
         }))),
@@ -2475,7 +2475,7 @@ window.__ModuleLoader__.load({
             type: 'number', min: 1, max: 8,
             style: { ...styles.input, maxWidth: '96px' },
             value: draft.qualityMaxEngines,
-            onChange: (event) => setDraft((current) => ({ ...current, qualityMaxEngines: Math.max(1, Math.min(8, Number(event.target.value) || 3)) })),
+            onChange: (event) => setDraft((current) => ({ ...current, qualityMaxEngines: Math.max(1, Math.min(8, Number(event.target.value) || 4)) })),
           })),
         h('div', { style: styles.modeParamRow },
           h('span', { style: styles.featureLabel }, t('participate')),
