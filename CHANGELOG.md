@@ -2,6 +2,12 @@
 
 All notable changes are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver. 条目一律中文，按 zh-tech-writing 规范撰写；发版说明由发布流程自动取自对应版本节。
 
+## 0.0.0004 — 2026-11-23
+
+### 修复
+
+- PR 模板「是否有人参与」改为默认勾「有」，勾「无」须全程零用户消息证据（参与决策链——下令/拍板/纠错/终审——即算有人参与）。
+
 ## 0.0.0003 — 2026-11-23
 
 ### 变更
