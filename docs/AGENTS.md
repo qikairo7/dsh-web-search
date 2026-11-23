@@ -15,13 +15,13 @@
 
 按任务查文档去处：
 
-| 任务 | 去处 |
-|---|---|
-| 配置 / 配额 | [configuration.md](configuration.md) |
-| 架构 / 调用关系 | [architecture.md](architecture.md)、[dsh-host-contract.md](dsh-host-contract.md)、`codegraph_explore` |
-| 标准 / Review | [CODING_STANDARDS.md](../CODING_STANDARDS.md)、[cookbook/adding-a-provider.md](cookbook/adding-a-provider.md) |
-| 文档 / 术语 / 决策 | 本文、[GLOSSARY.md](../GLOSSARY.md)、[adr/](adr/)、维护者本地文件（见下） |
-| 发版 / 推前 / 排错 | [CHANGELOG.md](../CHANGELOG.md)、维护者本地文件（见下）、[development.md](development.md) |
+| 任务 | 去处 | 触发时机 |
+|---|---|---|
+| 配置 / 配额 | [configuration.md](configuration.md) | 查配置 |
+| 架构 / 调用关系 | [architecture.md](architecture.md)、[dsh-host-contract.md](dsh-host-contract.md)、`codegraph_explore`、`codegraph init` | 改代码/查调用/重建 |
+| 标准 / Review | [CODING_STANDARDS.md](../CODING_STANDARDS.md)、[cookbook/adding-a-provider.md](cookbook/adding-a-provider.md) | 写/评审 |
+| 文档 / 术语 / 决策 | 本文、[GLOSSARY.md](../GLOSSARY.md)、[adr/](adr/)、维护者本地文件（见下） | 文档/术语 |
+| 发版 / 推前 / 排错 | [CHANGELOG.md](../CHANGELOG.md)、维护者本地文件（见下）、[development.md](development.md) | 发版/推前/排错 |
 
 改功能必须同步改相关文档，PR 里文档与代码同 diff；同步映射与开发顺序见 [schema-sync-map.md](schema-sync-map.md)。
 
@@ -35,7 +35,7 @@ Agent 侧配置在 `docs/agents/` 下：[issue-tracker.md](agents/issue-tracker.
 
 - `REVIEW-LESSONS.md`：评审错题本。
 - `REVIEW-LESSONS-archive.md`：错题本归档。
-- `.agents/`：验收 skill 规程，如 verify。
+- `.agents/`：验收 skill 规程（如 verify）与 Agent Note（本地决策记录，见 `.agents/notes/`）。
 
 ## 写作规则
 
