@@ -1,5 +1,7 @@
 # Architecture-refactor live benchmark — 2026-11-14
 
+> Historical snapshot: this report records an earlier version line. Its numbers and dates are preserved as-is and are not part of the current capability baseline.
+
 Version: `0.7.2`.
 Mode: `searchMode: quality` (three providers + BGE rerank + authority ranking).
 Sample: FRAMES 50 / WebWalkerQA 50. Generated: 2026-11-14T16:59:20Z.

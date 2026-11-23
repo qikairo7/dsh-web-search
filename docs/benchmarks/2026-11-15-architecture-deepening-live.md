@@ -1,5 +1,7 @@
 # Architecture-deepening live verification — 2026-11-15
 
+> Historical snapshot: this report records an earlier version line. Its numbers and dates are preserved as-is and are not part of the current capability baseline.
+
 Version: `0.8.0`.
 Mode: `searchMode: quality` (free provider pairs + BGE rerank + authority ranking).
 Sample: FRAMES 50 / WebWalkerQA 50. Run date: 2026-11-15 (Asia/Taipei), after the architecture-deepening wave (provider operation skeleton, routing-fact single home, cache policy owner, official-domain single source).

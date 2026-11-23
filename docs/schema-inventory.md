@@ -10,7 +10,6 @@
 | `docs/configuration.md` | 完整配置字段、默认值与说明；README 链接到此 | 行为教程、实现规则 |
 | `docs/development.md` | 安装、命令、CI 与排错 | 实现规则、产品行为 |
 | `docs/testing.md` | 测试层级与验收策略 | 命令清单、实现细节 |
-| `docs/upgrade/` | 版本升级指南 | 迁移与决策理由 |
 | `docs/cookbook/` | 带步骤与验收清单的 how-to，如新增 Provider | 设计理由、行为说明 |
 | `docs/defensive-patterns.md` | 按 artifact 展开的 Review 规则 | 决策史、配置默认值 |
 | `docs/architecture.md` | 组合、模块与请求流地图 | 单函数细节、配置默认值 |
