@@ -2,6 +2,17 @@
 
 All notable changes are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver. 条目一律中文，按 zh-tech-writing 规范撰写；发版说明由发布流程自动取自对应版本节。
 
+## 0.0.0007 — 2026-11-23
+
+### 变更
+
+- 根目录文档套件按写作规范全量重构，中英文镜像统一为英文主文件加对应中文版；此前语向相反的几组镜像归位一致。
+- CONTRIBUTING 中文版由三行存根补全为与英文逐节对应的完整译文。
+- AGENTS.md 精简为只给项目定位、包管理器、门禁命令与三条硬边界，其余细节改为链接指向 docs 下的说明。
+- 术语表补齐搜索后端口径，编码规范与安全说明同步收紧排版。
+
+维护者拍板：你来决策就可以了（2026-11-23，授权 Lead 代决）。
+
 ## 0.0.0006 — 2026-11-23
 
 ### 修复
