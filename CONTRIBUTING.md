@@ -1,41 +1,41 @@
-# 贡献指南
+# Contributing
 
-本仓库是 DSH 的免费联网插件，为 `web_search` / `web_fetch` 提供免费的搜索与抓取后端。Issue 和 PR 欢迎提交；行为变化记录在 [CHANGELOG.md](CHANGELOG.md)。参与即表示同意遵守 [CODE_OF_CONDUCT.zh.md](CODE_OF_CONDUCT.zh.md)。
+This repository is a free web plugin for DSH: free search and fetch backends for `web_search` and `web_fetch`. Issues and pull requests are welcome. Behavior changes go in [CHANGELOG.md](CHANGELOG.md). Taking part means you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-开始前按顺序读 [AGENTS.md](AGENTS.md)、[CODING_STANDARDS.md](CODING_STANDARDS.md)、[docs/AGENTS.md](docs/AGENTS.md) 和 [docs/architecture.md](docs/architecture.md)。
+Read [AGENTS.md](AGENTS.md), [CODING_STANDARDS.md](CODING_STANDARDS.md), [docs/AGENTS.md](docs/AGENTS.md), and [docs/architecture.md](docs/architecture.md) first.
 
-## 我们重视什么
+## What we value
 
-- 一个 PR 只解决一个内聚问题，不夹带无关清理。
-- 避免猜测式 fallback 与提前抽象；只抽会被复用、有真实边界的逻辑。
-- 删掉被替代的代码，不留死分支或兼容壳。
-- 以上与 [CODING_STANDARDS.md](CODING_STANDARDS.md) 同源，以它为准。
+- One pull request solves one cohesive problem, with no unrelated cleanup.
+- No speculative fallbacks or premature abstraction. Extract only reused logic with a real boundary.
+- Delete replaced code. Leave no dead branches or compatibility shells.
+- [CODING_STANDARDS.md](CODING_STANDARDS.md) is the source of truth for these rules.
 
-## 开始之前
+## Before you start
 
-- 先搜已有 issue 与 PR，避免重复。
-- 报 Bug 前先用真实入口复现，记下实际输出。
-- 改动会破坏配置或契约语义时，先开 issue 或写 ADR（[docs/adr/](docs/adr/)）再动手。
+- Search existing issues and pull requests to avoid duplicate work.
+- Reproduce a bug through the real entry point and record the actual output before you report it.
+- If a change breaks configuration or contract semantics, open an issue or write an ADR ([docs/adr/](docs/adr/)) first.
 
-## 开发文档
+## Development docs
 
-- 开发流程与环境：[docs/development.md](docs/development.md)
-- 测试：[docs/testing.md](docs/testing.md)
-- 新增 Provider：[docs/cookbook/adding-a-provider.md](docs/cookbook/adding-a-provider.md)
-- Review 门禁：[CODING_STANDARDS.md](CODING_STANDARDS.md#9-review-门禁) §9
+- Workflow and environment: [docs/development.md](docs/development.md)
+- Tests: [docs/testing.md](docs/testing.md)
+- New provider: [docs/cookbook/adding-a-provider.md](docs/cookbook/adding-a-provider.md)
+- Review gate: [CODING_STANDARDS.md](CODING_STANDARDS.md#9-review-门禁) section 9
 
-## 安全边界
+## Security boundary
 
-贡献前必读 [SAFETY.md](SAFETY.md)：不可信输入、凭据边界与风险模型以该文件为准；正常请求成功不能证明隔离有效。
+Read [SAFETY.md](SAFETY.md) first. It defines untrusted input, credential boundaries, and the risk model. A successful normal request does not prove isolation works.
 
-## 提交与 PR
+## Commits and pull requests
 
-- 提交信息与 PR 标题用 Conventional Commits 中文主题：`type(scope): 摘要`，`type` 取 `feat`、`fix`、`docs`、`chore`、`refactor`、`test`。
-- 提交正文末尾带 `Verified-by: <方式>` 戳，如 `Verified-by: pnpm-check`；未验证写 `Verified-by: none <原因>`。
-- PR 描述按 [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md) 的各节填写。
-- 分支从 `origin/main` 切出，PR 对 `main`；合并前 CI 与 `pnpm check` 必须全绿。
+- Commit messages and pull request titles use a Conventional Commits subject: `type(scope): summary`, where `type` is `feat`, `fix`, `docs`, `chore`, `refactor`, or `test`.
+- End the commit body with `Verified-by: <method>`, such as `Verified-by: pnpm-check`; write `Verified-by: none <reason>` when unverified.
+- Fill the pull request description from [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md).
+- Branch from `origin/main`, target `main`, and pass CI and `pnpm check` before merge.
 
-## 验证
+## Validation
 
-- 提交前跑 `pnpm check`：语法、架构、order-doc 同步、文档代码块、翻译配对、docs:check、文档引用存活、单测共八段。
-- 涉设置页或抓取行为的改动，按维护者本地 verify skill 规程（见根 AGENTS.md 的「维护者本地文件」节）做真机验证，把原始输出放进 PR 证据。
+- Run `pnpm check` before you commit. It covers syntax, architecture, order-doc sync, doc code blocks, translation pairing, docs:check, doc reference liveness, and unit tests.
+- For settings or fetch changes, verify on a real machine with the maintainer's verify skill (see the maintainer-local-files notes in [docs/AGENTS.md](docs/AGENTS.md)) and put the raw output in the pull request.
