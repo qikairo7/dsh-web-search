@@ -38,4 +38,4 @@ Read [SAFETY.md](SAFETY.md) first. It defines untrusted input, credential bounda
 ## Validation
 
 - Run `pnpm check` before you commit. It covers syntax, architecture, order-doc sync, doc code blocks, translation pairing, docs:check, doc reference liveness, and unit tests.
-- For settings or fetch changes, verify on a real machine with the maintainer's verify skill (see the maintainer-local-files notes in [docs/AGENTS.md](docs/AGENTS.md)) and put the raw output in the pull request.
+- For settings or fetch behavior changes, install into DSH and verify once on a real machine, then put the raw output or screenshot in the pull request.

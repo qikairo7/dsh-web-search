@@ -1,23 +1,29 @@
 #!/usr/bin/env node
-/** Translation-pairing gate (lightweight .i18n.yaml counterpart): README.en.md
- * and README.md are paired section-by-section (Nth `##` section to Nth).
- * A recorded hash per section detects drift — one side changed without its
- * pair, or both changed without re-recording — and fails the check until
- * `--record` re-baselines after an intentional synchronized edit. Pairing basis is section
- * ordinal; structural symmetry (equal heading count) is enforced by this
- * script's own length check before any pairing happens.
+/** Translation-pairing gate (lightweight .i18n.yaml counterpart): every bilingual
+ * pair in doc-guards.mjs `MIRROR_PAIRS` is paired section-by-section (Nth `##`
+ * section to Nth). A recorded hash per section detects drift — one side changed
+ * without its pair, or both changed without re-recording — and fails the check
+ * until `--record` re-baselines after an intentional synchronized edit. Pairing
+ * basis is section ordinal; structural symmetry (equal heading count) is enforced
+ * by this script's own length check before any pairing happens.
  * Outside record mode the recorded count and headings are re-verified, so a
  * structural edit that skipped `--record` fails loudly instead of mis-pairing. */
 
 import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const PAIRS = [
-  { en: 'README.en.md', zh: 'README.md' },
-  { en: 'docs/DETAIL.en.md', zh: 'docs/DETAIL.md' },
-];
+import { MIRROR_PAIRS } from './doc-guards.mjs';
+
+// Section-drift pairs are exactly the bilingual mirror pairs guarded for link
+// language by doc-guards.mjs, so a newly registered pair gets both guards at once
+// instead of drifting apart. Pairs whose files are absent are skipped: file
+// existence is owned by verify-docs' required list and the file-list parity check,
+// and skipping keeps this gate runnable against the minimal fixtures its unit
+// tests build.
+const PAIRS = MIRROR_PAIRS;
 const RECORD = 'docs/translation-pairs.json';
 
 /** Split markdown text into sections at ## headings; the preamble is section 0. */
@@ -72,6 +78,10 @@ if (isMain) {
   const failures = [];
   const next = {};
   for (const pair of PAIRS) {
+    if (!existsSync(pair.en) || !existsSync(pair.zh)) {
+      console.log(`SKIP ${pair.en} <-> ${pair.zh}: file missing (existence owned by verify-docs)`);
+      continue;
+    }
     const enSections = splitSections(await readFile(pair.en, 'utf8'));
     const zhSections = splitSections(await readFile(pair.zh, 'utf8'));
     if (enSections.length !== zhSections.length) {
@@ -120,6 +130,6 @@ if (isMain) {
     for (const failure of failures) console.error(`- ${failure}`);
     process.exitCode = 1;
   } else {
-    console.log(`translation pairing ok: ${PAIRS.length} file pair(s)`);
+    console.log(`translation pairing ok: ${Object.keys(next).length} file pair(s)`);
   }
 }
