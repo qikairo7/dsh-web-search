@@ -13,6 +13,7 @@ import { githubFetchTarget } from '../lib/host.js';
 import { AutoFetchProvider } from '../lib/providers/router.js';
 import { fastOrder, classifyIntent } from '../lib/intent.js';
 import { webError } from '../lib/errors.js';
+import { createMultiKeyProvider } from '../lib/keyring.js';
 import { providerEntry } from '../lib/catalog.js';
 import { resolveSettings } from '../lib/settings.js';
 import { readProviderUsage } from '../lib/quotaStore.js';
@@ -190,6 +191,34 @@ test('GithubProvider.search maps a 403 to a recoverable rate-limited error', asy
       assert.equal(provider.available(), false);
       const remaining = provider.cooldownUntil - Date.now();
       assert.ok(remaining > 55_000 && remaining <= 60_000, `cooldown ${remaining}ms`);
+    },
+  );
+});
+
+test('createMultiKeyProvider delegates available() to the keyed instance so a PAT rate-limit cooldown propagates', async () => {
+  let shadow;
+  await withFetch(
+    { status: 403, headers: { 'content-type': 'application/json', 'retry-after': '120' }, body: { message: 'secondary rate limit' } },
+    async () => {
+      const wrapped = createMultiKeyProvider({
+        provider: new GithubProvider({ settings: () => ghSettings(), resolveKey: async () => undefined }),
+        factory: (key) => {
+          shadow = new GithubProvider({ settings: () => ghSettings(), resolveKey: async () => key });
+          return shadow;
+        },
+        resolveKeys: async () => ['ghp_example'],
+      });
+      await assert.rejects(wrapped.search({ query: 'qikairo7/dsh-web-search' }), (error) => {
+        assert.equal(error.name, 'WebError');
+        assert.equal(error.code, 'WEB_RATE_LIMITED');
+        return true;
+      });
+      // The cooldown lands on the per-key instance the call actually used, not
+      // the wrapped primary. available() must read through to that instance, or
+      // the router keeps calling a provider that is still inside Retry-After.
+      assert.equal(wrapped.available(), false);
+      const remaining = shadow.cooldownUntil - Date.now();
+      assert.ok(remaining > 115_000 && remaining <= 120_000, `cooldown ${remaining}ms`);
     },
   );
 });
