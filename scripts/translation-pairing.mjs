@@ -78,7 +78,10 @@ if (isMain) {
   const failures = [];
   const next = {};
   for (const pair of PAIRS) {
-    if (!existsSync(pair.en) || !existsSync(pair.zh)) continue;
+    if (!existsSync(pair.en) || !existsSync(pair.zh)) {
+      console.log(`SKIP ${pair.en} <-> ${pair.zh}: file missing (existence owned by verify-docs)`);
+      continue;
+    }
     const enSections = splitSections(await readFile(pair.en, 'utf8'));
     const zhSections = splitSections(await readFile(pair.zh, 'utf8'));
     if (enSections.length !== zhSections.length) {
