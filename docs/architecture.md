@@ -125,7 +125,7 @@ settings() thunk ──→ Provider / Router
 | 新增配置字段 | 同时修改 `Config`、`DEFAULT_SETTINGS`、`SETTINGS_SPEC`，并更新两份 README |
 | 修改路由或回退 | 改 `lib/providers/router.js`、`lib/roles.js` 或 `lib/routing.js`，补路由测试，更新 README 的 Behavior 与配额说明 |
 | 修改文档 | 先读 [docs/AGENTS.md](AGENTS.md)，按事实归属改唯一一份，再跑 `pnpm docs:check` |
-| 记录决策 | 契约级写 ADR；需要保留理由与被放弃方案写 Agent Note |
+| 记录决策 | 写 ADR：契约、理由与被放弃的方案都记在里面 |
 
 ## 不变量
 

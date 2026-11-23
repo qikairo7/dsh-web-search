@@ -8,7 +8,7 @@
 |---|---|
 | [docs/schema-inventory.md](schema-inventory.md) | 文档层级明细：每个文件的唯一职责与排除项 |
 | [docs/schema-sync-map.md](schema-sync-map.md) | 改代码时改哪份文档：映射表与开发顺序 |
-| [docs/postmortem/](postmortem/README.md) | 事故叙事层：incident-scoped reference，一条事故一份；记时间线、影响、根因、教训，教训回流错题本 |
+| [docs/postmortem/](postmortem/README.md) | 事故叙事层：incident-scoped reference，一条事故一份；记时间线、影响、根因、教训 |
 | [docs/writing-rules.md](writing-rules.md) | 写作判据：完整命题、覆盖分层、删字 vs 删事实 |
 
 ## 路由
@@ -20,40 +20,32 @@
 | 配置 / 配额 | [configuration.md](configuration.md) | 查配置 |
 | 架构 / 调用关系 | [architecture.md](architecture.md)、[dsh-host-contract.md](dsh-host-contract.md)、`codegraph_explore`、`codegraph init` | 改代码/查调用/重建 |
 | 标准 / Review | [CODING_STANDARDS.md](../CODING_STANDARDS.md)、[cookbook/adding-a-provider.md](cookbook/adding-a-provider.md) | 写/评审 |
-| 文档 / 术语 / 决策 | 本文、[GLOSSARY.md](../GLOSSARY.md)、[adr/](adr/)、维护者本地文件（见下） | 文档/术语 |
-| 发版 / 推前 / 排错 | [CHANGELOG.md](../CHANGELOG.md)、维护者本地文件（见下）、[development.md](development.md) | 发版/推前/排错 |
+| 文档 / 术语 / 决策 | 本文、[GLOSSARY.md](../GLOSSARY.md)、[adr/](adr/) | 文档/术语 |
+| 发版 / 推前 / 排错 | [CHANGELOG.md](../CHANGELOG.md)、[development.md](development.md) | 发版/推前/排错 |
 
 改功能必须同步改相关文档，PR 里文档与代码同 diff；同步映射与开发顺序见 [schema-sync-map.md](schema-sync-map.md)。
 
-## Agent skills
+## 动手前先读什么
 
-Agent 侧配置在 `docs/agents/` 下：[issue-tracker.md](agents/issue-tracker.md)（issue/PR 读写与依赖）、[triage-labels.md](agents/triage-labels.md)（分诊标签映射）、[domain.md](agents/domain.md)（领域文档与 ADR 阅读顺序）。
-
-## 维护者本地文件
-
-只在维护者本地维护，gitignored，不进公开仓库；agent 按路径直读，贡献者无需：
-
-- `REVIEW-LESSONS.md`：评审错题本。
-- `REVIEW-LESSONS-archive.md`：错题本归档。
-- `.agents/`：验收 skill 规程（如 verify）与 Agent Note（本地决策记录，见 `.agents/notes/`）。
+[docs/agents/domain.md](agents/domain.md) 给出领域文档与 ADR 的阅读顺序。
 
 ## 写作规则
 
-- 写当前状态，不写变更史；历史放 ADR、Agent Note、提交或基准报告。
+- 写当前状态，不写变更史；历史放 ADR、提交或基准报告。
 - 一个事实只有一个家；其他文档链接而来，不复制。
 - 先判断文档类型：教程按步骤到结果，参考按查找范围定义当前行为。README 安装段是教程，Behavior 与 `configuration.md` 是参考。
 - 中文段落一段一行，不按显示宽度硬换行；代码块、表格、列表保持结构。
 - 代码围栏命令必须可执行；占位符写 `<...>`，别伪装真实值。
 - 相对链接必须指向真实文件；不用提交号做当前引用。
 - 不写实现状态注记（「已实现」「未来会」）、测试走读、评审过程或赘述代码。
-- 技能分工：中文=zh-tech-writing、英文技术=google-dev-style、去 AI 味=lieflat detect.py 初筛 A 级直接改 B/C 人工判读、定稿润色=humanizer-zh、口吻=~/.dsh/writing-dna-v2；正文中文，代码与标识符原样；英文镜像 README.en.md、DETAIL.en.md、法律文件；历史记录不改写，新条目从中文开始。
+- 技能分工：中文=zh-tech-writing、英文技术=google-dev-style；正文中文，代码与标识符原样；英文镜像 README.en.md、DETAIL.en.md、法律文件；历史记录不改写，新条目从中文开始。
 - 两份 README 同步；契约变化先写 ADR。
 - 写作判据见 [写作判据](writing-rules.md)，ADR 写法见 [ADR 索引](adr/README.md)。
 
 ## 篇幅预算
 
 - 预算在 `scripts/doc-budgets.json`，按 Unicode 字符数计算。
-- `pnpm docs:check` 检查预算、必需文件、相对链接、代码围栏、尾随空格、`docs/configuration.md` 的 Config 字段覆盖、默认值一致性、双语结构、Agent Note 格式，以及 `docs/subsystems/providers.md` 生成表与 `lib/catalog.js` 的新鲜度（`pnpm docs:gen` 重生成）。
+- `pnpm docs:check` 检查预算、必需文件、相对链接、代码围栏、尾随空格、`docs/configuration.md` 的 Config 字段覆盖、默认值一致性、双语结构，以及 `docs/subsystems/providers.md` 生成表与 `lib/catalog.js` 的新鲜度（`pnpm docs:gen` 重生成）。
 - 预算重定基线只发生在「文档增长处置阶梯」第 3 级授权的时点；发布之间的增量先按阶梯处置。不要为让门禁变绿改预算或跳过检查。
 
 ## 文档增长处置阶梯
@@ -64,7 +56,7 @@ Agent 侧配置在 `docs/agents/` 下：[issue-tracker.md](agents/issue-tracker.
 
 1. 移除空操作：重复指令、失效引用（`pnpm check` 的文档引用存活检查自动抓）。
 2. 渐进披露拆分：主文件留概要、目录与入口，细节移子文件；新子文件登记进本文目录与 `scripts/doc-budgets.json`。
-3. 预算重定基线：发版时点，或文档改动获得用户明示授权时（本次拆分即属此类）；重定值按当前长度向上取整到千位；受「只加行」写入协议约束的增长型文件（如错题本）不适用本档扩容，由归档机制控制预算（已晋升、Seen=1 满 30 天或满 90 天未复发的条目移入归档子文件）；归档子文件按第 2 级登记预算。
+3. 预算重定基线：发版时点，或文档改动获得维护者明示授权时；重定值按当前长度向上取整到千位。
 4. 删减：最后手段；PR 须写明删的是冗余还是事实，删事实必须写明新归属。
 
 ## 机械检查

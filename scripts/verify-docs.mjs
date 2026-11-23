@@ -191,36 +191,6 @@ for (const file of chineseDocs) {
   }
 }
 
-for (const file of markdown.filter(
-  (name) =>
-    name.startsWith('.agents/notes/') &&
-    name !== '.agents/notes/README.md' &&
-    !name.endsWith('/AGENTS.md'),
-)) {
-  const text = await readFile(path.join(root, file), 'utf8');
-  const folder = file.split('/')[2];
-  const status = text.match(/^Status: (.+)$/m)?.[1]?.trim();
-  const expectedStatus = {
-    proposed: 'proposed',
-    implemented: 'implemented',
-    rejected: 'rejected',
-    archived: 'implemented',
-  }[folder];
-  if (!/^# Agent Note: .+$/m.test(text)) errors.push(`${file}: missing "# Agent Note: <title>"`);
-  if (expectedStatus === undefined || status === undefined || !status.startsWith(expectedStatus)) {
-    errors.push(`${file}: Status does not match lifecycle folder ${folder}`);
-  }
-  const sections =
-    folder === 'implemented' || folder === 'archived'
-      ? ['Problem', 'Decision', 'Alternatives considered', 'Consequences']
-      : folder === 'proposed'
-        ? ['Problem', 'Proposal', 'Alternatives considered', 'Acceptance criteria', 'Risks']
-        : ['Problem', 'Proposal', 'Alternatives considered'];
-  for (const section of sections) {
-    if (!text.includes(`## ${section}`)) errors.push(`${file}: missing section ## ${section}`);
-  }
-}
-
 const { DEFAULT_SETTINGS: defaults, SETTINGS_SPEC: settingsSpec } = await import(
   pathToFileURL(path.join(root, 'lib/settings.js')).href
 );
