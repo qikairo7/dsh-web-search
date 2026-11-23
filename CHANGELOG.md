@@ -2,6 +2,16 @@
 
 All notable changes are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver. 条目一律中文，按 zh-tech-writing 规范撰写；发版说明由发布流程自动取自对应版本节。
 
+## 0.0.0008 — 2026-11-23
+
+### 变更
+
+- docs 目录文档全量重构：53 件按用途整理，现行说明与历史资料分开，历史版本线加标注，旧版本号不再混进现行说明。
+- 文档里的能力描述逐条对齐代码现状，配置、架构、术语等说明与实现保持一致。
+- 文档标准文件承接从根 AGENTS.md 移入的规则（路由表、Agent 侧配置、维护者本地文件），文档体系说明集中到一处。
+
+维护者拍板：你来决策就可以了（2026-11-23，授权 Lead 代决）。
+
 ## 0.0.0007 — 2026-11-23
 
 ### 变更
