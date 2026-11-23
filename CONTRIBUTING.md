@@ -32,7 +32,7 @@ Read [SAFETY.md](SAFETY.md) first. It defines untrusted input, credential bounda
 
 - Commit messages and pull request titles use a Conventional Commits subject: `type(scope): summary`, where `type` is `feat`, `fix`, `docs`, `chore`, `refactor`, or `test`.
 - End the commit body with `Verified-by: <method>`, such as `Verified-by: pnpm-check`; write `Verified-by: none <reason>` when unverified.
-- Fill the pull request description from [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md).
+- In the pull request description, state what changed, the related issue (`Fixes #N` for fixes), and how you verified it (paste command output; mark anything you did not run as not-run).
 - Branch from `origin/main`, target `main`, and pass CI and `pnpm check` before merge.
 
 ## Validation

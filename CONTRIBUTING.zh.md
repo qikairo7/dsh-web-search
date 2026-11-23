@@ -32,7 +32,7 @@
 
 - 提交信息和 pull request 标题用 Conventional Commits 中文主题：`type(scope): 摘要`，`type` 取 `feat`、`fix`、`docs`、`chore`、`refactor`、`test`。
 - 提交正文末尾带 `Verified-by: <方式>` 戳，如 `Verified-by: pnpm-check`；未验证写 `Verified-by: none <原因>`。
-- PR 描述按 [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md) 的各节填写。
+- PR 描述写清：改了什么、关联的 issue（修复类用 `Fixes #N`）、怎么验证的（贴命令输出，没跑的标 not-run）。
 - 分支从 `origin/main` 切出，PR 对 `main`；合并前 CI 与 `pnpm check` 必须全绿。
 
 ## 验证
