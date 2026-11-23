@@ -1592,6 +1592,19 @@ window.__ModuleLoader__.load({
       return value === undefined || value === null ? fallback : value === true;
     }
 
+    // Order fields live in the host schema as comma-separated strings
+    // (lib/index.js maps kind:'order' to z.string()); the page works with arrays,
+    // so split the string on read and join the array on write.
+    const ORDER_FIELDS = new Set(['qualityExcludedProviders', 'cleanExtractProviders']);
+
+    function splitOrder(value, fallback) {
+      const raw = Array.isArray(value) ? value : typeof value === 'string' ? value.split(/[,;\s]+/u) : [];
+      const names = [...new Set(raw
+        .map((name) => String(name).trim().toLowerCase())
+        .filter((name) => name.length > 0))];
+      return names.length > 0 ? names : [...fallback];
+    }
+
     function configDraft(ns) {
       const value = ns?.value ?? {};
       const draft = {
@@ -1619,13 +1632,11 @@ window.__ModuleLoader__.load({
       const maxEngines = Number(value.qualityMaxEngines);
       draft.qualityMaxEngines = Number.isSafeInteger(maxEngines) && maxEngines >= 1 && maxEngines <= 8 ? maxEngines : 4;
       draft.qualityRerankEnabled = truthy(value.qualityRerankEnabled, true);
-      draft.qualityExcludedProviders = Array.isArray(value.qualityExcludedProviders) ? [...value.qualityExcludedProviders] : [];
+      draft.qualityExcludedProviders = splitOrder(value.qualityExcludedProviders, []);
       draft.fastPrimaryProvider = typeof value.fastPrimaryProvider === 'string' ? value.fastPrimaryProvider : '';
       const fallbacks = Number(value.fastMaxFallbacks);
       draft.fastMaxFallbacks = Number.isSafeInteger(fallbacks) && fallbacks >= 0 && fallbacks <= 5 ? fallbacks : 1;
-      draft.cleanExtractProviders = Array.isArray(value.cleanExtractProviders) && value.cleanExtractProviders.length > 0
-        ? [...value.cleanExtractProviders]
-        : ['keenable', 'anysearch', 'exa'];
+      draft.cleanExtractProviders = splitOrder(value.cleanExtractProviders, ['keenable', 'anysearch', 'exa']);
       return draft;
     }
 
@@ -1666,7 +1677,11 @@ window.__ModuleLoader__.load({
           }
           return next !== before;
         })
-        .map((key) => ({ op: 'set', path: [key], value: draft[key] }));
+        .map((key) => ({
+          op: 'set',
+          path: [key],
+          value: ORDER_FIELDS.has(key) && Array.isArray(draft[key]) ? draft[key].join(',') : draft[key],
+        }));
     }
 
     function Toggle(props) {
