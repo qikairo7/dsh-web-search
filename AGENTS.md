@@ -10,4 +10,4 @@
 - 不新增 MCP server 或 `@modelcontextprotocol/*` 依赖。
 - 不提交真实密钥或 `.credentials.yaml`；key 只从环境变量或 gitignored `.env` 读，不写进 shell 命令。
 
-路由表与维护者本地文件说明见 [docs/AGENTS.md](docs/AGENTS.md)，Agent 侧配置见 [docs/agents/](docs/agents/)。
+文档标准与目录见 [docs/AGENTS.md](docs/AGENTS.md)，Agent 侧配置见 [docs/agents/](docs/agents/)。
