@@ -23,3 +23,4 @@ REVIEW-LESSONS-archive.md
 REVIEW-LESSONS-inbox.md
 .local/
 .worktrees/
+*.jsonl
