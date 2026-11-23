@@ -2,6 +2,12 @@
 
 All notable changes are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver. 条目一律中文，按 zh-tech-writing 规范撰写；发版说明由发布流程自动取自对应版本节。
 
+## 0.0.0003 — 2026-11-23
+
+### 变更
+
+- `qualityMaxEngines` 默认值从 3 调到 4。中文报错类、仓库类查询现在能扇出到 GitHub，中文 AI 新闻查询也会保留知乎（PR #10，修复 #3）。
+
 ## 0.0.0002 — 2026-11-23
 
 ### 新增
