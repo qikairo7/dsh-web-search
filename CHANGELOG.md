@@ -2,6 +2,14 @@
 
 All notable changes are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver. 条目一律中文，按 zh-tech-writing 规范撰写；发版说明由发布流程自动取自对应版本节。
 
+## 0.0.0006 — 2026-11-23
+
+### 修复
+
+- 设置页「模式与模型」里两个引擎名单设置（质量模式排除引擎、干净抓取抽取引擎）保存不再被宿主拒绝，刷新后回读与保存一致，同批次其他设置不再被连带丢弃（PR #12，修复 #1）。
+
+维护者拍板：你来决策就可以了（2026-11-23，授权 Lead 代决）。
+
 ## 0.0.0005 — 2026-11-23
 
 ### 修复
