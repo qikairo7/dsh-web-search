@@ -70,7 +70,6 @@ node scripts/check-syntax.mjs && node scripts/check-architecture.mjs && node scr
 
 - `.github/workflows/check.yml` 在 Node 22/24 上跑 `pnpm install --frozen-lockfile` 和 `pnpm check`；main 的 check 不被新推送取消，release 等绿跑。
 - `.github/workflows/release.yml` 等被发布 commit 的 check 全绿后发布；等待≤30 分钟，job 预算 45 分钟。
-- `.github/workflows/meta-enforce.yml` 在新 PR opened 时自动请求 qikairo-review 评审，遇到无标签的新 issue 自动挂「待分诊」；重复事件不重复请求，失败不阻塞。
 - `.githooks/pre-commit` 运行 `node scripts/check-syntax.mjs`（仅语法检查）。首次 clone 后用 `git config core.hooksPath .githooks` 启用。
 - 仓库没有 `dev` / `build` / `typecheck` 脚本；`lint:zh` 是可选的中文排版检查（见上文），不进 `pnpm check`。不要运行不存在的命令。
 
