@@ -39,7 +39,7 @@ It needs DeepSeek Harness `0.2.2-rc.5` (verified), Node.js `22.19+` or `24+`, an
 - Free-tier-first backend pool with automatic failover and a keyless Bing floor (ADR-0011); paid backends only when free quota is gone. → [Architecture](docs/architecture.md) · [Configuration](docs/configuration.md)
 - Quality pipeline: URL dedupe, BGE rerank with a domain-authority prior, evidence enrichment on the top 5. → [Architecture](docs/architecture.md)
 - Failure-class fallback gating: `fallbackFailureClasses` decides which failures may move to the next provider; fast mode also retries one more free backend on an empty result (ADR-0015). → [Configuration](docs/configuration.md) · [Architecture decisions](docs/adr/)
-- Optional [AnySearch](https://anysearch.com) / [Tavily](https://tavily.com) / [AIHOT](https://aihot.news) / [GitHub](https://github.com) backends; plus `x_search`, a read-only X search tool (cookie auth; scraping gray area in [Security policy](SAFETY.md)); weather/FX; rerank/dedupe via [SiliconFlow](https://cloud.siliconflow.cn/i/E3nhNFP4). All backends: [Configuration](docs/configuration.md).
+- Optional backends: [AnySearch](https://anysearch.com), [Tavily](https://tavily.com), [AIHOT](https://aihot.news), and others, plus the [GitHub](https://github.com) official API. A read-only X search tool, `x_search`, uses cookie auth (scraping gray area in [Security policy](SAFETY.md)). Weather and FX come from direct real-time APIs; [SiliconFlow](https://cloud.siliconflow.cn/i/E3nhNFP4) provides rerank and semantic dedupe. All backends and free allowances: [Configuration](docs/configuration.md).
 
 ## Quick start
 
