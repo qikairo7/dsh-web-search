@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import { QualityEngine } from '../lib/quality.js';
 import { ProviderRunner } from '../lib/providerRunner.js';
+import { resolveSettings } from '../lib/settings.js';
 import { webError } from '../lib/errors.js';
 
 function settings(overrides = {}) {
@@ -559,4 +560,40 @@ test('QualityEngine rethrows caller cancellation during a news supplement', asyn
     () => quality.search({ query: '2026年11月 行业新闻' }, controller.signal),
     (error) => error.code === 'WEB_ABORTED',
   );
+});
+
+test('Chinese quality fan-out keeps github and zhihu under the default engine cap', async () => {
+  // #3: github is appended after the role rows and zhihu is the 4th ai-news row;
+  // both must survive the default qualityMaxEngines cap. Reads the resolved
+  // defaults, so dropping the default back to 3 turns this test red.
+  const defaults = resolveSettings();
+  const called = [];
+  const mk = (id) => ({
+    available: () => true,
+    ready: async () => true,
+    search: async () => {
+      called.push(id);
+      return { sources: [{ url: `https://${id}.example/x`, title: id }], truncated: false };
+    },
+  });
+  const providers = Object.fromEntries(
+    ['zhihu', 'keenable', 'anysearch', 'github', 'aihot'].map((id) => [id, mk(id)]),
+  );
+  const overrides = { officialDocsEnabled: false, newsFreshnessEnabled: false, enrichEnabled: false };
+  const settingsThunk = () => ({ ...defaults, ...overrides });
+  const engine = new QualityEngine({
+    settings: settingsThunk,
+    providers,
+    runner: new ProviderRunner({ settings: settingsThunk, providers }),
+  });
+
+  // zh/technical with pasted error text: github lands past the 3-engine rows.
+  await engine.search({ query: 'react useEffect 报错', maxResults: 5 });
+  assert.ok(called.includes('github'), `zh/technical dropped github: ${called.join(',')}`);
+  assert.ok(called.includes('zhihu'), `zh/technical dropped zhihu: ${called.join(',')}`);
+
+  // zh/ai-news: zhihu is the 4th row and must not be truncated away.
+  called.length = 0;
+  await engine.search({ query: '2026年11月 AI 行业新闻', maxResults: 5 });
+  assert.ok(called.includes('zhihu'), `zh/ai-news dropped zhihu: ${called.join(',')}`);
 });
