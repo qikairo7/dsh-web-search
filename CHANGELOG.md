@@ -2,6 +2,14 @@
 
 All notable changes are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver. 条目一律中文，按 zh-tech-writing 规范撰写；发版说明由发布流程自动取自对应版本节。
 
+## 0.0.0005 — 2026-11-23
+
+### 修复
+
+- 配了多个 GitHub Key 时，某个 Key 触发限流（403/429）进入冷却后，调度不再把它当可用一直打，冷却期内直接跳过，冷却结束自动回到轮转（PR #11，修复 #2）。
+
+维护者拍板：你来决策就可以了（2026-11-23，授权 Lead 代决）。
+
 ## 0.0.0004 — 2026-11-23
 
 ### 修复
