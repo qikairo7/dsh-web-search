@@ -83,6 +83,7 @@
 - 超时：fetch → `WEB_FETCH_TIMEOUT`。
 - 搜索超时 → `WEB_PROVIDER_ERROR`；诊断名不同时给 `label`。
 - `available()` 判 `enabled` 与 http(s) baseURL；缺 Key 抛凭据缺失错。
+- 多 Key 包装（`createMultiKeyProvider`）的 `available()` 委托到按 key 的实例，provider 自身冷却（如 GitHub 403/429 的 Retry-After）能被路由层读到并跳过，不只读主实例。
 - 回退双重门：取消 / 非法 URL 立即结束；其余须在允许类里。
 - 失败类：402/429 → quota，401/403 → auth，408/5xx → transient。
 - 熔断只计可回退失败；全败抛 `WEB_PROVIDER_ERROR` 并附原因。

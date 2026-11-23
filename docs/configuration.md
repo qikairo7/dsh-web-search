@@ -28,7 +28,7 @@
 |---|---|---|
 | `searchMode` | `quality` | `quality` = 免费源合并 + 重排 + 前 5 条证据增强；`fast` = 单后端优先顺序 |
 | `fetchMode` | `fast` | `fast` = Keenable/直连 HTTP 优先；`clean` = Keenable/AnySearch/Exa 抽取优先、HTTP 其后，Tavily/Firecrawl 兜底 |
-| `qualityMaxEngines` | `3` | 质量模式并行引擎数上限（1-8） |
+| `qualityMaxEngines` | `4` | 质量模式并行引擎数上限（1-8） |
 | `qualityRerankEnabled` | `true` | 质量模式是否用 BGE 重排 |
 | `qualityExcludedProviders` | 空 | 质量模式排除的搜索 Provider 名单 |
 | `fastPrimaryProvider` | 空 | 快速模式首选 Provider；留空按路由表 |

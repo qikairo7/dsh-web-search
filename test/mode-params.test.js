@@ -6,14 +6,14 @@ import { ProviderRunner } from '../lib/providerRunner.js';
 
 test('mode parameter defaults resolve and invalid values fall back', () => {
   const defaults = resolveSettings();
-  assert.equal(defaults.qualityMaxEngines, 3);
+  assert.equal(defaults.qualityMaxEngines, 4);
   assert.equal(defaults.qualityRerankEnabled, true);
   assert.deepEqual(defaults.qualityExcludedProviders, []);
   assert.equal(defaults.fastPrimaryProvider, '');
   assert.equal(defaults.fastMaxFallbacks, 1);
   assert.deepEqual(defaults.cleanExtractProviders, ['keenable', 'anysearch', 'exa']);
   const clamped = resolveSettings({ qualityMaxEngines: 99, fastMaxFallbacks: -1, qualityExcludedProviders: 'github, github' });
-  assert.equal(clamped.qualityMaxEngines, 3);
+  assert.equal(clamped.qualityMaxEngines, 4);
   assert.equal(clamped.fastMaxFallbacks, 1);
   assert.deepEqual(clamped.qualityExcludedProviders, ['github']);
 });
