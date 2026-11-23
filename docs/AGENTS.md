@@ -11,6 +11,32 @@
 | [docs/postmortem/](postmortem/README.md) | 事故叙事层：incident-scoped reference，一条事故一份；记时间线、影响、根因、教训，教训回流错题本 |
 | [docs/writing-rules.md](writing-rules.md) | 写作判据：完整命题、覆盖分层、删字 vs 删事实 |
 
+## 路由
+
+按任务查文档去处：
+
+| 任务 | 去处 |
+|---|---|
+| 配置 / 配额 | [configuration.md](configuration.md) |
+| 架构 / 调用关系 | [architecture.md](architecture.md)、[dsh-host-contract.md](dsh-host-contract.md)、`codegraph_explore` |
+| 标准 / Review | [CODING_STANDARDS.md](../CODING_STANDARDS.md)、[cookbook/adding-a-provider.md](cookbook/adding-a-provider.md) |
+| 文档 / 术语 / 决策 | 本文、[GLOSSARY.md](../GLOSSARY.md)、[adr/](adr/)、维护者本地文件（见下） |
+| 发版 / 推前 / 排错 | [CHANGELOG.md](../CHANGELOG.md)、维护者本地文件（见下）、[development.md](development.md) |
+
+改功能必须同步改相关文档，PR 里文档与代码同 diff；同步映射与开发顺序见 [schema-sync-map.md](schema-sync-map.md)。
+
+## Agent skills
+
+Agent 侧配置在 `docs/agents/` 下：[issue-tracker.md](agents/issue-tracker.md)（issue/PR 读写与依赖）、[triage-labels.md](agents/triage-labels.md)（分诊标签映射）、[domain.md](agents/domain.md)（领域文档与 ADR 阅读顺序）。
+
+## 维护者本地文件
+
+只在维护者本地维护，gitignored，不进公开仓库；agent 按路径直读，贡献者无需：
+
+- `REVIEW-LESSONS.md`：评审错题本。
+- `REVIEW-LESSONS-archive.md`：错题本归档。
+- `.agents/`：验收 skill 规程，如 verify。
+
 ## 写作规则
 
 - 写当前状态，不写变更史；历史放 ADR、Agent Note、提交或基准报告。

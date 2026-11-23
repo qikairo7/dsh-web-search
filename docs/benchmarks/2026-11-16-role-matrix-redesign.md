@@ -1,5 +1,7 @@
 # Role-matrix redesign verification — 2026-11-16
 
+> Historical snapshot: this report records an earlier version line. Its numbers and dates are preserved as-is and are not part of the current capability baseline.
+
 Version: `0.9.0` working tree with the ADR-0010 changes; this run shipped as `0.10.0`. English quality set drops Zhihu (`keenable + anysearch`), Exa reclassified free-tier free depth, news-freshness supplement enabled.
 Mode: `searchMode: quality` (free role-table sets + BGE rerank + authority ranking; enrichment off by default).
 Sample: FRAMES 50 / WebWalkerQA 50. Run date: 2026-11-16 (Asia/Taipei). Raw results: `.research/public-benchmark.json` (gitignored).

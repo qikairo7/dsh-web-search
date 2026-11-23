@@ -1,5 +1,7 @@
 # DeepSeek API vs this plugin — 2026-11-14
 
+> Historical snapshot: this report records an earlier version line. Its numbers and dates are preserved as-is and are not part of the current capability baseline.
+
 Local comparison against the DeepSeek Search/Fetch API using the DSH account token. DeepSeek is not a backend of this plugin; the results are reference data for routing and roadmap decisions.
 
 ## Search
