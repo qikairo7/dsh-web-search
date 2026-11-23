@@ -1,0 +1,25 @@
+node_modules/
+coverage/
+.vendor/
+.research/
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.pnpm-store/
+tmp/
+*.tgz
+.codegraph/
+.workflow-lite/
+
+# 维护者本地文件：不进公开仓库，仅本地保留
+REVIEW-LESSONS.md
+REVIEW-LESSONS-archive.md
+.agents/
+REVIEW-LESSONS-inbox.md
+.local/
+.worktrees/

@@ -1,0 +1,3 @@
+#!/bin/sh
+# Incremental gate: syntax only per commit; the full `pnpm check` runs once at push time (.githooks/pre-push).
+node scripts/check-syntax.mjs

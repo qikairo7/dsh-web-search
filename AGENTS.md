@@ -1,0 +1,38 @@
+# dsh-web-search
+
+免费后端实现 `ctx.web` 搜索/抓取 Provider，替换收费 DeepSeek Search/Fetch；`web_search`/`web_fetch` 由 `dsh-tool-web` 提供；AnySearch/Tavily/AIHOT 可选高级工具。
+
+项目级事实与路由，规则基线见全局 AGENTS.md。
+
+## 硬边界
+
+- `lib/` 不调用 DeepSeek 付费 Search/Fetch API。
+- 不新增 MCP server 或 `@modelcontextprotocol/*` 依赖。
+- 不提交真实密钥或 `.credentials.yaml`；key 只从环境变量或 gitignored `.env` 读，不写进 shell 命令。
+
+## 路由
+
+确定性命令：`pnpm check`
+
+|任务 | 去处 | 触发时机|
+|---|---|---|
+|配置/配额|docs/configuration.md|查配置|
+|架构|docs/architecture.md、docs/dsh-host-contract.md、codegraph_explore、codegraph init|改代码/查调用/重建|
+|标准/Review|CODING_STANDARDS.md、docs/cookbook/adding-a-provider.md|写/评审|
+|文档/术语/ADR/决策|docs/AGENTS.md、GLOSSARY.md、docs/agents/domain.md、docs/adr/、维护者本地文件（见下）|文档/术语|
+|发版/推前/排错|CHANGELOG.md、维护者本地文件（见下）、docs/development.md|发版/推前/排错|
+
+改功能必同步改相关文档（去处见上表），PR 里文档与代码同 diff；只改代码不改文档的 PR 退回。
+
+## Agent skills
+
+Agent 侧配置（issue tracker、triage labels、domain docs）见 `docs/agents/` 下的 issue-tracker.md、triage-labels.md、domain.md。
+
+## 维护者本地文件
+
+下面这些只在维护者本地维护，gitignored，不进公开仓库；agent 按路径直读，贡献者无需：
+
+- `REVIEW-LESSONS.md`：评审错题本。
+- `REVIEW-LESSONS-archive.md`：错题本归档。
+- `.agents/`：验收 skill 规程，如 verify。
+

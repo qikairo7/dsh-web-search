@@ -1,0 +1,40 @@
+- id: web
+  config:
+    searchProvider: auto
+    fetchProvider: auto
+
+# Keep the first-party tool layer enabled; this plugin supplies only providers.
+# DSH 0.2.2 presets own the model-facing tool-web row, so a bundle patch cannot
+# override its searchSummaryMaxChars; do not advertise a cap that will not apply.
+- id: tool-web
+  disabled: false
+  config:
+    search: true
+    fetch: true
+
+# The plugin owns the direct-HTTP fetch provider, so the shipped HTTP provider
+# must not register the same `http` id in this profile.
+- id: web-fetch-http
+  disabled: true
+
+- insert:
+    - id: web-search-router
+      name: '@qikairo7/dsh-web-search'
+      config:
+        searchMode: quality
+        fetchMode: fast
+        intentRouting: true
+        languageRouting: true
+        officialDocsEnabled: true
+        newsFreshnessEnabled: true
+        aihotEnabled: true
+        enrichEnabled: true
+        enrichTopN: 5
+        enrichSummaryMinChars: 800
+        enrichSummaryMaxChars: 1500
+        keenableEnabled: true
+        exaEnabled: true
+        chineseSearchOrder: zhihu,keenable,anysearch,exa,bing,tavily,firecrawl
+        defaultSearchOrder: keenable,anysearch,exa,bing,tavily,firecrawl
+        fetchOrder: keenable,http,anysearch,exa,tavily,firecrawl
+        cleanFetchOrder: keenable,anysearch,exa,http,tavily,firecrawl

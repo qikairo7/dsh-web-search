@@ -1,0 +1,112 @@
+{
+  "name": "@qikairo7/dsh-web-search",
+  "version": "0.0.0002",
+  "private": true,
+  "description": "DeepSeek Harness 的免费联网插件：免 Key 即用的网络搜索与网页抓取，多后端聚合、失败自动回退",
+  "keywords": [
+    "deepseek-harness",
+    "dsh-plugin",
+    "dsh",
+    "web-search",
+    "web-fetch",
+    "anysearch",
+    "tavily",
+    "firecrawl",
+    "zhihu"
+  ],
+  "homepage": "https://github.com/qikairo7/dsh-web-search#readme",
+  "bugs": {
+    "url": "https://github.com/qikairo7/dsh-web-search/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qikairo7/dsh-web-search.git"
+  },
+  "license": "MIT",
+  "author": "qikairo7",
+  "type": "module",
+  "packageManager": "pnpm@11.28.5",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json",
+    "./client": "./client.js"
+  },
+  "files": [
+    "lib/**/*.js",
+    "lib/tools/x/static/*.json",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md",
+    "README.en.md",
+    "CHANGELOG.md",
+    "docs/changelog-archive.md",
+    "LICENSE",
+    "SAFETY.md",
+    "SAFETY.zh.md",
+    "SECURITY.md",
+    "SECURITY.zh.md",
+    "TRADEMARKS.md",
+    "TRADEMARKS.zh.md",
+    "THIRD_PARTY_NOTICES.md",
+    "LICENSES/*.txt",
+    "client.js",
+    "docs/DETAIL.md",
+    "docs/DETAIL.en.md",
+    "docs/preview.svg",
+    "lib/fonts/*.woff2"
+  ],
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "scripts": {
+    "test": "node --test",
+    "docs:check": "node scripts/verify-docs.mjs && node scripts/check-doc-freshness.mjs",
+    "docs:gen": "node scripts/generate-provider-table.mjs",
+    "lint:zh": "autocorrect --lint .",
+    "check": "node scripts/check-syntax.mjs && node scripts/check-architecture.mjs && node scripts/check-order-sync.mjs && node scripts/check-doc-code.mjs && node scripts/translation-pairing.mjs && node scripts/verify-docs.mjs && node scripts/check-doc-freshness.mjs && node scripts/check-doc-refs.mjs && node --test",
+    "benchmark": "node --env-file-if-exists=.env scripts/public-benchmark.mjs",
+    "benchmark:refresh": "node scripts/refresh-benchmark-fixture.mjs",
+    "benchmark:preflight": "node --env-file-if-exists=.env scripts/public-benchmark.mjs --preflight",
+    "probe": "node --env-file-if-exists=.env scripts/daily-probe.mjs",
+    "check:syntax": "node scripts/check-syntax.mjs",
+    "quality:probe": "node --env-file-if-exists=.env scripts/quality-probe.mjs"
+  },
+  "dsh": {
+    "engines": {
+      "dsh": ">=0.2.2-rc.5 <0.4.0-0"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-plugin-manager",
+        "@deepseek-ai/dsh-api-remotes"
+      ]
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": ">=4.0.5-alpha.1 <5",
+    "@deepseek-ai/dsh-credentials": "*",
+    "@deepseek-ai/dsh-tool-web": ">=0.2.2-rc.3 <0.4.0-0",
+    "@deepseek-ai/dsh-tools": "*",
+    "@deepseek-ai/dsh-web": "*"
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": ">=3.18.1-rc.1 <4",
+    "wreq-js": "^3.2.0"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "~4.1.0",
+    "@deepseek-ai/dsh-credentials": "0.2.2-rc.5",
+    "@deepseek-ai/dsh-tools": "0.2.2-rc.3",
+    "@deepseek-ai/dsh-web": "0.2.2-rc.3"
+  }
+}

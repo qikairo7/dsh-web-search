@@ -1,0 +1,75 @@
+name: meta-enforce
+
+# 仓库级元数据兜底：新 PR 自动请求评审，新 issue 无标签时挂「待分诊」。
+# 用 pull_request_target 而非 pull_request：fork PR 走 pull_request 事件时 GITHUB_TOKEN 只读，
+# 请求 reviewer 需要 pull-requests: write。本 workflow 不 checkout PR 代码，只调 GitHub API，
+# 所以用 pull_request_target 拿写权限是安全的。
+on:
+  pull_request_target:
+    types: [opened]
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  enforce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 新 PR 请求 qikairo-review 评审
+        if: github.event_name == 'pull_request_target'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const reviewer = 'qikairo-review';
+            const pr = context.payload.pull_request;
+            const alreadyRequested = (pr.requested_reviewers || []).some(
+              (u) => u.login === reviewer
+            );
+            if (alreadyRequested) {
+              core.info(`${reviewer} 已在 requested reviewers，跳过`);
+              return;
+            }
+            try {
+              await github.rest.pulls.requestReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                reviewers: [reviewer],
+              });
+              core.info(`已请求 ${reviewer} 评审 PR #${pr.number}`);
+            } catch (error) {
+              // 评审人无权限或就是作者本人时 API 会报错；兜底失败不阻塞 PR。
+              core.warning(`请求 reviewer 失败（不阻塞）：${error.message}`);
+            }
+
+      - name: 无标签 issue 挂「待分诊」
+        if: github.event_name == 'issues'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const issue = context.payload.issue;
+            try {
+              // opened 载荷的 labels 可能是补标签前的快照，先重取当前状态再判空。
+              const { data } = await github.rest.issues.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+              });
+              if ((data.labels || []).length > 0) {
+                core.info(`issue #${issue.number} 已有标签，跳过`);
+                return;
+              }
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: ['待分诊'],
+              });
+              core.info(`已给 issue #${issue.number} 加「待分诊」`);
+            } catch (error) {
+              core.warning(`加标签失败（不阻塞）：${error.message}`);
+            }

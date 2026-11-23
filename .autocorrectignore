@@ -1,0 +1,13 @@
+# AutoCorrect 2.16.3 的文件排除走本文件（gitignore 语法），配置项里没有 ignore 键。
+# 只检查 markdown：先忽略全部，再放行目录与 *.md。
+*
+!*/
+!*.md
+
+# 历史不改写类：已发版 CHANGELOG、ADR、基准报告、升级指南。
+CHANGELOG.md
+docs/changelog-archive.md
+REVIEW-LESSONS-archive.md
+docs/adr/**
+docs/benchmarks/**
+docs/upgrade/**

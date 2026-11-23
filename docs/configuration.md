@@ -1,0 +1,135 @@
+# 配置
+
+本文件是配置字段、默认值和说明的唯一事实来源。两个 README 只保留行为概览并链接到这里。
+
+设置页由插件的 `Config` schema 自动生成。所有字段可选，默认值如下。
+
+## 各后端免费额度
+
+各后端文档化的免费额度；Tavily 与 Firecrawl 的实时剩余值显示在设置页。
+
+| 后端 | 免费额度 | 用途 | 官网/注册 |
+|---|---|---|---|
+| Keenable | 100,000 次/月（Key）；匿名 1,000 次/小时 | 默认搜索 + 干净 Markdown 抓取 | [keenable.ai](https://keenable.ai) |
+| AnySearch | 注册后 1000 次搜索/天；匿名也可用 | 搜索 | [anysearch.com](https://anysearch.com) |
+| Exa | 每月 10 美元免费额度（docs.exa.ai）+ 一次性 10 美元注册奖励 | 语义搜索 + Contents 抓取；免费深度回退 | [exa.ai](https://exa.ai) |
+| Bing | 免 Key HTML SERP，无计量配额 | 免费栈之后、付费尾之前的兜底搜索地板 | [www.bing.com](https://www.bing.com) |
+| GitHub | 匿名 10 次/分钟（按 IP）；PAT 30 次/分钟 | 仓库与 issue 搜索、issue/README 结构化抓取 | [github.com](https://github.com) |
+| Zhihu | 全网 5000 次/天 + 站内 5000 次/天 | 中文搜索 | [developer.zhihu.com](https://developer.zhihu.com) |
+| Tavily | 1000 credits/月 | 仅兜底：免费源空结果、缺官方文档、新闻时效不足、Fetch 失败链 | [tavily.com](https://tavily.com) |
+| Firecrawl | 1000 credits/月 | Fetch 最后兜底：难抓的 JS/PDF 页面 | [firecrawl.dev](https://firecrawl.dev) |
+| AIHOT | 匿名只读 | AI 新闻搜索/精选（免费） | [aihot.news](https://aihot.news) |
+| 直连 HTTP | 无 API 成本 | 静态页面抓取 | — |
+| SiliconFlow | BAAI/bge-reranker-v2-m3（重排）与 BAAI/bge-m3（embeddings）两个模型免费；RPM 2000 / TPM 500,000 | BGE 重排 + embeddings | [邀请注册](https://cloud.siliconflow.cn/i/E3nhNFP4) |
+
+## 模式与路由
+
+| 字段 | 默认值 | 说明 |
+|---|---|---|
+| `searchMode` | `quality` | `quality` = 免费源合并 + 重排 + 前 5 条证据增强；`fast` = 单后端优先顺序 |
+| `fetchMode` | `fast` | `fast` = Keenable/直连 HTTP 优先；`clean` = Keenable/AnySearch/Exa 抽取优先、HTTP 其后，Tavily/Firecrawl 兜底 |
+| `qualityMaxEngines` | `3` | 质量模式并行引擎数上限（1-8） |
+| `qualityRerankEnabled` | `true` | 质量模式是否用 BGE 重排 |
+| `qualityExcludedProviders` | 空 | 质量模式排除的搜索 Provider 名单 |
+| `fastPrimaryProvider` | 空 | 快速模式首选 Provider；留空按路由表 |
+| `fastMaxFallbacks` | `1` | 快速模式首选引擎失败后的回退家数 |
+| `cleanExtractProviders` | `keenable,anysearch,exa` | 干净抓取优先使用的正文抽取引擎 |
+| `intentRouting` | `true` | 命中 technical / news / 中文社区路由的查询使用角色表（`lib/roles.js`）派生的免费优先顺序，忽略自定义顺序；`false` 时全部使用自定义顺序 |
+| `languageRouting` | `true` | 检测查询语言并把 `language` 传给 Tavily/AnySearch |
+| `officialDocsEnabled` | `true` | 免费结果未命中已知官方域时，额外跑一次受限 Tavily 搜索 |
+| `newsFreshnessEnabled` | `true` | 非 AI 新闻查询的免费结果 7 天内带日期来源不足 3 条时，额外跑一次 Tavily news 搜索 |
+| `aihotEnabled` | `true` | 启用 AIHOT AI 新闻源 |
+| `chineseSearchOrder` | `zhihu,keenable,anysearch,exa,bing,tavily,firecrawl` | fast 模式下未命中 intent 路由的含汉字查询的搜索顺序 |
+| `defaultSearchOrder` | `keenable,anysearch,exa,bing,tavily,firecrawl` | fast 模式下未命中 intent 路由的其他查询的搜索顺序 |
+| `fetchOrder` | `keenable,http,anysearch,exa,tavily,firecrawl` | fast 抓取回退顺序 |
+| `cleanFetchOrder` | `keenable,anysearch,exa,http,tavily,firecrawl` | clean 抓取顺序 |
+| `tavilyIncludeAnswer` | `true` | 把 Tavily 答案映射到 `web_search.content` |
+| `zhihuIncludeMetadata` | `true` | 知乎 summary 加入作者/赞同/评论 |
+
+## 后端与凭据
+
+| 字段 | 默认值 | 说明 |
+|---|---|---|
+| `anysearchEnabled` | `true` | 启用 AnySearch |
+| `anysearchApiKeyEnv` | `ANYSEARCH_API_KEY` | AnySearch 凭据引用 |
+| `anysearchBaseURL` | `https://api.anysearch.com` | AnySearch API 地址 |
+| `anysearchMaxRenderedContentChars` | `12000` | `anysearch_search` / `anysearch_batch_search` 单次向模型展示的正文字符上限 |
+| `anysearchSearchEnabled` | `true` | AnySearch 搜索能力开关 |
+| `anysearchFetchEnabled` | `true` | AnySearch 抓取能力开关 |
+| `anysearchTag` | 空 | AnySearch 垂直领域 tag；留空走通用搜索 |
+| `anysearchZone` | `auto` | AnySearch 搜索区域：auto/cn/intl |
+| `anysearchCleanContent` | `true` | AnySearch 抓取是否清洗正文 |
+| `anysearchBatchEnabled` | `true` | 是否注册 `anysearch_batch_search` 工具 |
+| `keenableSearchEnabled` | `true` | Keenable 搜索能力开关 |
+| `keenableFetchEnabled` | `true` | Keenable 抓取能力开关 |
+| `exaSearchEnabled` | `true` | Exa 搜索能力开关 |
+| `exaFetchEnabled` | `true` | Exa 抓取能力开关 |
+| `githubSearchEnabled` | `true` | GitHub 搜索能力开关 |
+| `githubFetchEnabled` | `true` | GitHub 抓取能力开关 |
+| `tavilySearchEnabled` | `true` | Tavily 搜索能力开关 |
+| `tavilyFetchEnabled` | `true` | Tavily 抓取能力开关 |
+| `firecrawlSearchEnabled` | `true` | Firecrawl 搜索能力开关 |
+| `firecrawlFetchEnabled` | `true` | Firecrawl 抓取能力开关 |
+| `zhihuSearchEnabled` | `true` | 知乎搜索能力开关 |
+| `zhihuSearchMode` | `global` | 知乎搜索范围：global（全网）/ site（站内） |
+| `keenableEnabled` | `true` | 启用 Keenable |
+| `keenableApiKeyEnv` | `KEENABLE_API_KEY` | Keenable 凭据引用 |
+| `keenableBaseURL` | `https://api.keenable.ai` | Keenable API 地址 |
+| `exaEnabled` | `true` | 启用 Exa |
+| `exaApiKeyEnv` | `EXA_API_KEY` | Exa 凭据引用 |
+| `exaBaseURL` | `https://api.exa.ai` | Exa API 地址 |
+| `bingEnabled` | `true` | 启用免 Key 的 Bing 兜底搜索地板 |
+| `bingBaseURL` | `https://www.bing.com` | Bing SERP 地址 |
+| `bingMarket` | `` | 非空时才发送 `mkt`；留空用 Bing 自行本地化 |
+| `githubEnabled` | `true` | 启用 GitHub Provider |
+| `githubApiKeyEnv` | `GITHUB_TOKEN` | GitHub PAT 引用（可选，匿名也可用） |
+| `githubBaseURL` | `https://api.github.com` | GitHub API 地址 |
+| `tavilyEnabled` | `true` | 启用 Tavily |
+| `tavilyApiKeyEnv` | `TAVILY_API_KEY` | Tavily 凭据引用 |
+| `tavilyBaseURL` | `https://api.tavily.com` | Tavily API 地址 |
+| `firecrawlEnabled` | `true` | 启用 Firecrawl |
+| `firecrawlApiKeyEnv` | `FIRECRAWL_API_KEY` | Firecrawl 凭据引用 |
+| `firecrawlBaseURL` | `https://api.firecrawl.dev` | Firecrawl API 地址 |
+| `zhihuEnabled` | `true` | 启用知乎 Provider |
+| `zhihuApiKeyEnv` | `ZHIHU_API_KEY` | 知乎 Access Secret 引用 |
+| `zhihuBaseURL` | `https://developer.zhihu.com` | 知乎 API 地址 |
+| `aihotBaseURL` | `https://aihot.news` | AIHOT API 地址 |
+| `httpEnabled` | `true` | 启用直连 HTTP 抓取 |
+| `siliconflowEnabled` | `true` | 启用 SiliconFlow 重排 |
+| `siliconflowApiKeyEnv` | `SILICONFLOW_API_KEY` | SiliconFlow 凭据引用 |
+| `siliconflowBaseURL` | `https://api.siliconflow.cn/v1` | SiliconFlow API 地址 |
+| `siliconflowRerankModel` | `BAAI/bge-reranker-v2-m3` | 重排模型；见[官方文档](https://api-docs.siliconflow.cn/docs/api/rerank-post) |
+| `siliconflowEmbeddingsEnabled` | `true` | 启用语义去重 |
+| `siliconflowEmbeddingModel` | `BAAI/bge-m3` | Embedding 模型；见[官方文档](https://api-docs.siliconflow.cn/docs/api/embeddings-post) |
+
+## 质量、限制与缓存
+
+| 字段 | 默认值 | 说明 |
+|---|---|---|
+| `semanticDedupThreshold` | `0.95` | 语义重复的余弦阈值 |
+| `requestTimeoutMs` | `30000` | 单次请求超时 |
+| `maxFetchChars` | `200000` | `web_fetch` 最大字符数 |
+| `maxSnippetChars` | `4000` | 每条搜索 summary 最大字符数 |
+| `enrichEnabled` | `true` | 抓取前几条结果正文并重生成摘要 |
+| `enrichTopN` | `5` | 参与增强的前几条结果数 |
+| `enrichSummaryMinChars` | `800` | 增强摘要最小字符数 |
+| `enrichSummaryMaxChars` | `1500` | 增强摘要最大字符数 |
+| `minDirectHtmlChars` | `2048` | SPA 空壳判定阈值 |
+| `searchCacheTtlMs` | `300000` | 搜索缓存 TTL |
+| `searchCacheMaxEntries` | `200` | 搜索缓存条数上限 |
+| `fetchCacheTtlMs` | `600000` | 抓取缓存 TTL |
+| `fetchCacheMaxEntries` | `100` | 抓取缓存条数上限 |
+| `fallbackFailureClasses` | `quota,auth,bot-wall,transient,invalid-response,unknown` | 允许回退到下一后端的失败类别：`quota`（402/429 配额限流）、`auth`（401/403 鉴权）、`bot-wall`（目标站点拦截）、`transient`（408/5xx 超时与服务端错误）、`invalid-response`（坏响应或空内容）、`unknown`（其余可恢复失败）。显式置空表示任何失败立即中止；未设置保持六类全开。该门禁作用于顺序回退链；quality 并行扇出不受影响 |
+| `breakerFailureThreshold` | `3` | 连续失败多少次后冷却 |
+| `breakerCooldownMs` | `300000` | 后端冷却时长 |
+
+所有 `*BaseURL` 字段（包括 `anysearchBaseURL`、`tavilyBaseURL`、`firecrawlBaseURL`）都在上面的表格中，可在设置页或 profile patch 中覆盖。
+
+## X 搜索工具（可选，默认关）
+
+`x_search` 是从 catbus（MIT）移植的独立只读推文搜索工具，不进 `web_search` 路由矩阵。默认关闭；cookie 从浏览器导入，存入 DSH 凭据库。X 站点抓取处于服务条款灰区，风险见 [SAFETY](../SAFETY.md)。
+
+| 字段 | 默认值 | 说明 |
+|---|---|---|
+| `xToolsEnabled` | `false` | 启用 `x_search` 只读推文搜索；默认关闭 |
+| `xToolsCookieRef` | `X_COOKIE` | X cookie 的凭据引用（浏览器导出，存 `~/.dsh/.credentials.yaml` 的 `refs` 节） |

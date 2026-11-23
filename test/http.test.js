@@ -1,0 +1,381 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+
+import { HttpFetchProvider } from '../lib/providers/http.js';
+import { withFetch } from './helpers/withFetch.js';
+
+function httpSettings() {
+  return {
+    requestTimeoutMs: 5_000,
+    maxFetchChars: 10_000,
+    minDirectHtmlChars: 2_048,
+    http: { enabled: true },
+  };
+}
+
+// DNS stub keeps the private-address guard offline in unit tests: every host
+// resolves to one public address unless a test overrides it.
+const publicLookup = async () => [{ address: '93.184.216.34', family: 4 }];
+
+test('HTTP fetch returns HTML for the tool layer to convert', async () => {
+  await withFetch(
+    async () =>
+      new Response('<!doctype html><html><body><h1>Hello</h1></body></html>', {
+        status: 200,
+        headers: { 'content-type': 'text/html; charset=utf-8' },
+      }),
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+      const result = await provider.fetch({ url: 'https://example.com/' });
+      assert.equal(result.statusCode, 200);
+      assert.equal(result.body.kind, 'html');
+      assert.match(result.body.content, /Hello/);
+    },
+  );
+});
+
+test('HTTP fetch converts GitHub HTML to cleaned text', async () => {
+  const html = [
+    '<!doctype html><html><body>',
+    '<h1>deepseek-ai/dsh-web-search</h1>',
+    '<h2>Releases</h2>',
+    '<p>Latest release notes.</p>',
+    '<ul><li><a href="/login">Login</a></li><li><a href="/features/discussions">Discussions</a></li></ul>',
+    '<h2>About</h2>',
+    '<p>Free-tier-first providers.</p>',
+    '<script>window.__DATA__ = 1;</script>',
+    '</body></html>',
+  ].join('');
+  await withFetch(
+    async () => new Response(html, { status: 200, headers: { 'content-type': 'text/html; charset=utf-8' } }),
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+      const result = await provider.fetch({ url: 'https://github.com/deepseek-ai/dsh-web-search' });
+      assert.equal(result.statusCode, 200);
+      assert.equal(result.body.kind, 'text');
+      assert.doesNotMatch(result.body.content, /<html|<body|<h[1-6]/iu);
+      assert.match(result.body.content, /deepseek-ai\/dsh-web-search/u);
+      assert.match(result.body.content, /Free-tier-first providers\./u);
+      assert.doesNotMatch(result.body.content, /^Releases$/mu);
+      assert.doesNotMatch(result.body.content, /^Login$/mu);
+    },
+  );
+});
+
+test('HTTP fetch rejects PDF responses so the router can fall back', async () => {
+  await withFetch(
+    async () => new Response('%PDF-1.7', { status: 200, headers: { 'content-type': 'application/pdf' } }),
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+      await assert.rejects(
+        () => provider.fetch({ url: 'https://example.com/file.pdf' }),
+        (error) => error.code === 'WEB_UNSUPPORTED_CONTENT_TYPE',
+      );
+    },
+  );
+});
+
+test('HTTP fetch detects a small SPA shell and asks for fallback', async () => {
+  const shell = '<!doctype html><html><body><div id="root"></div><script src="/app.js"></script></body></html>';
+  await withFetch(
+    async () => new Response(shell, { status: 200, headers: { 'content-type': 'text/html' } }),
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+      await assert.rejects(
+        () => provider.fetch({ url: 'https://spa.example/' }),
+        (error) => error.code === 'WEB_INVALID_RESPONSE' && /app shell/.test(error.message),
+      );
+    },
+  );
+});
+
+test('HTTP fetch keeps a small page with visible content', async () => {
+  const html = `<!doctype html><html><body><div id="root"><h1>Title</h1><p>${'Real content. '.repeat(30)}</p></div><script src="/app.js"></script></body></html>`;
+  await withFetch(
+    async () => new Response(html, { status: 200, headers: { 'content-type': 'text/html' } }),
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+      const result = await provider.fetch({ url: 'https://static.example/' });
+      assert.match(result.body.content, /Real content\./u);
+    },
+  );
+});
+
+test('HTTP fetch rejects a body that exceeds the byte cap while streaming', async () => {
+  const body = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new Uint8Array(5_000_001));
+      controller.close();
+    },
+  });
+  await withFetch(
+    async () => new Response(body, { status: 200, headers: { 'content-type': 'text/html' } }),
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+      await assert.rejects(
+        () => provider.fetch({ url: 'https://large.example/' }),
+        (error) => error.code === 'WEB_FETCH_TOO_LARGE',
+      );
+    },
+  );
+});
+
+test('HTTP fetch decodes a declared non-UTF-8 charset', async () => {
+  const gbk = new Uint8Array([0xd6, 0xd0, 0xce, 0xc4]);
+  await withFetch(
+    async () => new Response(gbk, { status: 200, headers: { 'content-type': 'text/plain; charset=gbk' } }),
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+      const result = await provider.fetch({ url: 'https://gbk.example/' });
+      assert.equal(result.body.content, '中文');
+    },
+  );
+});
+
+test('HTTP fetch returns 404 as a result, not an error', async () => {
+  await withFetch(
+    async () => new Response('<html><body>missing</body></html>', { status: 404, headers: { 'content-type': 'text/html' } }),
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+      const result = await provider.fetch({ url: 'https://example.com/missing' });
+      assert.equal(result.statusCode, 404);
+    },
+  );
+});
+
+test('HTTP fetch throws on a server error', async () => {
+  await withFetch(
+    async () => new Response('server error', { status: 500, headers: { 'content-type': 'text/plain' } }),
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+      await assert.rejects(
+        () => provider.fetch({ url: 'https://example.com/error' }),
+        (error) => error.code === 'WEB_PROVIDER_ERROR' && error.status === 500,
+      );
+    },
+  );
+});
+
+test('HTTP fetch follows a redirect and reports the final URL', async () => {
+  let call = 0;
+  await withFetch(
+    async () => {
+      call += 1;
+      if (call === 1) {
+        return new Response(null, { status: 302, headers: { location: 'https://example.com/final' } });
+      }
+      return new Response('<html><body>final</body></html>', {
+        status: 200,
+        headers: { 'content-type': 'text/html' },
+      });
+    },
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+      const result = await provider.fetch({ url: 'https://example.com/start' });
+      assert.equal(result.url, 'https://example.com/final');
+      assert.equal(result.statusCode, 200);
+    },
+  );
+});
+
+test('HTTP fetch blocks loopback, private, link-local and metadata addresses', async () => {
+  const blocked = [
+    'http://127.0.0.1/',
+    'http://10.1.2.3/',
+    'http://172.16.0.5/',
+    'http://192.168.1.1/',
+    'http://169.254.169.254/latest/meta-data/',
+    'http://[::1]/',
+    'http://[fc00::1]/',
+    'http://[::ffff:127.0.0.1]/',
+  ];
+  let requested = false;
+  await withFetch(
+    async () => {
+      requested = true;
+      return new Response('internal', { status: 200, headers: { 'content-type': 'text/plain' } });
+    },
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+      for (const url of blocked) {
+        await assert.rejects(() => provider.fetch({ url }), (error) => error.code === 'WEB_PRIVATE_URL');
+      }
+    },
+  );
+  assert.equal(requested, false, 'a blocked URL must never be fetched');
+});
+
+test('HTTP fetch blocks a redirect into a private address and cancels the redirect body', async () => {
+  let calls = 0;
+  let cancelled = false;
+  const redirectBody = () =>
+    new ReadableStream({
+      start(controller) {
+        controller.enqueue(new Uint8Array([1]));
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+  await withFetch(
+    async () => {
+      calls += 1;
+      return new Response(redirectBody(), { status: 302, headers: { location: 'http://127.0.0.1/secret' } });
+    },
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+      await assert.rejects(
+        () => provider.fetch({ url: 'https://public.example/start' }),
+        (error) => error.code === 'WEB_PRIVATE_URL',
+      );
+    },
+  );
+  assert.equal(calls, 1, 'the private redirect target must not be fetched');
+  assert.equal(cancelled, true, 'the private redirect response body must be cancelled before throwing');
+});
+
+test('HTTP fetch cancels the redirect body before throwing on a non-HTTP redirect', async () => {
+  let cancelled = false;
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new Uint8Array([1]));
+    },
+    cancel() {
+      cancelled = true;
+    },
+  });
+  await withFetch(
+    async () => new Response(stream, { status: 302, headers: { location: 'ftp://example.com/file' } }),
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+      await assert.rejects(
+        () => provider.fetch({ url: 'https://example.com/start' }),
+        (error) => error.code === 'WEB_REDIRECT_BLOCKED',
+      );
+    },
+  );
+  assert.equal(cancelled, true, 'a non-HTTP redirect body must be cancelled before throwing');
+});
+
+test('HTTP fetch cancels each redirect body before throwing when redirects are exhausted', async () => {
+  let cancelled = 0;
+  const redirectBody = () =>
+    new ReadableStream({
+      start(controller) {
+        controller.enqueue(new Uint8Array([1]));
+      },
+      cancel() {
+        cancelled += 1;
+      },
+    });
+  await withFetch(
+    async () => new Response(redirectBody(), { status: 302, headers: { location: 'https://example.com/loop' } }),
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+      await assert.rejects(
+        () => provider.fetch({ url: 'https://example.com/start' }),
+        (error) => error.code === 'WEB_REDIRECT_BLOCKED',
+      );
+    },
+  );
+  // Hops 0..MAX_REDIRECTS all return 302; the last body is cancelled before throwing.
+  assert.equal(cancelled, 6, 'every redirect body must be cancelled');
+});
+
+test('HTTP fetch blocks a public hostname that resolves to a private address', async () => {
+  let requested = false;
+  await withFetch(
+    async () => {
+      requested = true;
+      return new Response('internal', { status: 200, headers: { 'content-type': 'text/plain' } });
+    },
+    async () => {
+      const provider = new HttpFetchProvider({
+        settings: httpSettings,
+        lookup: async () => [{ address: '10.0.0.9', family: 4 }],
+      });
+      await assert.rejects(
+        () => provider.fetch({ url: 'https://rebind.example/' }),
+        (error) => error.code === 'WEB_PRIVATE_URL',
+      );
+    },
+  );
+  assert.equal(requested, false, 'a host resolving to a private address must never be fetched');
+});
+
+test('HTTP fetch reaches a private host when the escape hatch is enabled', async () => {
+  const previous = process.env.DSH_WEB_HTTP_ALLOW_PRIVATE;
+  process.env.DSH_WEB_HTTP_ALLOW_PRIVATE = '1';
+  try {
+    await withFetch(
+      async () =>
+        new Response('<html><body>local debug</body></html>', {
+          status: 200,
+          headers: { 'content-type': 'text/html' },
+        }),
+      async () => {
+        const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+        const result = await provider.fetch({ url: 'http://127.0.0.1:1324/' });
+        assert.equal(result.statusCode, 200);
+        assert.match(result.body.content, /local debug/u);
+      },
+    );
+  } finally {
+    if (previous === undefined) delete process.env.DSH_WEB_HTTP_ALLOW_PRIVATE;
+    else process.env.DSH_WEB_HTTP_ALLOW_PRIVATE = previous;
+  }
+});
+
+test('HTTP fetch cancels the response body before throwing on 403, 429 and 5xx', async () => {
+  for (const status of [403, 429, 500]) {
+    let cancelled = false;
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new Uint8Array([1]));
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+    const response = new Response(stream, { status, headers: { 'content-type': 'text/plain' } });
+    await withFetch(
+      async () => response,
+      async () => {
+        const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+        await assert.rejects(
+          () => provider.fetch({ url: 'https://example.com/error' }),
+          (error) => {
+            const expected = status === 429 ? 'WEB_RATE_LIMITED' : 'WEB_PROVIDER_ERROR';
+            return error.code === expected && error.status === status;
+          },
+        );
+      },
+    );
+    assert.equal(cancelled, true, `status ${status} must cancel the body before throwing`);
+  }
+});
+
+test('HTTP fetch cancels the response body before throwing on an unsupported content type', async () => {
+  let cancelled = false;
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new Uint8Array([1]));
+    },
+    cancel() {
+      cancelled = true;
+    },
+  });
+  const response = new Response(stream, { status: 200, headers: { 'content-type': 'application/pdf' } });
+  await withFetch(
+    async () => response,
+    async () => {
+      const provider = new HttpFetchProvider({ settings: httpSettings, lookup: publicLookup });
+      await assert.rejects(
+        () => provider.fetch({ url: 'https://example.com/file.pdf' }),
+        (error) => error.code === 'WEB_UNSUPPORTED_CONTENT_TYPE',
+      );
+    },
+  );
+  assert.equal(cancelled, true, 'an unsupported content type must cancel the body before throwing');
+});
+

@@ -1,0 +1,46 @@
+{
+  "README.en.md": {
+    "0": {
+      "heading": "(preamble)",
+      "en": "c16b4766878987c7",
+      "zh": "fa1300b3be9fd734"
+    },
+    "1": {
+      "heading": "What this is",
+      "en": "d556bb1214e2267d",
+      "zh": "6c808f189713d29e"
+    },
+    "2": {
+      "heading": "Why",
+      "en": "b0b7d5e1269ce5a3",
+      "zh": "fb9077215f7966c5"
+    },
+    "3": {
+      "heading": "Quick start",
+      "en": "87799a8aee0e155d",
+      "zh": "90a66513e0a95ce9"
+    },
+    "4": {
+      "heading": "Credentials",
+      "en": "9f6319cf4dc8041c",
+      "zh": "25455804dfc72f83"
+    },
+    "5": {
+      "heading": "Documentation index",
+      "en": "d0362eba530e8733",
+      "zh": "51f891052411fae0"
+    },
+    "6": {
+      "heading": "Upgrade and more",
+      "en": "8be6b523d59a71ed",
+      "zh": "771bad8fd2e99fa1"
+    }
+  },
+  "docs/DETAIL.en.md": {
+    "0": {
+      "heading": "(preamble)",
+      "en": "6912c326052fbe29",
+      "zh": "eb1ef80e179ce0aa"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+# The repository stores text in LF. Checkouts use LF on every host so the
+# byte-level checks (doc links, fixtures, test snapshots) see one form.
+* text=auto eol=lf
+
+# Windows command scripts require CRLF in the working tree for cmd.exe.
+*.cmd text eol=crlf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.pdf binary
