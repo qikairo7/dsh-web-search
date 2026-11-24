@@ -45,7 +45,7 @@ jobs:
         id: pack
         shell: bash
         run: |
-          mkdir -d dist
+          mkdir -p dist
           pnpm pack --pack-destination dist
           TARBALL=$(find dist -maxdepth 1 -name '*.tgz' -print -quit)
           if [[ -z "$TARBALL" ]]; then
