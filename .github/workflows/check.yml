@@ -23,6 +23,9 @@ jobs:
     # PR 快检：单平台单版本。presubmit 保持轻（ICST 2025：重检查后置到 main/schedule）。
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -34,6 +37,84 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
+
+      # PR 快检通过后打一个包挂到 PR 上：真机验收直接装它，验的就是检查过的那份代码。
+      # 发版的包由 release.yml 另打，这里的包只在 PR 期间存在。
+      - name: Pack PR tarball
+        if: github.event_name == 'pull_request'
+        id: pack
+        shell: bash
+        run: |
+          mkdir -p dist
+          pnpm pack --pack-destination dist
+          TARBALL=$(find dist -maxdepth 1 -name '*.tgz' -print -quit)
+          if [[ -z "$TARBALL" ]]; then
+            echo "pnpm pack produced no tarball" >&2
+            exit 1
+          fi
+          (cd dist && sha256sum -- "$(basename "$TARBALL")" > SHA256SUMS)
+          cat dist/SHA256SUMS
+          echo "tarball=$TARBALL" >> "$GITHUB_OUTPUT"
+          echo "checksum=$(cut -d' ' -f1 dist/SHA256SUMS)" >> "$GITHUB_OUTPUT"
+          echo "filename=$(basename "$TARBALL")" >> "$GITHUB_OUTPUT"
+
+      - name: Upload PR tarball
+        if: github.event_name == 'pull_request'
+        id: upload
+        uses: actions/upload-artifact@v6
+        with:
+          name: pr-${{ github.event.pull_request.number }}-package
+          path: |
+            ${{ steps.pack.outputs.tarball }}
+            dist/SHA256SUMS
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Post package link on the PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        env:
+          ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          FILENAME: ${{ steps.pack.outputs.filename }}
+          CHECKSUM: ${{ steps.pack.outputs.checksum }}
+        with:
+          script: |
+            const marker = '<!-- pr-package-link -->'
+            const body = [
+              marker,
+              '## 本次推送打好的包',
+              '',
+              `对应提交 \`${process.env.HEAD_SHA.slice(0, 10)}\`。检查通过后打的，真机验收装这一个。`,
+              '',
+              `- 下载：${process.env.ARTIFACT_URL}`,
+              `- 文件：\`${process.env.FILENAME}\``,
+              `- SHA256：\`${process.env.CHECKSUM}\``,
+              '',
+              '包保留 7 天。推送新提交后这里的链接换成新的。',
+            ].join('\n')
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            })
+            const mine = comments.find((comment) => comment.body.includes(marker))
+            if (mine) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: mine.id,
+                body,
+              })
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              })
+            }
 
   full-matrix:
     # 全矩阵只在 push-main / 每周 schedule / 手动触发跑，非 required。
