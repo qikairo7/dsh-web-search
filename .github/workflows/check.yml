@@ -71,7 +71,8 @@ jobs:
           if-no-files-found: error
 
       - name: Post package link on the PR
-        if: github.event_name == 'pull_request'
+        # fork PR 的 GITHUB_TOKEN 一律只读，评论必 403 拖红这条 required check；只给同仓 PR 评论。
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@v8
         env:
           ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
@@ -93,13 +94,19 @@ jobs:
               '',
               '包保留 7 天。推送新提交后这里的链接换成新的。',
             ].join('\n')
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              per_page: 100,
-            })
-            const mine = comments.find((comment) => comment.body.includes(marker))
+            // 评论过百后 marker 会落到后面的页，逐页找，命中即停，取尽仍无才新建。
+            let mine
+            for (let page = 1; !mine; page += 1) {
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                per_page: 100,
+                page,
+              })
+              mine = comments.find((comment) => comment.body.includes(marker))
+              if (comments.length < 100) break
+            }
             if (mine) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
