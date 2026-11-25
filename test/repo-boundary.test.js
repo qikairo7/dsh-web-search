@@ -11,11 +11,12 @@ const tracked = async () => (await git('ls-files', '-z')).split('\0').filter(Boo
 
 const FORBIDDEN_TRACKED = [
   { test: /^\.env(\..+)?$/, allow: /^\.env\.example$/, why: '密钥文件只留在本地' },
-  { test: /(^|\/)(credentials|secrets?)\.(ya?ml|json|txt)$/i, why: '凭据库不进仓库' },
+  { test: /(^|\/)\.?(credentials|secrets?)\.(ya?ml|json|txt)$/i, why: '凭据库不进仓库' },
   { test: /\.(pem|key|p12|pfx)$/i, why: '私钥不进仓库' },
   { test: /\.jsonl$/i, why: '会话记录不进仓库' },
   { test: /\.tgz$/i, why: '打包产物不进仓库' },
-  { test: /(^|\/)(LESSONS|decisions)\.(md|tsv)$/i, why: '错题集和决策日志只留在本地' },
+  { test: /(^|\/)(LESSONS|REVIEW-LESSONS(-inbox|-archive)?)\.md$/i, why: '错题集只留在本地' },
+  { test: /(^|\/)decisions\.tsv$/i, why: '决策日志只留在本地' },
   { test: /^\.agents\/(?!skills\/)/, why: '.agents 下只有 skills 进仓库' },
   { test: /^(\.codegraph|\.pnpm-store|node_modules|coverage|tmp|\.workflow-lite|\.research|\.local|\.worktrees)\//, why: '工具产物和工作记录不进仓库' },
   { test: /(^|\/)\.DS_Store$|(^|\/)Thumbs\.db$/, why: '系统文件不进仓库' },
@@ -40,7 +41,7 @@ const MUST_SHIP = [
 ];
 
 async function packList() {
-  const { stdout } = await run('pnpm', ['pack', '--dry-run'], { maxBuffer: 64 * 1024 * 1024, shell: true, env: { ...process.env, NODE_OPTIONS: '--no-deprecation' }, windowsHide: true });
+  const { stdout } = await run('pnpm', ['pack', '--dry-run'], { maxBuffer: 64 * 1024 * 1024, shell: true, windowsHide: true });
   return stdout
     .split(/\r?\n/)
     .map((line) => line.replace(/^npm notice\s+/, '').trim())
@@ -59,12 +60,22 @@ test('no tracked file sits on a path that must stay local', async () => {
 });
 
 test('a stray file on a local-only path is ignored, so git add cannot leak it', async () => {
-  const localOnly = ['.env', 'deploy.pem', 'session.jsonl', 'pack.tgz', 'LESSONS.md', 'decisions.tsv', '.agents/notes/x.md', 'node_modules/x.js', '.codegraph/x', '.pnpm-store/x'];
+  const localOnly = ['.env', '.credentials.yaml', 'credentials.yml', 'deploy.pem', 'session.jsonl', 'pack.tgz', 'LESSONS.md', 'REVIEW-LESSONS.md', 'REVIEW-LESSONS-inbox.md', 'decisions.tsv', '.agents/notes/x.md', 'node_modules/x.js', '.codegraph/x', '.pnpm-store/x'];
   const ignored = new Set((await git('check-ignore', '--no-index', ...localOnly)).split(/\r?\n/).filter(Boolean));
   const leaking = localOnly.filter((file) => !ignored.has(file));
   assert.deepEqual(leaking, [], 'these paths must match a .gitignore rule');
-  const kept = await git('check-ignore', '--no-index', '.env.example', '.agents/skills/verify/SKILL.md').catch(() => '');
-  assert.equal(kept, '', '.env.example and .agents/skills must stay committable');
+});
+
+test('files the repository is meant to keep stay committable', async () => {
+  const keep = ['.env.example', '.agents/skills/verify/SKILL.md', 'docs/decisions.md', 'test/doc-target.txt', 'docs/design/tokens.json'];
+  const lines = (await git('check-ignore', '--no-index', '-v', '--non-matching', ...keep)).split(/\r?\n/).filter(Boolean);
+  const ignored = lines.filter((line) => {
+    const rule = line.slice(0, line.lastIndexOf('\t'));
+    return rule !== '::' && !rule.includes(':!');
+  }).map((line) => line.slice(line.lastIndexOf('\t') + 1));
+  assert.deepEqual(ignored, [], 'these files must stay committable');
+  const rejected = keep.filter((file) => FORBIDDEN_TRACKED.some((rule) => rule.test.test(file) && !(rule.allow && rule.allow.test(file))));
+  assert.deepEqual(rejected, []);
 });
 
 test('the package ships only files a user installing the plugin needs', async () => {
