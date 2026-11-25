@@ -1,26 +1,48 @@
-node_modules/
-coverage/
-.vendor/
-.research/
-*.log
+# 仓库边界。什么进 GitHub、什么只留本地、什么进安装包，见 test/repo-boundary.test.js。
+# 规则按用途分组，每组第一行写它归哪一栏。
+
+# 密钥和凭据。只进 DSH 凭据库，哪里都不落文件。.env.example 只有变量名。
 .env
 .env.*
 !.env.example
-.DS_Store
-Thumbs.db
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.yaml
+credentials.yml
+.credentials.*
+.secrets.*
+.secret
+
+# 维护者本地文件。只在这台机器上有意义。
+LESSONS.md
+REVIEW-LESSONS.md
+REVIEW-LESSONS-inbox.md
+REVIEW-LESSONS-archive.md
+decisions.tsv
+.agents/*
+!.agents/skills/
+*.jsonl
+
+# 工具产物。
+node_modules/
+.pnpm-store/
+.codegraph/
+coverage/
+*.tgz
+*.log
+tmp/
+
+# 编辑器和系统。
 .idea/
 .vscode/
-.pnpm-store/
-tmp/
-*.tgz
-.codegraph/
-.workflow-lite/
+.DS_Store
+Thumbs.db
 
-# 维护者本地文件：不进公开仓库，仅本地保留
-REVIEW-LESSONS.md
-REVIEW-LESSONS-archive.md
-.agents/
-REVIEW-LESSONS-inbox.md
+# 已删除的旧目录。规则留着当保险。
+.vendor/
+.workflow-lite/
+.research/
 .local/
 .worktrees/
-*.jsonl
