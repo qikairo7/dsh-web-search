@@ -7,11 +7,21 @@ import { readFile } from 'node:fs/promises';
 const run = promisify(execFile);
 
 const git = async (...args) => (await run('git', args, { maxBuffer: 64 * 1024 * 1024 })).stdout;
+// git check-ignore 在所有路径都没命中规则时退出 1，这属于正常输出；其它退出码才是真出错。
+const gitAllowingNoMatch = async (...args) => {
+  try {
+    return (await run('git', args, { maxBuffer: 64 * 1024 * 1024 })).stdout;
+  } catch (error) {
+    if (error.code === 1) return error.stdout;
+    throw error;
+  }
+};
 const tracked = async () => (await git('ls-files', '-z')).split('\0').filter(Boolean);
 
 const FORBIDDEN_TRACKED = [
   { test: /^\.env(\..+)?$/, allow: /^\.env\.example$/, why: '密钥文件只留在本地' },
   { test: /(^|\/)\.?(credentials|secrets?)\.(ya?ml|json|txt)$/i, why: '凭据库不进仓库' },
+  { test: /(^|\/)\.secret$/, why: '凭据库不进仓库' },
   { test: /\.(pem|key|p12|pfx)$/i, why: '私钥不进仓库' },
   { test: /\.jsonl$/i, why: '会话记录不进仓库' },
   { test: /\.tgz$/i, why: '打包产物不进仓库' },
@@ -60,7 +70,7 @@ test('no tracked file sits on a path that must stay local', async () => {
 });
 
 test('a stray file on a local-only path is ignored, so git add cannot leak it', async () => {
-  const localOnly = ['.env', '.credentials.yaml', 'credentials.yml', 'deploy.pem', 'session.jsonl', 'pack.tgz', 'LESSONS.md', 'REVIEW-LESSONS.md', 'REVIEW-LESSONS-inbox.md', 'decisions.tsv', '.agents/notes/x.md', 'node_modules/x.js', '.codegraph/x', '.pnpm-store/x'];
+  const localOnly = ['.env', '.credentials.yaml', '.secrets.yaml', 'credentials.yml', 'deploy.pem', 'session.jsonl', 'pack.tgz', 'LESSONS.md', 'REVIEW-LESSONS.md', 'REVIEW-LESSONS-inbox.md', 'decisions.tsv', '.agents/notes/x.md', 'node_modules/x.js', '.codegraph/x', '.pnpm-store/x'];
   const ignored = new Set((await git('check-ignore', '--no-index', ...localOnly)).split(/\r?\n/).filter(Boolean));
   const leaking = localOnly.filter((file) => !ignored.has(file));
   assert.deepEqual(leaking, [], 'these paths must match a .gitignore rule');
@@ -68,7 +78,7 @@ test('a stray file on a local-only path is ignored, so git add cannot leak it', 
 
 test('files the repository is meant to keep stay committable', async () => {
   const keep = ['.env.example', '.agents/skills/verify/SKILL.md', 'docs/decisions.md', 'test/doc-target.txt', 'docs/design/tokens.json'];
-  const lines = (await git('check-ignore', '--no-index', '-v', '--non-matching', ...keep)).split(/\r?\n/).filter(Boolean);
+  const lines = (await gitAllowingNoMatch('check-ignore', '--no-index', '-v', '--non-matching', ...keep)).split(/\r?\n/).filter(Boolean);
   const ignored = lines.filter((line) => {
     const rule = line.slice(0, line.lastIndexOf('\t'));
     return rule !== '::' && !rule.includes(':!');
