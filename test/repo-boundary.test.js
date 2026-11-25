@@ -7,7 +7,6 @@ import { readFile } from 'node:fs/promises';
 const run = promisify(execFile);
 
 const git = async (...args) => (await run('git', args, { maxBuffer: 64 * 1024 * 1024 })).stdout;
-// git check-ignore 在所有路径都没命中规则时退出 1，这属于正常输出；其它退出码才是真出错。
 const gitAllowingNoMatch = async (...args) => {
   try {
     return (await run('git', args, { maxBuffer: 64 * 1024 * 1024 })).stdout;
@@ -18,7 +17,7 @@ const gitAllowingNoMatch = async (...args) => {
 };
 const tracked = async () => (await git('ls-files', '-z')).split('\0').filter(Boolean);
 
-const FORBIDDEN_TRACKED = [
+const LOCAL_ONLY_PATHS = [
   { test: /^\.env(\..+)?$/, allow: /^\.env\.example$/, why: '密钥文件只留在本地' },
   { test: /(^|\/)\.?(credentials|secrets?)\.(ya?ml|json|txt)$/i, why: '凭据库不进仓库' },
   { test: /(^|\/)\.secret$/, why: '凭据库不进仓库' },
@@ -63,7 +62,7 @@ async function packList() {
 
 test('no tracked file sits on a path that must stay local', async () => {
   const files = await tracked();
-  const offenders = files.flatMap((file) => FORBIDDEN_TRACKED
+  const offenders = files.flatMap((file) => LOCAL_ONLY_PATHS
     .filter((rule) => rule.test.test(file) && !(rule.allow && rule.allow.test(file)))
     .map((rule) => `${file}  (${rule.why})`));
   assert.deepEqual(offenders, []);
@@ -76,7 +75,7 @@ test('a stray file on a local-only path is ignored, so git add cannot leak it', 
   assert.deepEqual(leaking, [], 'these paths must match a .gitignore rule');
 });
 
-test('files the repository is meant to keep stay committable', async () => {
+test('kept files stay committable even when no ignore rule matches any of them', async () => {
   const keep = ['.env.example', '.agents/skills/verify/SKILL.md', 'docs/decisions.md', 'test/doc-target.txt', 'docs/design/tokens.json'];
   const lines = (await gitAllowingNoMatch('check-ignore', '--no-index', '-v', '--non-matching', ...keep)).split(/\r?\n/).filter(Boolean);
   const ignored = lines.filter((line) => {
@@ -84,7 +83,7 @@ test('files the repository is meant to keep stay committable', async () => {
     return rule !== '::' && !rule.includes(':!');
   }).map((line) => line.slice(line.lastIndexOf('\t') + 1));
   assert.deepEqual(ignored, [], 'these files must stay committable');
-  const rejected = keep.filter((file) => FORBIDDEN_TRACKED.some((rule) => rule.test.test(file) && !(rule.allow && rule.allow.test(file))));
+  const rejected = keep.filter((file) => LOCAL_ONLY_PATHS.some((rule) => rule.test.test(file) && !(rule.allow && rule.allow.test(file))));
   assert.deepEqual(rejected, []);
 });
 
