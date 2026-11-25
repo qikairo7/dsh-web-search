@@ -71,7 +71,10 @@ jobs:
           if-no-files-found: error
 
       - name: Post package link on the PR
-        if: github.event_name == 'pull_request'
+        # fork PR 拿到的 GITHUB_TOKEN 一律只读，写评论必然 403 并把 job 染红；评论只给同仓 PR。
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@v8
         env:
           ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
