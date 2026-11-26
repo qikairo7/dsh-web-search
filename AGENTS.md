@@ -12,6 +12,22 @@
 
 实现与评审标准见 [CODING_STANDARDS.md](CODING_STANDARDS.md)，安全边界与风险模型见 [SAFETY.zh.md](SAFETY.zh.md)，文档标准与目录见 [docs/AGENTS.md](docs/AGENTS.md)，领域文档阅读顺序见 [docs/agents/domain.md](docs/agents/domain.md)。
 
+## 工作方式
+
+- 主会话只做规划，澄清、拆解、定契约、派活、验收、记决策日志。要写的文件超过一个，或者要对外写，就派子代理。例外是只读问答、复盘结论合并、单文件小脚本、收尾操作。
+- 动手前先查三处，本地笔记、本地 skill、上游。三处都没有才自己写，并在派单里写明查过哪三处。
+- 派活前查 `~/.dsh/MODEL-ROUTING.md`，调 `subagent` 时 `provider` 填 `magpie`，派之前跑一次 `list_subagent_models`。
+- pstack 的 skill 和 playbook 里点名的执行者、模型、工具，按本机换。子代理一律用 subagent，模型和思考档查路由表。skill 里要派的子代理类型没有名字的，照它的意图派一路。两份子代理定义的原文在 docs/agents/ 下，派单时照原文用，模型按路由表。
+- 单子按类型挑一份 playbook，带 bug 标签走 Bug fix，增强走 Feature，任务和重构走 Refactoring，开 PR 走 Opening a PR，盯 PR 走 Babysit，合并走 Shipping。playbook 在 poteto-mode skill 的 playbooks 目录下。
+- 工具、执行者、模型怎么换，见 [docs/playbook-mapping.md](docs/playbook-mapping.md)。
+- 对外的东西走流程。动 GitHub 之前加载 `github-roles`。评论和评审开头 @ 对方。说要开单，先开单再回复。开的人和验收的人各核一遍作者，读作者用 GraphQL 的 `author{login}`。
+- PR 正文用 pr skill 的三节，节名用中文，概要、证据、合并风险。证据一节并排放改前和改后的输出。标题用 issue-tracker.md 里的格式。以 .github/PULL_REQUEST_TEMPLATE.md 为准。
+- 评审用 code-review skill，派两路，各用新的上下文。标准轴读 CODING_STANDARDS.md 第 9 节和 docs/defensive-patterns.md。规格轴读那张单和 PR 正文，核说做的做了没有、写的验证跑没跑。两路都对着当前的 head 发。每轮最多报 5 条 P3，同一张 PR 最多 3 轮。
+- 只报真结果。没跑的说没跑。错了追加一条更正，不改老行。
+- 每个子代理交活前加载 `retro` 做复盘，读自己的上下文，按七个类别找候选，写在交付文件的末节。只读的也做。
+- 验收只认用 npm 装的 `dsh` 起的隔离 web 实例加 ego 浏览器。桌面端有 token 鉴权，ego 拿不到。
+- 决策日志只写飞书。本地不再记。
+
 ## 协作
 
 - 一个 PR 只解决一个内聚问题，不夹带无关清理。
