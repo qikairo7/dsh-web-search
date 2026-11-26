@@ -7,7 +7,6 @@
 # 历史不改写类：已发版 CHANGELOG、ADR、基准报告、升级指南。
 CHANGELOG.md
 docs/changelog-archive.md
-REVIEW-LESSONS-archive.md
 docs/adr/**
 docs/benchmarks/**
 docs/upgrade/**
