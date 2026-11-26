@@ -195,6 +195,30 @@ test('GithubProvider.search maps a 403 to a recoverable rate-limited error', asy
   );
 });
 
+test('GithubProvider.search caps a day-long Retry-After at the breaker cooldown and recovers after it', async () => {
+  await withFetch(
+    { status: 403, headers: { 'content-type': 'application/json', 'retry-after': '86400' }, body: { message: 'secondary rate limit' } },
+    async () => {
+      const breakerCooldownMs = 50;
+      const provider = new GithubProvider({
+        settings: () => ({ ...ghSettings(), breakerCooldownMs }),
+        resolveKey: async () => undefined,
+      });
+      await assert.rejects(provider.search({ query: 'qikairo7/dsh-web-search' }), (error) => {
+        assert.equal(error.code, 'WEB_RATE_LIMITED');
+        return true;
+      });
+      // A day-long Retry-After must not outlive the breaker cooldown the rest of
+      // the router honors (ADR-0012), or GitHub goes silently missing for the day.
+      const remaining = provider.cooldownUntil - Date.now();
+      assert.ok(remaining <= breakerCooldownMs, `cooldown ${remaining}ms must be capped at ${breakerCooldownMs}ms`);
+      assert.equal(provider.available(), false);
+      await new Promise((resolve) => setTimeout(resolve, breakerCooldownMs + 50));
+      assert.equal(provider.available(), true, 'the provider must come back once the capped cooldown expires');
+    },
+  );
+});
+
 test('createMultiKeyProvider delegates available() to the keyed instance so a PAT rate-limit cooldown propagates', async () => {
   let shadow;
   await withFetch(
