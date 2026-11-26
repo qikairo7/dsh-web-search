@@ -41,7 +41,7 @@
 - 代码围栏命令必须可执行；占位符写 `<...>`，别伪装真实值。
 - 相对链接必须指向真实文件；不用提交号做当前引用。
 - 不写实现状态注记（「已实现」「未来会」）、测试走读、评审过程或赘述代码。
-- 技能分工：中文=zh-tech-writing、英文技术=google-dev-style；正文中文，代码与标识符原样；英文镜像 README.en.md、DETAIL.en.md、法律文件；历史记录不改写，新条目从中文开始。
+- 技能分工：文档不读口吻 DNA；中文=zh-tech-writing、英文技术=google-dev-style；lieflat 不用。正文中文，代码与标识符原样；英文镜像 README.en.md、DETAIL.en.md、法律文件；历史记录不改写，新条目从中文开始。
 - 两份 README 同步；契约变化先写 ADR。
 - 写作判据见 [写作判据](writing-rules.md)，ADR 写法见 [ADR 索引](adr/README.md)。
 

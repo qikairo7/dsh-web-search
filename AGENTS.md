@@ -22,7 +22,13 @@
 - 工具、执行者、模型怎么换，见 [docs/playbook-mapping.md](docs/playbook-mapping.md)。
 - 对外的东西走流程。动 GitHub 之前加载 `github-roles`。评论和评审开头 @ 对方。说要开单，先开单再回复。开的人和验收的人各核一遍作者，读作者用 GraphQL 的 `author{login}`。
 - PR 正文用 pr skill 的三节，节名用中文，概要、证据、合并风险。证据一节并排放改前和改后的输出。标题用 issue-tracker.md 里的格式。以 .github/PULL_REQUEST_TEMPLATE.md 为准。
-- 评审用 code-review skill，派两路，各用新的上下文。标准轴读 CODING_STANDARDS.md 第 9 节和 docs/defensive-patterns.md。规格轴读那张单和 PR 正文，核说做的做了没有、写的验证跑没跑。两路都对着当前的 head 发。每轮最多报 5 条 P3，同一张 PR 最多 3 轮。
+- 不设评审环节。一张 PR 开出来走三样：确定性检查，`pnpm check` 和 CI；真跑一遍，由一个没写过这份代码的子代理做，照那张单的复现步骤跑，或者照 `.agents/skills/verify/` 驱动应用；跑过了用评审账号对着当前 head 发 approve，证据贴在 PR 上，跑不过发打回。三样齐了才合。合并前读 GitHub 上的真状态，不读子代理说它做了什么。
+- 评论分两档。受理、关单、合并、进度、回应评审是填空，照 [docs/issue-tracker.md](docs/issue-tracker.md) 的话术表填，不读口吻材料。裁决、打回、范围重定才读维护者的口吻 DNA，只读那一份。文档不读 DNA，中文用 zh-tech-writing，英文用 google-dev-style。lieflat 整个不用。
+- 发对外文本之前跑 `node scripts/check-outbound.mjs <正文文件> --at <对方账号>`；开头不是 @对方、含内部词、含 ASCII 引号或破折号，退出码 1，红了不发。检查和发送分两步跑。
+- 派实现类单子之前先查占用：`gh pr list` 加 `git ls-remote origin 'refs/heads/issue-*'`，要开的分支名已经在就停。子代理每做完一个阶段往自己的实录末尾追加一行，写时间和做到哪；实录文件一开工就建。
+- 三个图谱工具分工。改 `lib/` 之前跑 `codegraph affected <文件>`，它列出的测试全绿才算完，这一步只有 codegraph 管。谁调谁、架构概览、跨仓库、文档连代码，用 codebase-memory-mcp：先 `index_repository`，再 `trace_path` 或 `get_architecture`。它的测试收窄只支持 C 和 C++，`node --test` 的项目回 `run_all`，不拿它替 codegraph affected。graphify 不用。提交前想看改动落在哪几个社区、要不要拆提交，用 `git log` 和 codegraph，不过模型。
+- 改了界面的单子只用宿主原生组件库 `@deepseek-ai/dsh-client-ui-primitives`，不加构建：`client.js` 里 `require` 它走宿主模块表，JSX 写成 `h(Comp, props)`。不吃全局那套设计系统。界面验收用 ego 起隔离实例截图，加 impeccable 和 anti-ui-slop 各过一遍。
+- `ocr review --from main` 是开 PR 后可选的第一道筛子，意见当线索不当结论。两三天一次 `ocr review --from <上次的位置> --analysis --effort high` 全量过一遍，意见进攒着的表，重复出现的才动手。
 - 只报真结果。没跑的说没跑。错了追加一条更正，不改老行。
 - 每个子代理交活前加载 `retro` 做复盘，读自己的上下文，按七个类别找候选，写在交付文件的末节。只读的也做。
 - 验收只认用 npm 装的 `dsh` 起的隔离 web 实例加 ego 浏览器。桌面端有 token 鉴权，ego 拿不到。
