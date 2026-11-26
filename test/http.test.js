@@ -379,3 +379,104 @@ test('HTTP fetch cancels the response body before throwing on an unsupported con
   assert.equal(cancelled, true, 'an unsupported content type must cancel the body before throwing');
 });
 
+test('HTTP fetch pins the connection to the address it validated, not to its own resolution', async () => {
+  const seen = [];
+  const provider = providerWith(async (url, init) => {
+    seen.push({ url, addresses: init.addresses });
+    return new Response('ok', { status: 200, headers: { 'content-type': 'text/plain' } });
+  });
+  await provider.fetch({ url: 'https://rebind.example/' });
+  assert.deepEqual(seen, [
+    { url: 'https://rebind.example/', addresses: [{ address: '93.184.216.34', family: 4 }] },
+  ]);
+  assert.equal(
+    seen[0].addresses.some((entry) => entry.address === '127.0.0.1'),
+    false,
+    'the connection must not re-resolve the hostname to a loopback address',
+  );
+});
+
+test('HTTP fetch rejects a host whose validation lookup fails and never reaches the transport', async () => {
+  let calls = 0;
+  const provider = providerWith(
+    async () => {
+      calls += 1;
+      return new Response('internal', { status: 200, headers: { 'content-type': 'text/plain' } });
+    },
+    async () => {
+      throw Object.assign(new Error('getaddrinfo ENOTFOUND probe.invalid'), { code: 'ENOTFOUND' });
+    },
+  );
+  await assert.rejects(
+    () => provider.fetch({ url: 'https://probe.invalid/' }),
+    (error) => error.code === 'WEB_PRIVATE_URL' && /could not be resolved at validation time/u.test(error.message),
+  );
+  assert.equal(calls, 0, 'a validation-time DNS failure must not open a connection');
+});
+
+test('HTTP fetch rejects a redirect whose validation lookup fails and cancels the redirect body', async () => {
+  let calls = 0;
+  let cancelled = false;
+  const redirectBody = () =>
+    new ReadableStream({
+      start(controller) {
+        controller.enqueue(new Uint8Array([1]));
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+  const lookups = [
+    async () => [{ address: '93.184.216.34', family: 4 }],
+    async () => {
+      throw Object.assign(new Error('getaddrinfo ENOTFOUND second.example'), { code: 'ENOTFOUND' });
+    },
+  ];
+  let lookupCalls = 0;
+  const provider = providerWith(
+    async () => {
+      calls += 1;
+      return new Response(redirectBody(), { status: 302, headers: { location: 'https://second.example/' } });
+    },
+    () => lookups[Math.min(lookupCalls++, lookups.length - 1)](),
+  );
+  await assert.rejects(
+    () => provider.fetch({ url: 'https://first.example/' }),
+    (error) => error.code === 'WEB_PRIVATE_URL',
+  );
+  assert.equal(calls, 1, 'the second hop must not be fetched');
+  assert.equal(cancelled, true, 'the redirect body must be cancelled before throwing');
+});
+
+test('HTTP fetch leaves the connection unpinned when the escape hatch is enabled', async () => {
+  const previous = process.env.DSH_WEB_HTTP_ALLOW_PRIVATE;
+  process.env.DSH_WEB_HTTP_ALLOW_PRIVATE = '1';
+  try {
+    const seen = [];
+    const provider = providerWith(async (url, init) => {
+      seen.push({ url, init });
+      return new Response('local debug', { status: 200, headers: { 'content-type': 'text/plain' } });
+    });
+    const result = await provider.fetch({ url: 'http://127.0.0.1:1324/' });
+    assert.equal(result.body.content, 'local debug');
+    assert.equal(seen[0].init.addresses, undefined, 'the escape hatch falls back to default resolution');
+  } finally {
+    if (previous === undefined) delete process.env.DSH_WEB_HTTP_ALLOW_PRIVATE;
+    else process.env.DSH_WEB_HTTP_ALLOW_PRIVATE = previous;
+  }
+});
+
+test('HTTP fetch pins a validated IPv6 address and keeps the URL hostname', async () => {
+  const seen = [];
+  const provider = providerWith(
+    async (url, init) => {
+      seen.push({ url, init });
+      return new Response('v6', { status: 200, headers: { 'content-type': 'text/plain' } });
+    },
+    async () => [{ address: '2606:2800:220:1:248:1893:25c8:1946', family: 6 }],
+  );
+  const result = await provider.fetch({ url: 'https://v6.example/path' });
+  assert.equal(result.statusCode, 200);
+  assert.equal(seen[0].url, 'https://v6.example/path', 'the pinned request keeps the URL hostname for Host and SNI');
+  assert.deepEqual(seen[0].init.addresses, [{ address: '2606:2800:220:1:248:1893:25c8:1946', family: 6 }]);
+});
