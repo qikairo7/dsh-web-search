@@ -44,6 +44,9 @@ pnpm check
 | `pnpm quality:probe` | 免费后端 14 条日常质量探针；结果写 `.research/quality-probe.json` |
 | `dsh plugin --profile desktop add "<仓库路径>"` | 安装到本机 DSH，安装后重启 DSH |
 | `codegraph init` | 重建代码图谱索引；查函数调用关系用 `codegraph_explore`；处理本仓库 PR 前后随手跑一次 |
+| `codegraph affected <文件>` | 改 `lib/` 之前，列出受影响的测试 |
+| `codebase-memory-mcp cli trace_path --project dsh-web-search --function-name <名>` | 查调用链 |
+| `ocr review --from main` | 开 PR 后可选的筛子 |
 
 `pnpm benchmark` 优先读 `scripts/fixtures/public-benchmark-sample.json`；`SAMPLE_SIZE` 控制每个基准的行数，默认 50；默认 search-only，`BENCHMARK_ENRICH=1` 启用 enrichment；结果写 `.research/public-benchmark.json`（gitignored）。真实 API 验收需要 `.env` 中的凭据；`pnpm benchmark:preflight` 会先检查全部后端。
 
