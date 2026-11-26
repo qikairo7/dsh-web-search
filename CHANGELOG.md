@@ -2,6 +2,12 @@
 
 All notable changes are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver. 条目一律中文，按 zh-tech-writing 规范撰写；发版说明由发布流程自动取自对应版本节。
 
+## Unreleased
+
+### 修复
+
+- 门禁顺序检查不再因未知后端 id 放行：权威长度的链先逐字比对顺序，未知 id 只影响违规文案是否附笔误提示（PR #74，修复 #25）。
+
 ## 0.0.0008 — 2026-11-23
 
 ### 变更
