@@ -17,12 +17,9 @@
 - 主会话只做规划，澄清、拆解、定契约、派活、验收、记决策日志。要写的文件超过一个，或者要对外写，就派子代理。例外是只读问答、复盘结论合并、单文件小脚本、收尾操作。
 - 动手前先查三处，本地笔记、本地 skill、上游。三处都没有才自己写，并在派单里写明查过哪三处。
 - 派活前查 `~/.dsh/MODEL-ROUTING.md`，调 `subagent` 时 `provider` 填 `magpie`，派之前跑一次 `list_subagent_models`。
-- 派单末尾带一段固定的四行，在 `.agents/notes/takeover/dispatch-fixed.md`。那份文件被 gitignore，所以这里把四行原样抄一遍，以仓库里这份为准：
-  - 模型照 `~/.dsh/MODEL-ROUTING.md`，派之前跑一次 `list_subagent_models`。
-  - 动 GitHub 之前加载 `github-roles`，改 `lib/` 之前先跑 `codegraph affected <文件>`。
-  - 环境坑读 `~/.dsh/TOOLS.md`。
-  - 交活前加载 `retro` 做复盘，读自己的上下文，按七个类别找候选。
+- pstack 的 skill 和 playbook 里点名的执行者、模型、工具，按本机换。子代理一律用 subagent，模型和思考档查路由表。skill 里要派的子代理类型没有名字的，照它的意图派一路。
 - 对外的东西走流程。动 GitHub 之前加载 `github-roles`。评论和评审开头 @ 对方。说要开单，先开单再回复。开的人和验收的人各核一遍作者，读作者用 GraphQL 的 `author{login}`。
+- PR 正文用 pr skill 的三节，节名用中文，概要、证据、合并风险。证据一节并排放改前和改后的输出。标题用 issue-tracker.md 里的格式。
 - 只报真结果。没跑的说没跑。错了追加一条更正，不改老行。
 - 每个子代理交活前加载 `retro` 做复盘，读自己的上下文，按七个类别找候选，写在交付文件的末节。只读的也做。
 - 验收只认用 npm 装的 `dsh` 起的隔离 web 实例加 ego 浏览器。桌面端有 token 鉴权，ego 拿不到。
