@@ -55,6 +55,57 @@ test('Zhihu global search supplements Chinese queries with site search', async (
   );
 });
 
+function searchFilter(url) {
+  return new URL(url).searchParams.get('Filter') ?? undefined;
+}
+
+function assertSafeHostFilter(filter) {
+  assert.ok(
+    filter === undefined || /^host=="[a-z0-9.-]+"$/iu.test(filter),
+    `Filter must not widen or unbalance the host clause: ${filter}`,
+  );
+}
+
+test('Zhihu global search rejects a site operator that closes the quoted host clause', async () => {
+  const calls = [];
+  await withFetch(
+    async (url) => {
+      calls.push(String(url));
+      return new Response(
+        JSON.stringify({ Code: 0, Message: 'success', Data: { Items: [item('全网一', 'https://example.com/1')] } }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      );
+    },
+    async () => {
+      const provider = new ZhihuProvider({ settings: zhihuSettings, resolveKey: async () => 'key' });
+      await provider.search({ query: '中文 site:a.com"||host=="b.com', maxResults: 4 });
+    },
+  );
+  const global = calls.find((url) => url.includes('/global_search'));
+  assert.ok(global, 'global search must be requested');
+  assertSafeHostFilter(searchFilter(global));
+});
+
+test('Zhihu global search rejects a site operator with an unbalanced quote', async () => {
+  const calls = [];
+  await withFetch(
+    async (url) => {
+      calls.push(String(url));
+      return new Response(
+        JSON.stringify({ Code: 0, Message: 'success', Data: { Items: [item('全网一', 'https://example.com/1')] } }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      );
+    },
+    async () => {
+      const provider = new ZhihuProvider({ settings: zhihuSettings, resolveKey: async () => 'key' });
+      await provider.search({ query: '中文 site:zhihu.com"', maxResults: 4 });
+    },
+  );
+  const global = calls.find((url) => url.includes('/global_search'));
+  assert.ok(global, 'global search must be requested');
+  assertSafeHostFilter(searchFilter(global));
+});
+
 test('Zhihu global search does not call site search for English queries', async () => {
   const calls = [];
   await withFetch(
