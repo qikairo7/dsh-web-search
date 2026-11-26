@@ -2,6 +2,12 @@
 
 All notable changes are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver. 条目一律中文，按 zh-tech-writing 规范撰写；发版说明由发布流程自动取自对应版本节。
 
+## 0.0.0009 — 待发布
+
+### 修复
+
+- 直连抓取把内网地址校验的结果绑定到实际连接，校验期 DNS 失败一律按 `WEB_PRIVATE_URL` 拒绝；这条链不再经环境代理，依赖代理出网的机器会回退到 API provider（修复 #58）。
+
 ## 0.0.0008 — 2026-11-23
 
 ### 变更
