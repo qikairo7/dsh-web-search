@@ -12,4 +12,4 @@
 | Cursor 的 `/loop` | 本机没有 |
 | `graphify` 看社区划分 | 不用 |
 | `codegraph affected` 看改动影响面 | 留着，跑 `codegraph affected <文件>`，列出的测试全绿才算完 |
-| 谁调谁、架构概览、跨仓库 | `codebase-memory-mcp cli` 的 `index_repository`、`trace_path`、`get_architecture` |
+| 谁调谁、架构概览、跨仓库 | `codebase-memory-mcp cli` 的 `index_repository`、`trace_path`、`get_architecture`；命令不在 PATH，完整路径 `%LOCALAPPDATA%\Programs\codebase-memory-mcp\codebase-memory-mcp.exe` |
