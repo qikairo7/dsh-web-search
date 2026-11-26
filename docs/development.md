@@ -42,7 +42,6 @@ pnpm check
 | `pnpm benchmark` | live 基准；需要 `.env` 中的凭据（见环境变量） |
 | `pnpm benchmark:refresh` | 刷新基准 fixture |
 | `pnpm quality:probe` | 免费后端 14 条日常质量探针；结果写 `.research/quality-probe.json` |
-| `node scripts/check-cards.mjs` | 卡面四维评分（只提醒不拦提交） |
 | `dsh plugin --profile desktop add "<仓库路径>"` | 安装到本机 DSH，安装后重启 DSH |
 | `codegraph init` | 重建代码图谱索引；查函数调用关系用 `codegraph_explore`；处理本仓库 PR 前后随手跑一次 |
 
