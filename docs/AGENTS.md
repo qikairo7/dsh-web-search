@@ -10,6 +10,9 @@
 | [docs/schema-sync-map.md](schema-sync-map.md) | 改代码时改哪份文档：映射表与开发顺序 |
 | [docs/postmortem/](postmortem/README.md) | 事故叙事层：incident-scoped reference，一条事故一份；记时间线、影响、根因、教训 |
 | [docs/writing-rules.md](writing-rules.md) | 写作判据：完整命题、覆盖分层、删字 vs 删事实 |
+| [docs/playbook-mapping.md](playbook-mapping.md) | playbook 点名的工具、执行者、模型换成本机什么 |
+| [docs/agents/comment-sicko.md](agents/comment-sicko.md) | poteto 子代理定义原文（comment-sicko），2026-11-26 取自 cursor/plugins |
+| [docs/agents/poteto-agent.md](agents/poteto-agent.md) | poteto 子代理定义原文（poteto-agent），同上 |
 
 ## 路由
 

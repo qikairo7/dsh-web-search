@@ -8,5 +8,5 @@
 | Cursor 的模型 slug | 按 `~/.dsh/MODEL-ROUTING.md` 查，`provider` 填 `magpie` |
 | `/deslop`（cursor-team-kit） | 没有这个命令；换成本仓库门禁 `pnpm check`、注释门禁、`autocorrect --fix` |
 | `control-ui` / `control-cli` | 没有这两个命令；按 verify 的做法起隔离 DSH web，用 ego 操作 |
-| `scripts/watch-pr/watch-pr`（要 bun） | 本机没有 bun；换 `gh pr checks --watch` |
+| `scripts/watch-pr/` 里的 `watch-pr`（要 bun） | 本机没有 bun；换 `gh pr checks --watch` |
 | Cursor 的 `/loop` | 本机没有 |
