@@ -66,25 +66,24 @@ function matchesAuthority(parts) {
 
 /** Return violations for one scanned chain against the authoritative chains.
  * Only sequences exactly as long as an authoritative chain are judged: shorter
- * legal fan-outs pass. An unknown id one edit away from a known id is a
- * reported typo; unknown ids far from every known id stay silent. */
+ * legal fan-outs pass. At authoritative length a chain that shares an id with
+ * the provider vocabulary must reproduce an authoritative chain verbatim;
+ * unknown ids only decide whether the violation carries a typo hint. Chains
+ * that share no id with that vocabulary are other taxonomies and stay silent. */
 export function checkChain(parts) {
   const authoritativeLength = Object.values(CHAINS).some((chain) => chain.length === parts.length);
   if (!authoritativeLength) return null;
-  if (parts.every((id) => KNOWN_IDS.has(id))) {
-    if (matchesAuthority(parts)) return null;
-    const closest = Object.keys(CHAINS).join(', ');
-    return `provider order "${parts.join(' → ')}" matches none of ${closest} — update the doc paste or lib/roles.js`;
-  }
+  if (matchesAuthority(parts)) return null;
+  if (!parts.some((id) => KNOWN_IDS.has(id))) return null;
   const typos = [];
   for (const id of parts) {
     if (KNOWN_IDS.has(id)) continue;
     const known = [...KNOWN_IDS].find((k) => editDistanceOne(k, id));
     if (known) typos.push(`"${id}" looks like a typo of "${known}"`);
   }
-  if (typos.length === 0) return null;
   const closest = Object.keys(CHAINS).join(', ');
-  return `provider order "${parts.join(' → ')}" matches none of ${closest} — ${typos.join('; ')}`;
+  const hint = typos.length > 0 ? typos.join('; ') : 'update the doc paste or lib/roles.js';
+  return `provider order "${parts.join(' → ')}" matches none of ${closest} — ${hint}`;
 }
 
 function* scan(text, regex, normalize) {
