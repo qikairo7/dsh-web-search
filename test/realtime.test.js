@@ -53,3 +53,20 @@ test('realtimeSearch returns live FX with a dated summary', async () => {
     globalThis.fetch = original;
   }
 });
+
+test('realtimeSearch keeps live FX when the upstream date is unparsable', async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    result: 'success',
+    time_last_update_utc: 'not a date',
+    rates: { USD: 0.14959 },
+  }), { status: 200, headers: { 'content-type': 'application/json' } });
+  try {
+    const result = await realtimeSearch('人民币兑美元汇率 今日', { requestTimeoutMs: 5_000 }, undefined);
+    assert.ok(result);
+    assert.match(result.sources[0].summary, /1 CNY = 0\.14959 USD/);
+    assert.match(result.sources[0].publishedAt, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
