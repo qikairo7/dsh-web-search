@@ -2,14 +2,21 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 
 const run = promisify(execFile);
 
-const git = async (...args) => (await run('git', args, { maxBuffer: 64 * 1024 * 1024 })).stdout;
+const git = async (...args) => {
+  const { cwd = process.cwd() } = typeof args.at(-1) === 'object' ? args.pop() : {};
+  return (await run('git', args, { maxBuffer: 64 * 1024 * 1024, cwd })).stdout;
+};
 const gitAllowingNoMatch = async (...args) => {
+  const { cwd = process.cwd() } = typeof args.at(-1) === 'object' ? args.pop() : {};
   try {
-    return (await run('git', args, { maxBuffer: 64 * 1024 * 1024 })).stdout;
+    return (await run('git', args, { maxBuffer: 64 * 1024 * 1024, cwd })).stdout;
   } catch (error) {
     if (error.code === 1) return error.stdout;
     throw error;
@@ -17,7 +24,7 @@ const gitAllowingNoMatch = async (...args) => {
 };
 const tracked = async () => (await git('ls-files', '-z')).split('\0').filter(Boolean);
 
-const LOCAL_ONLY_PATHS = [
+const LOCAL_ONLY_RULES = [
   { test: /^\.env(\..+)?$/, allow: /^\.env\.example$/, why: '密钥文件只留在本地' },
   { test: /(^|\/)\.?(credentials|secrets?)\.(ya?ml|json|txt)$/i, why: '凭据库不进仓库' },
   { test: /(^|\/)\.secret$/, why: '凭据库不进仓库' },
@@ -62,14 +69,14 @@ async function packList() {
 
 test('no tracked file sits on a path that must stay local', async () => {
   const files = await tracked();
-  const offenders = files.flatMap((file) => LOCAL_ONLY_PATHS
+  const offenders = files.flatMap((file) => LOCAL_ONLY_RULES
     .filter((rule) => rule.test.test(file) && !(rule.allow && rule.allow.test(file)))
     .map((rule) => `${file}  (${rule.why})`));
   assert.deepEqual(offenders, []);
 });
 
 test('a stray file on a local-only path is ignored, so git add cannot leak it', async () => {
-  const localOnly = ['.env', '.credentials.yaml', '.secrets.yaml', 'credentials.yml', 'deploy.pem', 'session.jsonl', 'pack.tgz', 'LESSONS.md', 'REVIEW-LESSONS.md', 'REVIEW-LESSONS-inbox.md', 'decisions.tsv', '.agents/notes/x.md', 'node_modules/x.js', '.codegraph/x', '.pnpm-store/x'];
+  const localOnly = ['.env', '.credentials.yaml', '.secrets.yaml', 'credentials.yml', 'credentials.json', 'credentials.txt', 'secrets.yml', 'secrets.json', 'secrets.txt', 'deploy.pem', 'session.jsonl', 'pack.tgz', 'LESSONS.md', 'REVIEW-LESSONS.md', 'REVIEW-LESSONS-inbox.md', 'decisions.tsv', '.agents/notes/x.md', 'node_modules/x.js', '.codegraph/x', '.pnpm-store/x'];
   const ignored = new Set((await git('check-ignore', '--no-index', ...localOnly)).split(/\r?\n/).filter(Boolean));
   const leaking = localOnly.filter((file) => !ignored.has(file));
   assert.deepEqual(leaking, [], 'these paths must match a .gitignore rule');
@@ -77,14 +84,26 @@ test('a stray file on a local-only path is ignored, so git add cannot leak it', 
 
 test('kept files stay committable even when no ignore rule matches any of them', async () => {
   const keep = ['.env.example', '.agents/skills/verify/SKILL.md', 'docs/decisions.md', 'test/doc-target.txt', 'docs/design/tokens.json'];
-  const lines = (await gitAllowingNoMatch('check-ignore', '--no-index', '-v', '--non-matching', ...keep)).split(/\r?\n/).filter(Boolean);
-  const ignored = lines.filter((line) => {
-    const rule = line.slice(0, line.lastIndexOf('\t'));
-    return rule !== '::' && !rule.includes(':!');
-  }).map((line) => line.slice(line.lastIndexOf('\t') + 1));
-  assert.deepEqual(ignored, [], 'these files must stay committable');
-  const rejected = keep.filter((file) => LOCAL_ONLY_PATHS.some((rule) => rule.test.test(file) && !(rule.allow && rule.allow.test(file))));
-  assert.deepEqual(rejected, []);
+  const scratch = mkdtempSync(join(tmpdir(), 'repo-boundary-'));
+  try {
+    await git('init', { cwd: scratch });
+    await writeFile(join(scratch, '.gitignore'), '');
+    for (const file of keep) {
+      mkdirSync(dirname(join(scratch, file)), { recursive: true });
+      await writeFile(join(scratch, file), '');
+    }
+    const lines = (await gitAllowingNoMatch('-c', 'core.excludesFile=', 'check-ignore', '--no-index', '-v', '--non-matching', ...keep, { cwd: scratch })).split(/\r?\n/).filter(Boolean);
+    assert.ok(lines.every((line) => line.startsWith('::')), 'check-ignore must reach the no-rule-matches state for every kept file');
+    const ignored = lines.filter((line) => {
+      const rule = line.slice(0, line.lastIndexOf('\t'));
+      return rule !== '::' && !rule.includes(':!');
+    }).map((line) => line.slice(line.lastIndexOf('\t') + 1));
+    assert.deepEqual(ignored, [], 'these files must stay committable');
+    const rejected = keep.filter((file) => LOCAL_ONLY_RULES.some((rule) => rule.test.test(file) && !(rule.allow && rule.allow.test(file))));
+    assert.deepEqual(rejected, []);
+  } finally {
+    rmSync(scratch, { recursive: true, force: true });
+  }
 });
 
 test('the package ships only files a user installing the plugin needs', async () => {

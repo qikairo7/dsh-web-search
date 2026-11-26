@@ -11,6 +11,12 @@
 *.pfx
 credentials.yaml
 credentials.yml
+credentials.json
+credentials.txt
+secrets.yaml
+secrets.yml
+secrets.json
+secrets.txt
 .credentials.*
 .secrets.*
 .secret
