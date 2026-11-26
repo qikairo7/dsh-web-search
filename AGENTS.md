@@ -15,6 +15,7 @@
 ## 工作方式
 
 - 主会话只做规划，澄清、拆解、定契约、派活、验收、记决策日志。要写的文件超过一个，或者要对外写，就派子代理。例外是只读问答、复盘结论合并、单文件小脚本、收尾操作。
+- 动手前先查三处，本地笔记、本地 skill、上游。三处都没有才自己写，并在派单里写明查过哪三处。
 - 派活前查 `~/.dsh/MODEL-ROUTING.md`，调 `subagent` 时 `provider` 填 `magpie`，派之前跑一次 `list_subagent_models`。
 - 派单末尾带一段固定的四行，在 `.agents/notes/takeover/dispatch-fixed.md`。那份文件被 gitignore，所以这里把四行原样抄一遍，以仓库里这份为准：
   - 模型照 `~/.dsh/MODEL-ROUTING.md`，派之前跑一次 `list_subagent_models`。
