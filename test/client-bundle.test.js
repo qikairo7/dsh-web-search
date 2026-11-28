@@ -16,8 +16,8 @@ test('client bundle registers a browser half for the package', () => {
   const definition = loadClientDefinition();
   assert.equal(definition.id, pkg.name);
   const plugin = definition.factory(createFakeRequire(createFakeReact().React));
-  assert.deepEqual([...plugin.inject], ['slots', 'locale', 'remote', 'remote.settings', 'remote.credentials', 'configForms'],
-    'the page reads the host configuration form, so the service must be declared');
+  assert.deepEqual([...plugin.inject], ['slots', 'locale', 'remote', 'remote.credentials', 'configForms'],
+    'the page reads the host configuration form and the credential store, so those services must be declared');
   assert.equal(typeof plugin.apply, 'function');
 });
 

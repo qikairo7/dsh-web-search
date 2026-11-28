@@ -63,7 +63,7 @@
     "node": "^22.19.0 || >=24.0.0"
   },
   "scripts": {
-    "test": "node --test",
+    "test": "node --test \"test/*.test.js\"",
     "docs:check": "node scripts/verify-docs.mjs && node scripts/check-doc-freshness.mjs",
     "docs:gen": "node scripts/generate-provider-table.mjs",
     "lint:zh": "autocorrect --lint .",
