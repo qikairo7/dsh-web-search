@@ -7,7 +7,7 @@
 模块地图、请求流和扩展点见 `docs/architecture.md`。本节只规定发布边界：
 
 - `lib/**/*.js` 是唯一随包发布的 JS。新增运行时文件放进 `lib/`，否则同步修改 `package.json#files`。
-- `package.json` 的 `scripts` 是命令的唯一来源。除 `lint:zh` 外，仓库没有 `dev` / `build` / `typecheck` 脚本，也不新增其他脚本类命令。`lint:zh` 是中文排版检查（autocorrect），本机装了才跑得动，属可选工具，不进 CI 与 `pnpm check`；安装方式与前置见 `docs/development.md` 的 autocorrect 节。
+- `package.json` 的 `scripts` 是命令的唯一来源。仓库没有 `dev` / `build` / `typecheck` 脚本，也不新增其他脚本类命令。
 - 基准结果写 `.research/`（gitignored），不提交；临时脚本同样不提交。
 - 依赖方向：`lib/index.js` → `lib/providers/*` → `lib/*` 共用模块。共用模块不得 import `providers/` 或 `index.js`，反向 import 是架构缺陷。`lib/tools/` 视同 provider 层。
 

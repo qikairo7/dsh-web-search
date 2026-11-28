@@ -33,7 +33,7 @@ const LOCAL_ONLY_RULES = [
   { test: /\.tgz$/i, why: '打包产物不进仓库' },
   { test: /(^|\/)(LESSONS|REVIEW-LESSONS(-inbox|-archive)?)\.md$/i, why: '错题集只留在本地' },
   { test: /(^|\/)decisions\.tsv$/i, why: '决策日志只留在本地' },
-  { test: /^\.agents\/(?!skills\/)/, why: '.agents 下只有 skills 进仓库' },
+  { test: /^\.agents\//, why: '.agents 只留在本地' },
   { test: /^(\.codegraph|\.pnpm-store|node_modules|coverage|tmp|\.workflow-lite|\.research|\.local|\.worktrees)\//, why: '工具产物和工作记录不进仓库' },
   { test: /(^|\/)\.DS_Store$|(^|\/)Thumbs\.db$/, why: '系统文件不进仓库' },
 ];
@@ -76,14 +76,14 @@ test('no tracked file sits on a path that must stay local', async () => {
 });
 
 test('a stray file on a local-only path is ignored, so git add cannot leak it', async () => {
-  const localOnly = ['.env', '.credentials.yaml', '.secrets.yaml', 'credentials.yml', 'credentials.json', 'credentials.txt', 'secrets.yml', 'secrets.json', 'secrets.txt', 'deploy.pem', 'session.jsonl', 'pack.tgz', 'LESSONS.md', 'REVIEW-LESSONS.md', 'REVIEW-LESSONS-inbox.md', 'decisions.tsv', '.agents/notes/x.md', 'node_modules/x.js', '.codegraph/x', '.pnpm-store/x'];
+  const localOnly = ['.env', '.credentials.yaml', '.secrets.yaml', 'credentials.yml', 'credentials.json', 'credentials.txt', 'secrets.yml', 'secrets.json', 'secrets.txt', 'deploy.pem', 'session.jsonl', 'pack.tgz', '.agents/notes/x.md', 'node_modules/x.js', '.codegraph/x', '.pnpm-store/x'];
   const ignored = new Set((await git('check-ignore', '--no-index', ...localOnly)).split(/\r?\n/).filter(Boolean));
   const leaking = localOnly.filter((file) => !ignored.has(file));
   assert.deepEqual(leaking, [], 'these paths must match a .gitignore rule');
 });
 
 test('kept files stay committable even when no ignore rule matches any of them', async () => {
-  const keep = ['.env.example', '.agents/skills/verify/SKILL.md', 'docs/decisions.md', 'test/doc-target.txt', 'docs/design/tokens.json'];
+  const keep = ['.env.example', 'docs/decisions.md', 'test/doc-target.txt', 'docs/design/tokens.json'];
   const scratch = mkdtempSync(join(tmpdir(), 'repo-boundary-'));
   try {
     await git('init', { cwd: scratch });

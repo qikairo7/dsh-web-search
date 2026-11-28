@@ -21,12 +21,11 @@
 
 ```sh
 pnpm install
-git config core.hooksPath .githooks
 pnpm docs:check
 pnpm check
 ```
 
-`pnpm check` 依次运行全部八段门禁（见下表）；pre-commit hook 只运行语法检查；全量门禁由 CI 在推送后执行。
+`pnpm check` 依次运行全部八段门禁（见下表）；全量门禁由 CI 在推送后执行。
 
 各双语对同步编辑后，运行 `node scripts/translation-pairing.mjs --record` 重建配对基线；只改一侧会让 `pnpm check` 失败。
 
@@ -43,20 +42,8 @@ pnpm check
 | `pnpm benchmark:refresh` | 刷新基准 fixture |
 | `pnpm quality:probe` | 免费后端 14 条日常质量探针；结果写 `.research/quality-probe.json` |
 | `dsh plugin --profile desktop add "<仓库路径>"` | 安装到本机 DSH，安装后重启 DSH |
-| `codegraph init` | 重建代码图谱索引；索引只落在运行命令的检出，worktree 不共享；查函数调用关系用 `codegraph_explore`；处理本仓库 PR 前后随手跑一次 |
-| `codegraph affected <文件>` | 改 `lib/` 之前，列出受影响的测试；依赖当前检出里的索引，worktree 没有，回主检出跑 |
-| `codebase-memory-mcp cli trace_path --project dsh-web-search --function-name <名>` | 查调用链；命令不在 PATH 时用它的完整路径 |
-| `ocr review --from main` | 开 PR 后可选的筛子 |
 
 `pnpm benchmark` 优先读 `scripts/fixtures/public-benchmark-sample.json`；`SAMPLE_SIZE` 控制每个基准的行数，默认 50；默认 search-only，`BENCHMARK_ENRICH=1` 启用 enrichment；结果写 `.research/public-benchmark.json`（gitignored）。真实 API 验收需要 `.env` 中的凭据；`pnpm benchmark:preflight` 会先检查全部后端。
-
-## autocorrect（可选工具）
-
-`pnpm lint:zh` 检查中文排版（留白、标点），改中文文档前后各跑一次；不进 `pnpm check` 与 CI。
-
-Windows：从 [releases](https://github.com/huacnlee/autocorrect/releases) 下载 `autocorrect-windows-amd64.zip`，`autocorrect.exe` 放 PATH（如 `%APPDATA%\npm\`）；macOS：`brew install autocorrect`。装好跑 `autocorrect --version` 核对（2.16.x）。
-
-不要装 `autocorrect`（同名无关库）与 `@huacnlee/autocorrect`（WASM 无 CLI）；要走 npm 用 `autocorrect-node`（官方分发，带 `autocorrect` 命令）。没装时 `pnpm lint:zh` 报 command not found 属预期。
 
 ## DSH 沙箱
 
@@ -68,12 +55,11 @@ node scripts/check-syntax.mjs && node scripts/check-architecture.mjs && node scr
 
 单文件同理：`node --test --test-isolation=none test/<name>.test.js`。`pnpm docs:check` 不启动子进程，可以直接运行。
 
-## CI 与 Hook
+## CI
 
 - `.github/workflows/check.yml` 在 Node 22/24 上跑 `pnpm install --frozen-lockfile` 和 `pnpm check`；main 的 check 不被新推送取消，release 等绿跑。
 - `.github/workflows/release.yml` 等被发布 commit 的 check 全绿后发布；等待≤30 分钟，job 预算 45 分钟。
-- `.githooks/pre-commit` 运行 `node scripts/check-syntax.mjs`（仅语法检查）。首次 clone 后用 `git config core.hooksPath .githooks` 启用。
-- 仓库没有 `dev` / `build` / `typecheck` 脚本；`lint:zh` 是可选的中文排版检查（见上文），不进 `pnpm check`。不要运行不存在的命令。
+- 仓库没有 `dev` / `build` / `typecheck` 脚本；不要运行不存在的命令。
 
 ## 环境变量
 
