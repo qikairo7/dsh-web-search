@@ -18,7 +18,7 @@
 | 任务 | 去处 | 触发时机 |
 |---|---|---|
 | 配置 / 配额 | [configuration.md](configuration.md) | 查配置 |
-| 架构 / 调用关系 | [architecture.md](architecture.md)、[dsh-host-contract.md](dsh-host-contract.md)、`codegraph_explore`、`codegraph init` | 改代码/查调用/重建 |
+| 架构 / 调用关系 | [architecture.md](architecture.md)、[dsh-host-contract.md](dsh-host-contract.md) | 改代码/查调用/重建 |
 | 标准 / Review | [CODING_STANDARDS.md](../CODING_STANDARDS.md)、[cookbook/adding-a-provider.md](cookbook/adding-a-provider.md) | 写/评审 |
 | 文档 / 术语 / 决策 | 本文、[GLOSSARY.md](../GLOSSARY.md)、[adr/](adr/) | 文档/术语 |
 | 发版 / 推前 / 排错 | [CHANGELOG.md](../CHANGELOG.md)、[development.md](development.md) | 发版/推前/排错 |

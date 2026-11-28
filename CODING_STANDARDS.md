@@ -88,7 +88,7 @@
 
 ## 7. 文档
 
-文档层级、事实归属、写作规则、篇幅预算和机械检查见 `docs/AGENTS.md`。中文文风按 `zh-tech-writing`，术语按 `GLOSSARY.md`。两份 README 保持同步；契约变化先写 ADR，不静默推翻 `docs/adr/` 已接受决策，有冲突先说明再写新 ADR。`pnpm docs:check` 单独验证文档，`pnpm check` 已包含它。
+文档层级、事实归属、写作规则、篇幅预算和机械检查见 `docs/AGENTS.md`。术语按 `GLOSSARY.md`。两份 README 保持同步；契约变化先写 ADR，不静默推翻 `docs/adr/` 已接受决策，有冲突先说明再写新 ADR。`pnpm docs:check` 单独验证文档，`pnpm check` 已包含它。
 
 ## 8. 协作与提交
 
