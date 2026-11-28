@@ -63,6 +63,6 @@ node scripts/check-syntax.mjs && node scripts/check-architecture.mjs && node scr
 ## 相关文档
 
 - [架构](architecture.md)
-- [文档标准](AGENTS.md)
+- [文档标准](../AGENTS.md)
 - [测试策略](testing.md)
 - [实现标准](../CODING_STANDARDS.md)
