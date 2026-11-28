@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { Readable } from 'node:stream';
 
 import { HttpFetchProvider } from '../lib/providers/http.js';
+import { fetchPinned } from '../lib/pinnedFetch.js';
 
 function httpSettings() {
   return {
@@ -421,4 +423,76 @@ test('HTTP fetch pins a validated IPv6 address and keeps the URL hostname', asyn
   assert.equal(result.statusCode, 200);
   assert.equal(seen[0].url, 'https://v6.example/path', 'the pinned request keeps the URL hostname for Host and SNI');
   assert.deepEqual(seen[0].init.addresses, [{ address: '2606:2800:220:1:248:1893:25c8:1946', family: 6 }]);
+});
+
+/** Build a fake `request` whose response headers arrive but whose body never ends. */
+function stalledRequest() {
+  const captured = { calls: 0, responded: false, options: undefined, abortBody: undefined };
+  const request = (options, onResponse) => {
+    captured.calls += 1;
+    captured.options = options;
+    const handlers = {};
+    const handle = {
+      on(event, handler) {
+        handlers[event] = handler;
+        return this;
+      },
+      destroy(reason) {
+        handlers.error?.(reason);
+      },
+      end() {},
+    };
+    setImmediate(() => {
+      const message = new Readable({ read() {} });
+      message.statusCode = 200;
+      message.headers = { 'content-type': 'text/plain' };
+      captured.responded = true;
+      captured.abortBody = () => message.destroy(new DOMException('stop', 'AbortError'));
+      onResponse(message);
+    });
+    return handle;
+  };
+  captured.request = request;
+  return captured;
+}
+
+/** Build a provider whose transport is the real pinned fetch over a fake `request`. */
+function providerWithStalledRequest(fake, { requestTimeoutMs } = {}) {
+  return new HttpFetchProvider({
+    settings: () => ({ ...httpSettings(), requestTimeoutMs }),
+    lookup: publicLookup,
+    fetch: (url, init) => fetchPinned(url, { ...init, request: fake.request }),
+  });
+}
+
+test('HTTP fetch enforces the request timeout after the response headers on a stalled body', async () => {
+  const fake = stalledRequest();
+  const provider = providerWithStalledRequest(fake, { requestTimeoutMs: 200 });
+  const outcome = await Promise.race([
+    provider.fetch({ url: 'https://stall.example/' }).then(
+      (result) => `OK:${result.statusCode}`,
+      (error) => `THROW:${error.code}`,
+    ),
+    new Promise((resolve) => setTimeout(() => resolve('stalled'), 1_500)),
+  ]);
+  fake.abortBody?.();
+  assert.equal(fake.responded, true, 'the response headers must arrive before the body stalls');
+  assert.equal(outcome, 'THROW:WEB_FETCH_TIMEOUT', 'the request timeout must cut off a stalled body after the headers');
+});
+
+test('HTTP fetch honors caller cancellation after the response headers on a stalled body', async () => {
+  const fake = stalledRequest();
+  const provider = providerWithStalledRequest(fake, { requestTimeoutMs: 30_000 });
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), 150);
+  const outcome = await Promise.race([
+    provider.fetch({ url: 'https://stall.example/' }, controller.signal).then(
+      (result) => `OK:${result.statusCode}`,
+      (error) => `THROW:${error.code}`,
+    ),
+    new Promise((resolve) => setTimeout(() => resolve('stalled'), 1_500)),
+  ]);
+  fake.abortBody?.();
+  assert.equal(fake.responded, true, 'the response headers must arrive before the cancellation');
+  assert.equal(outcome, 'THROW:WEB_ABORTED', 'caller cancellation must cut off a stalled body after the headers');
 });
