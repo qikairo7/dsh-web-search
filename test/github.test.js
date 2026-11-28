@@ -98,6 +98,34 @@ test('mapGithubIssueSearch keeps issues, drops pull requests, and keeps state/co
   assert.equal(source.publishedAt, '2026-02-03T00:00:00Z');
 });
 
+test('mapGithubIssueSearch keeps pull requests when the caller asked for them', () => {
+  const data = {
+    items: [
+      {
+        html_url: 'https://github.com/o/r/issues/7',
+        title: 'an issue',
+        body: 'issue body',
+        state: 'open',
+        comments: 1,
+        created_at: '2026-02-03T00:00:00Z',
+      },
+      {
+        html_url: 'https://github.com/o/r/pull/9',
+        title: 'a pull request',
+        body: 'pr body',
+        state: 'closed',
+        comments: 2,
+        created_at: '2026-02-04T00:00:00Z',
+        pull_request: { url: 'https://api.github.com/repos/o/r/pulls/9' },
+      },
+    ],
+  };
+  const result = mapGithubIssueSearch(data, 4_000, true);
+  assert.equal(result.sources.length, 2);
+  assert.equal(result.sources[1].url, 'https://github.com/o/r/pull/9');
+  assert.match(result.sources[1].snippet, /closed/u);
+});
+
 test('GithubProvider.search hits the issue endpoint for error text and stays anonymous without a key', async () => {
   assert.equal(GITHUB_PROVIDER_ID, 'github');
   let seen;
@@ -158,6 +186,78 @@ test('GithubProvider.search falls back to text search when a bare slug is not a 
   );
 });
 
+test('GithubProvider.search routes is:pr and type:pr queries to the issue endpoint and keeps the pull requests', async () => {
+  for (const query of ['is:pr label:bug repo:o/r', 'type:pr fix crash']) {
+    let seen;
+    await withFetch(
+      async (url) => {
+        seen = new URL(String(url));
+        return jsonResponse({
+          items: [
+            {
+              html_url: 'https://github.com/o/r/pull/9',
+              title: 'a pull request',
+              body: 'pr body',
+              state: 'open',
+              comments: 0,
+              created_at: '2026-02-04T00:00:00Z',
+              pull_request: { url: 'https://api.github.com/repos/o/r/pulls/9' },
+            },
+          ],
+        });
+      },
+      async () => {
+        const provider = new GithubProvider({ settings: () => ghSettings(), resolveKey: async () => undefined });
+        const result = await provider.search({ query, maxResults: 5 });
+        assert.equal(seen.pathname, '/search/issues', query);
+        assert.equal(result.sources.length, 1, query);
+        assert.equal(result.sources[0].url, 'https://github.com/o/r/pull/9', query);
+      },
+    );
+  }
+});
+
+test('GithubProvider.search fails instead of searching github when operator cleanup leaves no text', async () => {
+  let calls = 0;
+  await withFetch(
+    async () => {
+      calls += 1;
+      return jsonResponse({ items: [] });
+    },
+    async () => {
+      const provider = new GithubProvider({ settings: () => ghSettings(), resolveKey: async () => undefined });
+      await assert.rejects(provider.search({ query: 'lang:zh' }), (error) => {
+        assert.equal(error.name, 'WebError');
+        assert.match(error.message, /no text/u);
+        return true;
+      });
+      assert.equal(calls, 0, 'a substituted query must not reach the network');
+    },
+  );
+});
+
+test('GithubProvider.search surfaces a 422 from the direct repository lookup instead of silently searching text', async () => {
+  const paths = [];
+  await withFetch(
+    async (url) => {
+      const u = new URL(String(url));
+      paths.push(u.pathname);
+      if (u.pathname.startsWith('/repos/')) {
+        return new Response(JSON.stringify({ message: 'Validation Failed' }), { status: 422, headers: { 'content-type': 'application/json' } });
+      }
+      return jsonResponse({ items: [{ full_name: 'x/y', html_url: 'https://github.com/x/y' }] });
+    },
+    async () => {
+      const provider = new GithubProvider({ settings: () => ghSettings(), resolveKey: async () => undefined });
+      await assert.rejects(provider.search({ query: 'ghostowner/ghostrepo', maxResults: 5 }), (error) => {
+        assert.equal(error.name, 'WebError');
+        return true;
+      });
+      assert.deepEqual(paths, ['/repos/ghostowner/ghostrepo'], 'a 422 must not degrade into a repository text search');
+    },
+  );
+});
+
 test('mapGithubRepo maps a single /repos payload into one source and rejects a non-repo body', () => {
   const result = mapGithubRepo({ full_name: 'facebook/react', html_url: 'https://github.com/react/react', stargazers_count: 200000, language: 'JavaScript' }, 4_000);
   assert.equal(result.sources.length, 1);
@@ -187,7 +287,7 @@ test('GithubProvider.search maps a 403 to a recoverable rate-limited error', asy
         return true;
       });
       // Retry-After: 60 must put the provider into roughly a 60s cooldown, so the
-      // chain skips it instead of calling again (ADR-0012).
+      // chain skips it instead of calling again.
       assert.equal(provider.available(), false);
       const remaining = provider.cooldownUntil - Date.now();
       assert.ok(remaining > 55_000 && remaining <= 60_000, `cooldown ${remaining}ms`);
@@ -209,7 +309,7 @@ test('GithubProvider.search caps a day-long Retry-After at the breaker cooldown 
         return true;
       });
       // A day-long Retry-After must not outlive the breaker cooldown the rest of
-      // the router honors (ADR-0012), or GitHub goes silently missing for the day.
+      // the router honors it, or GitHub goes silently missing for the day.
       const remaining = provider.cooldownUntil - Date.now();
       assert.ok(remaining <= breakerCooldownMs, `cooldown ${remaining}ms must be capped at ${breakerCooldownMs}ms`);
       assert.equal(provider.available(), false);

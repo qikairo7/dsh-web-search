@@ -62,15 +62,10 @@
 - 字符串没命中已知类时回落默认集，单个拼写错误不会静默关掉回退。
 - number 的 `min` / `max` / `step` 兼任设置页约束；`coerce` 决定运行时解析器。
 - 后端段形状由各自 `path` 决定，无第二张中心表；`http` 段只有 `enabled`。
-- 改默认值或配额时同步 `DEFAULT_SETTINGS`、configuration 表与两份 README（ADR-0003）。
+- 改默认值或配额时同步 `DEFAULT_SETTINGS`、configuration 表与两份 README。
 - 随包默认变化时再加 cordis.patch.yml。
-- `pnpm docs:check` 机械校验 configuration 覆盖每个字段且默认值一致。
 
 ## 验证命令
-
-```sh
-pnpm docs:check
-```
 
 ```sh
 node --test --test-isolation=none test/settings.test.js

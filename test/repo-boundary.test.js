@@ -25,7 +25,7 @@ const gitAllowingNoMatch = async (...args) => {
 const tracked = async () => (await git('ls-files', '-z')).split('\0').filter(Boolean);
 
 const LOCAL_ONLY_RULES = [
-  { test: /^\.env(\..+)?$/, allow: /^\.env\.example$/, why: '密钥文件只留在本地' },
+  { test: /^\.env(\..+)?$/, why: '密钥文件只留在本地' },
   { test: /(^|\/)\.?(credentials|secrets?)\.(ya?ml|json|txt)$/i, why: '凭据库不进仓库' },
   { test: /(^|\/)\.secret$/, why: '凭据库不进仓库' },
   { test: /\.(pem|key|p12|pfx)$/i, why: '私钥不进仓库' },
@@ -33,7 +33,7 @@ const LOCAL_ONLY_RULES = [
   { test: /\.tgz$/i, why: '打包产物不进仓库' },
   { test: /(^|\/)(LESSONS|REVIEW-LESSONS(-inbox|-archive)?)\.md$/i, why: '错题集只留在本地' },
   { test: /(^|\/)decisions\.tsv$/i, why: '决策日志只留在本地' },
-  { test: /^\.agents\/(?!skills\/)/, why: '.agents 下只有 skills 进仓库' },
+  { test: /^\.agents\//, why: '.agents 只留在本地' },
   { test: /^(\.codegraph|\.pnpm-store|node_modules|coverage|tmp|\.workflow-lite|\.research|\.local|\.worktrees)\//, why: '工具产物和工作记录不进仓库' },
   { test: /(^|\/)\.DS_Store$|(^|\/)Thumbs\.db$/, why: '系统文件不进仓库' },
 ];
@@ -44,11 +44,10 @@ const SHIP_TOP_LEVEL = new Set([
   'SAFETY.md', 'SAFETY.zh.md', 'SECURITY.md', 'SECURITY.zh.md', 'TRADEMARKS.md', 'TRADEMARKS.zh.md',
 ]);
 const SHIP_DIRS = new Set(['lib', 'locale', 'LICENSES', 'docs']);
-const SHIP_DOCS = new Set(['docs/DETAIL.md', 'docs/DETAIL.en.md', 'docs/preview.svg', 'docs/changelog-archive.md']);
+const SHIP_DOCS = new Set(['docs/DETAIL.md', 'docs/DETAIL.en.md', 'docs/preview.svg']);
 
 const MUST_SHIP = [
   'LICENSE',
-  'LICENSES/Apache-2.0.txt',
   'LICENSES/geist-mono-OFL.txt',
   'LICENSES/inter-OFL.txt',
   'THIRD_PARTY_NOTICES.md',
@@ -76,14 +75,14 @@ test('no tracked file sits on a path that must stay local', async () => {
 });
 
 test('a stray file on a local-only path is ignored, so git add cannot leak it', async () => {
-  const localOnly = ['.env', '.credentials.yaml', '.secrets.yaml', 'credentials.yml', 'credentials.json', 'credentials.txt', 'secrets.yml', 'secrets.json', 'secrets.txt', 'deploy.pem', 'session.jsonl', 'pack.tgz', 'LESSONS.md', 'REVIEW-LESSONS.md', 'REVIEW-LESSONS-inbox.md', 'decisions.tsv', '.agents/notes/x.md', 'node_modules/x.js', '.codegraph/x', '.pnpm-store/x'];
+  const localOnly = ['.env', '.credentials.yaml', '.secrets.yaml', 'credentials.yml', 'credentials.json', 'credentials.txt', 'secrets.yml', 'secrets.json', 'secrets.txt', 'deploy.pem', 'session.jsonl', 'pack.tgz', '.agents/notes/x.md', 'node_modules/x.js', '.codegraph/x', '.pnpm-store/x'];
   const ignored = new Set((await git('check-ignore', '--no-index', ...localOnly)).split(/\r?\n/).filter(Boolean));
   const leaking = localOnly.filter((file) => !ignored.has(file));
   assert.deepEqual(leaking, [], 'these paths must match a .gitignore rule');
 });
 
 test('kept files stay committable even when no ignore rule matches any of them', async () => {
-  const keep = ['.env.example', '.agents/skills/verify/SKILL.md', 'docs/decisions.md', 'test/doc-target.txt', 'docs/design/tokens.json'];
+  const keep = ['docs/decisions.md', 'test/doc-target.txt', 'docs/design/tokens.json'];
   const scratch = mkdtempSync(join(tmpdir(), 'repo-boundary-'));
   try {
     await git('init', { cwd: scratch });
@@ -126,15 +125,7 @@ test('the package carries every licence and legal file it redistributes under', 
   assert.deepEqual(missing, []);
 });
 
-test('.env.example names variables but never carries a value', async () => {
-  const text = await readFile('.env.example', 'utf8');
-  const lines = text.split(/\r?\n/).filter((line) => /^[A-Z][A-Z0-9_]*=/.test(line));
-  assert.ok(lines.length >= 1, '.env.example should list at least one variable');
-  const filled = lines.filter((line) => line.slice(line.indexOf('=') + 1).trim() !== '');
-  assert.deepEqual(filled, []);
-});
-
-test('the doc set equals the agreed target list', { skip: process.env.BOUNDARY_DOCS === '1' ? false : 'opens once the doc removal in phase 2 lands' }, async () => {
+test('the doc set equals the agreed target list', async () => {
   const target = (await readFile(new URL('./doc-target.txt', import.meta.url), 'utf8')).split(/\r?\n/).filter((line) => line && !line.startsWith('#'));
   const actual = (await tracked()).filter((file) => file.endsWith('.md')).sort();
   assert.deepEqual(actual, target.sort());

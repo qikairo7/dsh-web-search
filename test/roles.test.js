@@ -27,7 +27,7 @@ test('role tables reference only free-tier search providers', () => {
   }
 });
 
-test('Chinese rows keep Zhihu; English rows drop it (ADR-0010)', () => {
+test('Chinese rows keep Zhihu; English rows drop it', () => {
   assert.ok(SEARCH_ROLES.zh.general.quality.includes('zhihu'));
   assert.equal(SEARCH_ROLES.en.general.quality.includes('zhihu'), false);
   assert.equal(SEARCH_ROLES.en['ai-news'].quality.includes('zhihu'), false);
@@ -60,7 +60,7 @@ test('default orders end with the catalog paid tail and stay free or keyless bef
   }
 });
 
-test('default search orders place bing after exa and before the paid tail (ADR-0011)', () => {
+test('default search orders place bing after exa and before the paid tail', () => {
   for (const order of [DEFAULT_SEARCH_ORDERS.chineseSearchOrder, DEFAULT_SEARCH_ORDERS.defaultSearchOrder]) {
     assert.ok(order.indexOf('exa') < order.indexOf('bing'), 'exa before bing');
     assert.ok(order.indexOf('bing') < order.indexOf('tavily'), 'bing before the paid tail');

@@ -1,6 +1,6 @@
 # 防御性 Review 规则
 
-本文件按 artifact 列出 Review 时最容易漏掉的规则。[CODING_STANDARDS](../CODING_STANDARDS.md) 的 Review 门禁是总清单；这里是展开说明。
+本文件按 artifact 列出 Review 时最容易漏掉的规则。
 
 ## Provider
 
@@ -24,7 +24,7 @@
 - 最多 5 跳重定向，允许跨域；超过上限抛 `WEB_REDIRECT_BLOCKED`。
 - 5 MB 响应上限；只接受 HTML/text/JSON/XML，PDF 和二进制抛 `WEB_UNSUPPORTED_CONTENT_TYPE`。
 - 小型 SPA 空壳由 `minDirectHtmlChars` 判定并回退到 API provider。
-- 直连 HTTP 默认拦截回环、私有网段、链路本地与云元数据地址，首次请求和每次重定向都先解析域名再校验；`DSH_WEB_HTTP_ALLOW_PRIVATE=1` 是放行本机调试的逃生门，不要去掉这层防护。
+- 直连 HTTP 默认拦截回环、私有网段、链路本地与云元数据地址；首次请求和每次重定向解析一次，校验过的地址钉到连接上，连接不再自行解析域名，也不经环境代理；校验期 DNS 失败一律抛 `WEB_PRIVATE_URL`，不放行；`DSH_WEB_HTTP_ALLOW_PRIVATE=1` 是放行本机调试的逃生门，不要去掉这层防护。
 
 ## 防御性构造
 
@@ -41,8 +41,8 @@
 
 ## 文档
 
-- 遵守 [docs/AGENTS.md](AGENTS.md)：一个事实一个家、当前状态、篇幅预算、相对链接、中文文风。
-- 改 README 时两份同步；改契约先写 ADR；改实现规则更新 `CODING_STANDARDS.md`。
+- 一个事实一个家、写当前状态、相对链接指向真实文件。
+- 改 README 时两份同步；改契约先写进 `docs/decisions.md`；改实现规则更新 `CODING_STANDARDS.md`。
 
 ## 测试
 

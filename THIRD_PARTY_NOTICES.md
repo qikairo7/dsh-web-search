@@ -145,17 +145,6 @@ These packages are provided by the DSH host and are not bundled with this plugin
 | `@deepseek-ai/dsh-tools` | MIT | Tool registry |
 | `@deepseek-ai/dsh-web` | MIT | Web provider contract |
 
-## Benchmark data
-
-`scripts/fixtures/public-benchmark-sample.json` redistributes the first 50 rows of two public benchmark datasets, used as a local fixture for `pnpm benchmark`. Both datasets are licensed under the Apache License 2.0; see [LICENSES/Apache-2.0.txt](LICENSES/Apache-2.0.txt).
-
-| Dataset | Source | License | Rows used |
-|---|---|---|---|
-| FRAMES (Factuality, Retrieval, And reasoning MEasurement Set) | [google/frames-benchmark](https://huggingface.co/datasets/google/frames-benchmark) | Apache-2.0 | 50 |
-| WebWalkerQA | [callanwu/WebWalkerQA](https://huggingface.co/datasets/callanwu/WebWalkerQA) | Apache-2.0 | 50 |
-
-The datasets are unmodified except for row selection. The benchmark reports that cite them are in [docs/benchmarks](docs/benchmarks/).
-
 ## Development dependencies
 
 Development-only packages are declared in `package.json` and pinned in `pnpm-lock.yaml`. They are not distributed with the plugin. The full transitive closure and each package's license are recorded in the lockfile; inspect them with `pnpm licenses list`.

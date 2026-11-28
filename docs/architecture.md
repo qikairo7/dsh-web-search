@@ -1,6 +1,6 @@
 # dsh-web-search 架构
 
-改 `lib/` 前先读这份地图：行为概览在 [README](../README.md) / [README.en](../README.en.md)；请求流细节见本文档与 [docs/configuration.md](configuration.md)，实现规则在 [CODING_STANDARDS](../CODING_STANDARDS.md)，决策原因在 [docs/adr](adr/) 与维护者本地决策记录（见 [docs/AGENTS.md](AGENTS.md)）。
+改 `lib/` 前先读这份地图：行为概览在 [README](../README.md) / [README.en](../README.en.md)；请求流细节见本文档与 [docs/configuration.md](configuration.md)，实现规则在 [CODING_STANDARDS](../CODING_STANDARDS.md)，决策原因在 [docs/decisions.md](decisions.md)。
 
 ## 组成
 
@@ -49,7 +49,7 @@ keenable / anysearch / exa / bing / tavily / firecrawl / zhihu / zhihu-site / ai
 |---|---|
 | `lib/index.js` | 插件入口；由 `SETTINGS_SPEC` 生成 `Config`，`createProviders()` 按 catalog 派生实例并注册 |
 | `lib/health.js` | 设置页的 Provider 管理路由：健康检查、SiliconFlow 模型列表与额度查询；仅在 Web Server profile 注册 |
-| `lib/fonts-routes.js` | 设置页设计 token 的同源字体路由（ADR-0016）；仅在 Web Server profile 注册 |
+| `lib/fonts-routes.js` | 设置页设计 token 的同源字体路由；仅在 Web Server profile 注册 |
 | `lib/providers/*.js` | 各后端适配器与 `mapXxxSearch()` 纯映射；消费 `request.routing` 注记，缺省时经 `resolveRouting` 推导 |
 | `lib/providers/shared.js` | 适配器共用层：`providerOperation` 骨架（超时、错误边界、诊断标签）、`USER_AGENT`、计数夹取、凭据 |
 | `lib/providers/anysearchClient.js` | AnySearch HTTP 客户端（移植自 `anysearch-dsh`） |
@@ -68,7 +68,8 @@ keenable / anysearch / exa / bing / tavily / firecrawl / zhihu / zhihu-site / ai
 | `lib/keyring.js` | Provider 多 Key 包装：按顺序尝试 Key，额度/限流/鉴权失败切换到下一个 |
 | `lib/quotaStore.js` | 缓存 Provider 响应中的最近一次额度读数（Keenable 的 `credits_remaining`） |
 | `lib/http.js` | `joinURL`、`requestJSON` / `requestText`、超时、取消与 HTTP 错误 |
-| `lib/host.js` | host 归一化、域名匹配与直连 HTTP 私网地址判定/解析校验的唯一实现；读取 `DSH_WEB_HTTP_ALLOW_PRIVATE` 逃生门 |
+| `lib/host.js` | host 归一化、域名匹配与直连 HTTP 私网地址判定/解析校验的唯一实现；返回校验通过的地址供连接钉住，读取 `DSH_WEB_HTTP_ALLOW_PRIVATE` 逃生门 |
+| `lib/pinnedFetch.js` | fetch 兼容的传输层：把校验过的地址钉到 `node:http` / `node:https` 的连接上，不经环境代理 |
 | `lib/errors.js` | `WebError` 适配与 `WEB_*` 错误码；`toWebError` 保留调用方已带的 `WEB_*` code |
 | `lib/intent.js` | intent 路由分类；quality/fast 顺序查询 `lib/roles.js` 角色表 |
 | `lib/technical.js` | 技术文本与查询词启发式 |
@@ -81,7 +82,7 @@ keenable / anysearch / exa / bing / tavily / firecrawl / zhihu / zhihu-site / ai
 | `lib/summarize.js` | 查询相关摘要与证据摘要 |
 | `lib/clean.js` | Markdown 正文清洗与 HTML 转文本 |
 | `lib/text.js` | 汉字检测与中英文语言判断 |
-| `lib/tools/*.js` | 可选高级工具：AnySearch 三件、formatter/限额、`tavily_*`、`aihot_*`、`x_search`（X，ADR-0013）；`index.js` 负责注册 |
+| `lib/tools/*.js` | 可选高级工具：AnySearch 三件、formatter/限额、`tavily_*`、`aihot_*`、`x_search`（X）；`index.js` 负责注册 |
 | `test/*.test.js` | 按 lib 模块对应的 `node:test` 单测，不访问网络；HTTP 拦截用 `test/helpers/withFetch.js` |
 
 ## 搜索流程
@@ -91,7 +92,7 @@ keenable / anysearch / exa / bing / tavily / firecrawl / zhihu / zhihu-site / ai
 3. 天气/汇率查询先由 `realtime.js`（Open-Meteo、ExchangeRate-API/Frankfurter）应答；失败则继续正常搜索。
 4. `quality`：`QualityEngine.search()` 从角色表取该语言免费 Provider 并行调用，合并去重后走 BGE 重排（一次尝试，失败降级为提供方优先序）、权威加权与证据增强。补充缝各触发一次、不计熔断：官方文档补充由 `domainSearch` 声明（缺官方域且无 `site:` 时）；新闻时效补充由 `newsSupplement` 声明（条件见 README）。
 5. `fast`：`ProviderRunner.run()` 按 `fastOrder()` 顺序逐个尝试（付费尾由 catalog tier 派生）；只有 `isRecoverable(error)` 为真才进入下一个 Provider。
-6. 所有 Provider 都失败时返回最后一个可恢复错误；空结果不写缓存；弱结果沿原序再试 1 家免费后端（ADR-0015）。
+6. 所有 Provider 都失败时返回最后一个可恢复错误；空结果不写缓存；弱结果沿原序再试 1 家免费后端。
 
 ## 抓取流程
 
@@ -121,11 +122,11 @@ settings() thunk ──→ Provider / Router
 
 | 目标 | 做法 |
 |---|---|
-| 新增后端 | 新增 provider 文件与 ID 常量；在 `lib/catalog.js` 声明能力、settingsKey、tier 与算子，在 `lib/index.js` factory 表与 `lib/settings.js` `SETTINGS_SPEC` 登记；补 README 与映射/路由测试；新 id 或契约先写 ADR |
+| 新增后端 | 新增 provider 文件与 ID 常量；在 `lib/catalog.js` 声明能力、settingsKey、tier 与算子，在 `lib/index.js` factory 表与 `lib/settings.js` `SETTINGS_SPEC` 登记；补 README 与映射/路由测试；新 id 或契约先写进 `docs/decisions.md` |
 | 新增配置字段 | 同时修改 `Config`、`DEFAULT_SETTINGS`、`SETTINGS_SPEC`，并更新两份 README |
 | 修改路由或回退 | 改 `lib/providers/router.js`、`lib/roles.js` 或 `lib/routing.js`，补路由测试，更新 README 的 Behavior 与配额说明 |
-| 修改文档 | 先读 [docs/AGENTS.md](AGENTS.md)，按事实归属改唯一一份，再跑 `pnpm docs:check` |
-| 记录决策 | 写 ADR：契约、理由与被放弃的方案都记在里面 |
+| 修改文档 | 一个事实一个家，改唯一的一份 |
+| 记录决策 | 写进 [docs/decisions.md](decisions.md)：决定、放弃的方案与执行它的测试 |
 
 ## 不变量
 
