@@ -1,8 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { filterNewsLanguage, newsBoostValue } from '../lib/news.js';
+import { filterNewsLanguage, newsBoostValue, newsDomainLanguage } from '../lib/news.js';
 import { sortByAuthority } from '../lib/authority.js';
+
+test('news subdomains resolve to their registered news domain', () => {
+  assert.equal(newsDomainLanguage('https://news.qq.com/a/1'), 'zh');
+  assert.equal(newsDomainLanguage('https://tech.163.com/2'), 'zh');
+  assert.equal(newsDomainLanguage('https://finance.sina.com.cn/3'), 'zh');
+  assert.equal(newsDomainLanguage('https://www.163.com/dy/article/1.html'), 'zh');
+  assert.equal(newsDomainLanguage('https://example.com/article'), undefined);
+  assert.equal(newsDomainLanguage('https://not163.com/1'), undefined);
+});
+
+test('news subdomains get the boost of their registered domain', () => {
+  assert.equal(newsBoostValue('https://news.163.com/1', 'zh'), 0.5);
+  assert.equal(newsBoostValue('https://news.qq.com/a/1', 'zh'), 0.12);
+  assert.equal(newsBoostValue('https://news.qq.com/a/1', 'en'), 0);
+});
 
 test('mainstream Chinese news gets a larger boost', () => {
   assert.equal(newsBoostValue('https://www.sohu.com/a/1', 'zh'), 0.5);
