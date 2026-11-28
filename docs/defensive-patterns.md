@@ -1,6 +1,6 @@
 # 防御性 Review 规则
 
-本文件按 artifact 列出 Review 时最容易漏掉的规则。[CODING_STANDARDS](../CODING_STANDARDS.md) 的 Review 门禁是总清单；这里是展开说明。
+本文件按 artifact 列出 Review 时最容易漏掉的规则。
 
 ## Provider
 

@@ -27,7 +27,6 @@ docs/development.md
 docs/dsh-host-contract.md
 docs/feature-map.md
 docs/issue-tracker.md
-docs/subsystems/README.md
 docs/subsystems/dsh-host.md
 docs/subsystems/settings.md
 docs/testing.md

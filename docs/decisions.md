@@ -31,9 +31,3 @@
 - 决定：搜索空结果、抓取空正文算弱结果，不结束链，沿 fast 序再试 1 家免费后端；付费尾不参与；弱结果不计熔断、不写缓存。
 - 放弃：把空结果当成功，链停在第一个空返回。
 - 执行：`test/router.test.js` 的弱回退用例组。
-
-## 设置页视觉走 `--dsw2-*` token 与内嵌字体
-
-- 决定：设置页样式定义 `--dsw2-*`，八个 `--dsw-alias-*` 重定向到 dsw2 值；Inter 与 Geist Mono 的 latin 子集 woff2 内嵌，经 `lib/fonts-routes.js` 同源供文件；深色跟随宿主 `body[data-ds-dark-theme]`。
-- 放弃：把宿主 alias 的值当设计真源（值不在本仓）；内联 base64 字体。
-- 执行：`test/design-tokens.test.js`、`test/client-bundle.test.js`。
