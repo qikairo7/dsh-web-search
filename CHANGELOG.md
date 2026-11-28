@@ -4,6 +4,10 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 ## Unreleased
 
+### 变更
+
+- X 搜索从独立工具改为 `web_search` 的搜索后端：后端表新增 X（仅搜索能力），模型面不再注册 `x_search`，`xToolsEnabled` 改为该后端的开关，默认仍关闭（#17 第一步）。
+
 ### 修复
 
 - 门禁顺序检查不再因未知后端 id 放行：权威长度的链先逐字比对顺序，未知 id 只影响违规文案是否附笔误提示（PR #74，修复 #25）。
