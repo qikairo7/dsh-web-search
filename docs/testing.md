@@ -8,7 +8,7 @@
 |---|---|---|
 | 单元测试 | `test/*.test.js` 使用 `node:test` 和 `node:assert/strict`，按 lib 模块对应，不访问网络 | 每次代码改动 |
 | 文档门禁 | `pnpm docs:check` 检查文档层级、链接、配置覆盖和默认值 | 每次文档改动；`pnpm check` 自动运行 |
-| 手动冒烟 | 安装到 DSH，重启后验证设置页、`web_search`（中英文）和 `web_fetch`；设置页管理路由（验证 / 拉模型 / 刷新额度）见维护者本地 verify skill 规程（见 [docs/AGENTS.md](AGENTS.md) 的「维护者本地文件」节）的「管理路由真机验证（web + ego）」节 | 改 Provider 注册、配置或默认行为 |
+| 手动冒烟 | 安装到 DSH，重启后验证设置页、`web_search`（中英文）和 `web_fetch` | 改 Provider 注册、配置或默认行为 |
 
 仓库没有覆盖率门禁，也不把 live API 调用放进单元测试。
 

@@ -13,7 +13,6 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 - quality 摘要清洗补传 url：GitHub 源的摘要里不再残留 Releases、Languages 这类导航小标题和导航链接，200 字门槛改按清洗后的正文判断（PR #84，修复 #61）。
 - GitHub 搜索不再把找 PR 的查询静默改道：带 `is:pr`、`type:pr` 的查询按 `is:issue` 同路处理并保留 PR 条目，清洗后无词不再替换成无关词，直查仓库的 422 不再降级成文本搜索（PR #86，修复 #62）。
 - `after` 与 `before` 日期算子在解析边界校验日历：不存在的日期不再进任何后端的请求体，`after:2024-13` 这类残缺形状不再被截成年份静默宽化（PR #87，修复 #24）。
-- 对外文本检查不再误拒正常写法：`@账号` 后换行、Markdown 列表连字符、`--at` 参数放文件名前后、带不带 `@` 前缀都按预期处理，代码围栏外的 ASCII 引号不再被「」放行（PR #85，修复 #81）。
 
 ## 0.0.0008 — 2026-11-23
 

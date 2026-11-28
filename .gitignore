@@ -20,14 +20,7 @@ secrets.txt
 .secrets.*
 .secret
 
-# 维护者本地文件。只在这台机器上有意义。
-LESSONS.md
-REVIEW-LESSONS.md
-REVIEW-LESSONS-inbox.md
-REVIEW-LESSONS-archive.md
-decisions.tsv
 .agents/*
-!.agents/skills/
 *.jsonl
 
 # 工具产物。
