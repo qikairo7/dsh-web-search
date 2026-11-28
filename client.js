@@ -282,7 +282,7 @@ window.__ModuleLoader__.load({
       cardRouting: 'Routing order and fallback',
       cardRoutingDesc: 'Which backend answers first, when to try the next one, and the limits every request lives under.',
       groupQuality: 'Quality parameters',
-      groupEnrich: 'Evidence enrichment',
+      groupEnrich: 'Evidence enrichment parameters',
       groupOrders: 'Order tables',
       groupLimits: 'Limits and caches',
       groupFallback: 'Fallback and breaker',
@@ -466,7 +466,7 @@ window.__ModuleLoader__.load({
       cardRouting: '路由顺序与回退',
       cardRoutingDesc: '谁先答、什么时候换下一家，以及每次请求的限额。',
       groupQuality: '质量参数',
-      groupEnrich: '证据增强',
+      groupEnrich: '证据增强参数',
       groupOrders: '顺序表',
       groupLimits: '限额与缓存',
       groupFallback: '回退与熔断',
@@ -1120,33 +1120,53 @@ window.__ModuleLoader__.load({
         const state = draft.field(row.key);
         const open = openMenu === row.key;
         const label = t(fieldLabelKey(row.key));
-        return fieldAnchor(row, h(UI.Menu, {
-          open,
-          items: (row.options ?? []).map((option) => ({ id: option, label: t(optionLabelKey(option)) })),
-          selectedId: String(state.value ?? ''),
-          onSelect: (id) => {
-            draft.edit(row.key, id);
-            setOpenMenu(null);
-          },
-          onClose: () => setOpenMenu(null),
-          anchor: h(UI.Button, {
-            variant: 'outline',
-            size: 'sm',
-            disabled,
-            onClick: () => setOpenMenu(open ? null : row.key),
-          }, `${t(fieldLabelKey(row.key))}: ${t(optionLabelKey(String(state.value ?? '')))}`),
-        }), false, true);
+        return fieldAnchor(row, [
+          h(UI.DisclosureRow, {
+            icon: null,
+            title: label,
+            open: false,
+            expandable: false,
+            onToggle: () => {},
+            headerAccessory: h(UI.Menu, {
+              open,
+              items: (row.options ?? []).map((option) => ({ id: option, label: t(optionLabelKey(option)) })),
+              selectedId: String(state.value ?? ''),
+              onSelect: (id) => {
+                draft.edit(row.key, id);
+                setOpenMenu(null);
+              },
+              onClose: () => setOpenMenu(null),
+              anchor: h(UI.Button, {
+                variant: 'outline',
+                size: 'sm',
+                disabled,
+                onClick: () => setOpenMenu(open ? null : row.key),
+              }, t(optionLabelKey(String(state.value ?? '')))),
+            }),
+          }),
+          h('p', null, t(fieldHintKey(row.key))),
+        ], false, false);
       };
 
       const switchField = (row) => {
         const state = draft.field(row.key);
-        return fieldAnchor(row, h(UI.Switch, {
-          checked: state.value === true,
-          label: t(fieldLabelKey(row.key)),
-          describedBy: `${row.key}-hint`,
-          disabled,
-          onChange: (next) => draft.edit(row.key, next),
-        }), true, true);
+        return fieldAnchor(row, [
+          h(UI.DisclosureRow, {
+            icon: null,
+            title: t(fieldLabelKey(row.key)),
+            open: false,
+            expandable: false,
+            onToggle: () => {},
+            headerAccessory: h(UI.Switch, {
+              checked: state.value === true,
+              label: t(fieldLabelKey(row.key)),
+              describedBy: `${row.key}-hint`,
+              disabled,
+              onChange: (next) => draft.edit(row.key, next),
+            }),
+          }),
+          h('p', { id: `${row.key}-hint` }, t(fieldHintKey(row.key))),
+        ], false, false);
       };
 
       const checkGroupField = (row) => {
@@ -1292,18 +1312,26 @@ window.__ModuleLoader__.load({
             ...face.map(fieldNode),
             ...groups.map((group) => {
               const rowsInGroup = cardRows.filter((row) => row.group === group);
+              const open = openGroups[group] === true;
               return h('div', { key: group, 'data-group': group },
-                h(UI.Button, {
-                  variant: 'ghost',
-                  size: 'sm',
-                  'aria-expanded': openGroups[group] === true,
-                  onClick: () => setOpenGroups((current) => ({ ...current, [group]: current[group] !== true })),
-                }, `${openGroups[group] === true ? '▾' : '▸'} ${t(groupTitleKey(group))}`),
+                h(UI.DisclosureRow, {
+                  icon: null,
+                  title: t(groupTitleKey(group)),
+                  open,
+                  expandable: true,
+                  onToggle: () => setOpenGroups((current) => ({ ...current, [group]: current[group] !== true })),
+                }),
                 groupBody(rowsInGroup));
             }),
           ];
         return h('section', { key: card.id, 'data-card': card.id },
-          h('h3', null, t(card.titleKey)),
+          h(UI.DisclosureRow, {
+            icon: null,
+            title: t(card.titleKey),
+            open: false,
+            expandable: false,
+            onToggle: () => {},
+          }),
           h('p', null, t(card.descKey)),
           ...(Array.isArray(body) ? body : [body]));
       };

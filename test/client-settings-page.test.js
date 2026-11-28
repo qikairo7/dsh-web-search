@@ -56,11 +56,16 @@ test('the folded groups render their fields and can be opened', async () => {
   const tree = page.getTree();
   const folded = ['qualityMaxEngines', 'enrichTopN', 'requestTimeoutMs', 'fallbackFailureClasses'];
   for (const key of folded) anchorIn(tree, key);
-  const toggle = findNode(tree, (entry) => entry.type === 'button' && textOf(entry) === '▸ Quality parameters');
-  assert.ok(toggle, 'the quality group header must render');
+  const groupTitle = (current, title) => findNode(current, (entry) => entry.type === 'span'
+    && entry.props?.['data-disclosure-title'] === true && textOf(entry) === title);
+  const title = groupTitle(tree, 'Quality parameters');
+  assert.ok(title, 'the quality group header must render');
+  const toggle = findNode(tree, (entry) => entry.type === 'button' && entry.props?.['data-disclosure-toggle'] === true);
+  assert.ok(toggle, 'the group header must offer a disclosure toggle');
   toggle.props.onClick();
   const opened = await page.settle();
-  assert.ok(findNode(opened, (entry) => entry.type === 'button' && textOf(entry) === '▾ Quality parameters'),
+  assert.ok(findNode(opened, (entry) => entry.type === 'span'
+    && entry.props?.['data-disclosure-title'] === true && textOf(entry) === 'Quality parameters'),
     'clicking the group header must open it');
 });
 
@@ -77,7 +82,7 @@ test('changing a switch, a number and a menu stages a save that writes them with
   tree = await page.settle();
 
   const mode = anchorIn(tree, 'searchMode');
-  const anchorButton = findNode(mode, (entry) => entry.type === 'button' && textOf(entry) === 'Search mode: Quality');
+  const anchorButton = findNode(mode, (entry) => entry.type === 'button' && textOf(entry) === 'Quality');
   anchorButton.props.onClick();
   tree = await page.settle();
   const fastItem = findNode(tree, (entry) => entry.type === 'button' && entry.props?.['data-id'] === 'fast');
