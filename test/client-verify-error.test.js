@@ -96,8 +96,8 @@ test('a successful verification marks the backend and survives a settings update
   tree = await page.settle();
 
   const verdict = () => {
-    const head = findAll(tree, (entry) => entry.props?.['data-backend-head'] === 'keenable')[0];
-    return textOf(head);
+    const row = findAll(tree, (entry) => entry.props?.['data-backend'] === 'keenable')[0];
+    return textOf(row);
   };
   assert.match(verdict(), /Verified/u, 'a passing verify must mark the backend');
 

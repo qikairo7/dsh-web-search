@@ -19,6 +19,7 @@ const CONTROLS = new Set(['switch', 'number', 'text', 'menu', 'secret', 'checkgr
 const LEVELS = new Set(['common', 'advanced']);
 const CARD_IDS = new Set(CARDS.map((card) => card.id));
 const BACKEND_IDS = new Set(BACKENDS.map((backend) => backend.id));
+const KEY_KINDS = new Set(['required', 'optional', 'none']);
 
 function rowFor(key) {
   return SETTINGS_UI.find((row) => row.key === key);
@@ -99,4 +100,38 @@ test('every backend row names fields that exist and a toggle that exists', () =>
   const needingKeyWithoutRef = [...BACKENDS].filter((backend) => backend.needsKey && backend.refKey === null)
     .map((backend) => backend.id);
   assert.deepEqual(needingKeyWithoutRef, [], 'a backend that needs a key must name its reference field');
+});
+
+test('every backend says how it treats its credential', () => {
+  const unknown = [...BACKENDS].filter((backend) => !KEY_KINDS.has(backend.keyKind)).map((backend) => backend.id);
+  assert.deepEqual(unknown, [], 'a backend without a key kind cannot report its credential state');
+  const inconsistent = [...BACKENDS]
+    .filter((backend) => (backend.keyKind === 'none') !== (backend.refKey === null))
+    .map((backend) => backend.id);
+  assert.deepEqual(inconsistent, [],
+    'a backend with no credential must name no reference, and one with a reference must declare how it is treated');
+});
+
+test('the keyless backends are the ones the provider code runs without a credential', () => {
+  // Read off `lib/providers/`: bing, aihot and http carry no credential field at
+  // all; anysearch, keenable and github run anonymously and a key only raises
+  // the allowance; exa, tavily, firecrawl, zhihu, x and siliconflow refuse to
+  // run without one.
+  const expected = {
+    anysearch: 'optional',
+    keenable: 'optional',
+    exa: 'required',
+    bing: 'none',
+    github: 'optional',
+    tavily: 'required',
+    firecrawl: 'required',
+    zhihu: 'required',
+    aihot: 'none',
+    http: 'none',
+    x: 'required',
+    siliconflow: 'required',
+  };
+  const actual = Object.fromEntries(BACKENDS.map((backend) => [backend.id, backend.keyKind]));
+  assert.deepEqual(actual, expected,
+    'the credential state a backend reports must match what its provider code accepts');
 });

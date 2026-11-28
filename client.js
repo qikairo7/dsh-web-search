@@ -203,20 +203,26 @@ const SETTINGS_UI = [
  * One row per backend group of the backends card; the field table names these groups
  * `backend:<id>`. `needsKey` drives the credential controls, `quota` the usage line,
  * `canVerify` the test button, and `special` the one extra control a backend has.
+ *
+ * `keyKind` says how the backend treats its credential, read off the provider code
+ * rather than guessed: `required` means the provider refuses to run without it
+ * (`requireKey` in `lib/providers/`), `optional` means it runs anonymously but a
+ * key raises the allowance or the quota tier (`anysearch`, `keenable`, `github`),
+ * and `none` means it has no credential at all (`bing`, `aihot`, `http`).
  */
 const BACKENDS = [
-  { id: 'anysearch', labelKey: 'backendAnysearch', descKey: 'backendAnysearchDesc', toggleKey: 'anysearchEnabled', refKey: 'anysearchApiKeyEnv', needsKey: true, quota: false, canVerify: true, special: 'zone' },
-  { id: 'keenable', labelKey: 'backendKeenable', descKey: 'backendKeenableDesc', toggleKey: 'keenableEnabled', refKey: 'keenableApiKeyEnv', needsKey: true, quota: true, canVerify: true, special: null },
-  { id: 'exa', labelKey: 'backendExa', descKey: 'backendExaDesc', toggleKey: 'exaEnabled', refKey: 'exaApiKeyEnv', needsKey: true, quota: false, canVerify: true, special: null },
-  { id: 'bing', labelKey: 'backendBing', descKey: 'backendBingDesc', toggleKey: 'bingEnabled', refKey: null, needsKey: false, quota: false, canVerify: true, special: null },
-  { id: 'github', labelKey: 'backendGithub', descKey: 'backendGithubDesc', toggleKey: 'githubEnabled', refKey: 'githubApiKeyEnv', needsKey: true, quota: true, canVerify: true, special: null },
-  { id: 'tavily', labelKey: 'backendTavily', descKey: 'backendTavilyDesc', toggleKey: 'tavilyEnabled', refKey: 'tavilyApiKeyEnv', needsKey: true, quota: true, canVerify: true, special: null },
-  { id: 'firecrawl', labelKey: 'backendFirecrawl', descKey: 'backendFirecrawlDesc', toggleKey: 'firecrawlEnabled', refKey: 'firecrawlApiKeyEnv', needsKey: true, quota: true, canVerify: true, special: null },
-  { id: 'zhihu', labelKey: 'backendZhihu', descKey: 'backendZhihuDesc', toggleKey: 'zhihuEnabled', refKey: 'zhihuApiKeyEnv', needsKey: true, quota: true, canVerify: true, special: 'searchMode' },
-  { id: 'aihot', labelKey: 'backendAihot', descKey: 'backendAihotDesc', toggleKey: 'aihotEnabled', refKey: null, needsKey: false, quota: false, canVerify: true, special: null },
-  { id: 'http', labelKey: 'backendHttp', descKey: 'backendHttpDesc', toggleKey: 'httpEnabled', refKey: null, needsKey: false, quota: false, canVerify: false, special: null },
-  { id: 'x', labelKey: 'backendX', descKey: 'backendXDesc', toggleKey: 'xToolsEnabled', refKey: 'xToolsCookieRef', needsKey: true, quota: false, canVerify: true, special: 'cookie' },
-  { id: 'siliconflow', labelKey: 'backendSiliconflow', descKey: 'backendSiliconflowDesc', toggleKey: 'siliconflowEnabled', refKey: 'siliconflowApiKeyEnv', needsKey: true, quota: true, canVerify: false, special: 'models' },
+  { id: 'anysearch', labelKey: 'backendAnysearch', descKey: 'backendAnysearchDesc', toggleKey: 'anysearchEnabled', refKey: 'anysearchApiKeyEnv', needsKey: true, keyKind: 'optional', quota: false, canVerify: true, special: 'zone' },
+  { id: 'keenable', labelKey: 'backendKeenable', descKey: 'backendKeenableDesc', toggleKey: 'keenableEnabled', refKey: 'keenableApiKeyEnv', needsKey: true, keyKind: 'optional', quota: true, canVerify: true, special: null },
+  { id: 'exa', labelKey: 'backendExa', descKey: 'backendExaDesc', toggleKey: 'exaEnabled', refKey: 'exaApiKeyEnv', needsKey: true, keyKind: 'required', quota: false, canVerify: true, special: null },
+  { id: 'bing', labelKey: 'backendBing', descKey: 'backendBingDesc', toggleKey: 'bingEnabled', refKey: null, needsKey: false, keyKind: 'none', quota: false, canVerify: true, special: null },
+  { id: 'github', labelKey: 'backendGithub', descKey: 'backendGithubDesc', toggleKey: 'githubEnabled', refKey: 'githubApiKeyEnv', needsKey: true, keyKind: 'optional', quota: true, canVerify: true, special: null },
+  { id: 'tavily', labelKey: 'backendTavily', descKey: 'backendTavilyDesc', toggleKey: 'tavilyEnabled', refKey: 'tavilyApiKeyEnv', needsKey: true, keyKind: 'required', quota: true, canVerify: true, special: null },
+  { id: 'firecrawl', labelKey: 'backendFirecrawl', descKey: 'backendFirecrawlDesc', toggleKey: 'firecrawlEnabled', refKey: 'firecrawlApiKeyEnv', needsKey: true, keyKind: 'required', quota: true, canVerify: true, special: null },
+  { id: 'zhihu', labelKey: 'backendZhihu', descKey: 'backendZhihuDesc', toggleKey: 'zhihuEnabled', refKey: 'zhihuApiKeyEnv', needsKey: true, keyKind: 'required', quota: true, canVerify: true, special: 'searchMode' },
+  { id: 'aihot', labelKey: 'backendAihot', descKey: 'backendAihotDesc', toggleKey: 'aihotEnabled', refKey: null, needsKey: false, keyKind: 'none', quota: false, canVerify: true, special: null },
+  { id: 'http', labelKey: 'backendHttp', descKey: 'backendHttpDesc', toggleKey: 'httpEnabled', refKey: null, needsKey: false, keyKind: 'none', quota: false, canVerify: false, special: null },
+  { id: 'x', labelKey: 'backendX', descKey: 'backendXDesc', toggleKey: 'xToolsEnabled', refKey: 'xToolsCookieRef', needsKey: true, keyKind: 'required', quota: false, canVerify: true, special: 'cookie' },
+  { id: 'siliconflow', labelKey: 'backendSiliconflow', descKey: 'backendSiliconflowDesc', toggleKey: 'siliconflowEnabled', refKey: 'siliconflowApiKeyEnv', needsKey: true, keyKind: 'required', quota: true, canVerify: false, special: 'models' },
 ];
 
 /** The page's four task cards, in render order. */
@@ -421,9 +427,11 @@ window.__ModuleLoader__.load({
       modelsFailed: 'Models could not be loaded: {reason}',
       modelsFailedNoDetail: 'Models could not be loaded.',
       pickModel: 'Pick a model',
-      backendReady: 'Configured',
+      backendConfigured: 'Configured',
       backendMissingKey: 'Missing credentials',
-      backendKeyless: 'Keyless',
+      backendAnonymous: 'Works anonymously',
+      backendKeyless: 'No key needed',
+      backendOff: 'Off',
       backendUnverified: 'Not verified',
       backendVerified: 'Verified',
       enableBackend: 'Enable {name}',
@@ -603,9 +611,11 @@ window.__ModuleLoader__.load({
       modelsFailed: '模型拉取失败：{reason}',
       modelsFailedNoDetail: '模型拉取失败。',
       pickModel: '选一个模型',
-      backendReady: '已配置',
+      backendConfigured: '已配置',
       backendMissingKey: '缺凭据',
+      backendAnonymous: '匿名可用',
       backendKeyless: '免 Key',
+      backendOff: '已关闭',
       backendUnverified: '未验证',
       backendVerified: '已验证',
       enableBackend: '启用 {name}',
@@ -1109,6 +1119,7 @@ window.__ModuleLoader__.load({
       const menuField = (row) => {
         const state = draft.field(row.key);
         const open = openMenu === row.key;
+        const label = t(fieldLabelKey(row.key));
         return fieldAnchor(row, h(UI.Menu, {
           open,
           items: (row.options ?? []).map((option) => ({ id: option, label: t(optionLabelKey(option)) })),
@@ -1180,16 +1191,24 @@ window.__ModuleLoader__.load({
         const quota = quotas[backend.id];
         const restored = verifyPassed[backend.id] === true;
         const failed = verifyFailed[backend.id] === true;
-        const needsKey = backend.needsKey;
+        const enabled = draft.field(backend.toggleKey).value === true;
+        // The credential state reads off `keyKind`: a backend that needs no key
+        // is always ready, one whose key is optional runs anonymously until a key
+        // is stored, and one that requires a key is only ready once it is stored.
+        const keyState = backend.keyKind === 'none'
+          ? { state: 'done', text: t('backendKeyless') }
+          : configured
+            ? { state: 'done', text: t('backendConfigured') }
+            : backend.keyKind === 'optional'
+              ? { state: 'idle', text: t('backendAnonymous') }
+              : { state: 'warning', text: t('backendMissingKey') };
         const status = failed
           ? { state: 'warning', text: t('backendUnverified') }
           : restored
             ? { state: 'done', text: t('backendVerified') }
-            : needsKey && reference !== '' && !configured
-              ? { state: 'warning', text: t('backendMissingKey') }
-              : configured
-                ? { state: 'done', text: t('backendReady') }
-                : { state: 'done', text: t('backendKeyless') };
+            : enabled
+              ? keyState
+              : { state: 'idle', text: t('backendOff') };
         const slotNodes = [];
         for (let slot = 1; slot <= slots; slot += 1) {
           const candidate = keyRefsFor(reference)[slot - 1];
@@ -1213,49 +1232,53 @@ window.__ModuleLoader__.load({
               onClick: () => { void removeKey(backend, slot); },
             }, t('removeKey'))));
         }
-        return h('section', { key: backend.id, 'data-backend': backend.id },
-          h('div', { 'data-backend-head': backend.id },
-            h(UI.Button, {
-              variant: 'ghost',
-              size: 'sm',
-              'aria-expanded': open,
-              onClick: () => setExpanded((current) => ({ ...current, [backend.id]: open !== true })),
-            }, `${open ? '▾' : '▸'} ${name}`, ` — ${t(backend.descKey)}`),
-            h(UI.StateDot, { state: status.state }),
-            h('span', null, status.text),
+        return h('tr', { key: backend.id, 'data-backend': backend.id },
+          h('td', null,
+            h(UI.DisclosureRow, {
+              icon: null,
+              title: name,
+              open,
+              expandable: true,
+              onToggle: () => setExpanded((current) => ({ ...current, [backend.id]: open !== true })),
+              collapsedContent: h('span', null,
+                h(UI.StateDot, { state: status.state }),
+                ' ',
+                status.text),              headerAccessory: null,
+            }),
+            h('div', { hidden: !open, 'data-backend-body': backend.id },
+              ...shown.map(fieldNode),
+              advanced.length === 0 ? null : h('div', { key: 'advanced', 'data-group': `${backend.id}:advanced` },
+                h(UI.Button, {
+                  variant: 'ghost',
+                  size: 'sm',
+                  'aria-expanded': advancedOpen[backend.id] === true,
+                  onClick: () => setAdvancedOpen((current) => ({ ...current, [backend.id]: current[backend.id] !== true })),
+                }, advancedOpen[backend.id] === true ? t('collapseGroup', { name: t('advanced') }) : t('expandGroup', { name: t('advanced') })),
+                h('div', { hidden: advancedOpen[backend.id] !== true }, ...advanced.map(fieldNode))),
+              h('p', null, t('credentialHint')),
+              h('div', { 'data-key-block': backend.id }, ...slotNodes),
+              h('div', { 'data-backend-actions': backend.id },
+                h(UI.Button, { variant: 'outline', size: 'sm', disabled, onClick: () => { void saveKeys(backend); } }, t('saveKey')),
+                slots >= MAX_KEY_REFS || backend.special === 'cookie' ? null : h(UI.Button, {
+                  variant: 'ghost',
+                  size: 'sm',
+                  disabled,
+                  onClick: () => setExtraSlots((current) => ({ ...current, [backend.id]: (current[backend.id] ?? 0) + 1 })),
+                }, t('addKey')),
+                h(UI.Button, { variant: 'ghost', size: 'sm', disabled, onClick: () => { void clearKeys(backend); } },
+                  clearArmed === backend.id ? t('confirmClear') : t('clearKeys')),
+                backend.canVerify ? h(UI.Button, { variant: 'outline', size: 'sm', disabled, onClick: () => { void verify(backend); } }, busy ? t('verifying') : t('verify')) : null,
+                backend.quota ? h(UI.Button, { variant: 'ghost', size: 'sm', disabled, onClick: () => { void readQuota(backend); } }, t('quotaLoading')) : null,
+                backend.special === 'models' ? h(UI.Button, { variant: 'ghost', size: 'sm', disabled, onClick: () => { void loadModels(); } }, t('loadModels')) : null),
+              quota === undefined ? null : h('p', { 'data-quota': backend.id }, t('quotaLabel', { text: quota })),
+              message === undefined ? null : h('p', { role: 'status', 'data-message': backend.id }, message.text))),
+          h('td', null,
             h(UI.Switch, {
-              checked: draft.field(backend.toggleKey).value === true,
+              checked: enabled,
               label: t('enableBackend', { name }),
               disabled,
               onChange: (next) => draft.edit(backend.toggleKey, next),
-            })),
-          h('div', { hidden: !open, 'data-backend-body': backend.id },
-            ...shown.map(fieldNode),
-            advanced.length === 0 ? null : h('div', { key: 'advanced', 'data-group': `${backend.id}:advanced` },
-              h(UI.Button, {
-                variant: 'ghost',
-                size: 'sm',
-                'aria-expanded': advancedOpen[backend.id] === true,
-                onClick: () => setAdvancedOpen((current) => ({ ...current, [backend.id]: current[backend.id] !== true })),
-              }, advancedOpen[backend.id] === true ? t('collapseGroup', { name: t('advanced') }) : t('expandGroup', { name: t('advanced') })),
-              h('div', { hidden: advancedOpen[backend.id] !== true }, ...advanced.map(fieldNode))),
-            h('p', null, t('credentialHint')),
-            h('div', { 'data-key-block': backend.id }, ...slotNodes),
-            h('div', { 'data-backend-actions': backend.id },
-              h(UI.Button, { variant: 'outline', size: 'sm', disabled, onClick: () => { void saveKeys(backend); } }, t('saveKey')),
-              slots >= MAX_KEY_REFS || backend.special === 'cookie' ? null : h(UI.Button, {
-                variant: 'ghost',
-                size: 'sm',
-                disabled,
-                onClick: () => setExtraSlots((current) => ({ ...current, [backend.id]: (current[backend.id] ?? 0) + 1 })),
-              }, t('addKey')),
-              h(UI.Button, { variant: 'ghost', size: 'sm', disabled, onClick: () => { void clearKeys(backend); } },
-                clearArmed === backend.id ? t('confirmClear') : t('clearKeys')),
-              backend.canVerify ? h(UI.Button, { variant: 'outline', size: 'sm', disabled, onClick: () => { void verify(backend); } }, busy ? t('verifying') : t('verify')) : null,
-              backend.quota ? h(UI.Button, { variant: 'ghost', size: 'sm', disabled, onClick: () => { void readQuota(backend); } }, t('quotaLoading')) : null,
-              backend.special === 'models' ? h(UI.Button, { variant: 'ghost', size: 'sm', disabled, onClick: () => { void loadModels(); } }, t('loadModels')) : null),
-            quota === undefined ? null : h('p', { 'data-quota': backend.id }, t('quotaLabel', { text: quota })),
-            message === undefined ? null : h('p', { role: 'status', 'data-message': backend.id }, message.text)));
+            })));
       };
 
       /** One card: its title, its description, the fields that sit on the card face, and its folded groups. */
@@ -1264,7 +1287,7 @@ window.__ModuleLoader__.load({
         const face = cardRows.filter((row) => row.level === 'common' && row.group === null);
         const groups = [...new Set(cardRows.filter((row) => row.group !== null).map((row) => row.group))];
         const body = card.id === 'backends'
-          ? BACKENDS.map(backendGroup)
+          ? h('table', { 'data-backend-table': 'yes' }, h('tbody', null, ...BACKENDS.map(backendGroup)))
           : [
             ...face.map(fieldNode),
             ...groups.map((group) => {

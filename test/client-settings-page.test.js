@@ -152,8 +152,38 @@ test('saving a key writes it to the backend reference and clearing unset every c
     'confirming must unset the configured key');
 });
 
-test('credential reads stay batched under the host limit', async () => {
+test('every backend row reports a credential state that matches its own key kind', async () => {
   const page = await open();
+  const tree = page.getTree();
+  const stateText = (id) => {
+    const row = findAll(tree, (entry) => entry.props?.['data-backend'] === id)[0];
+    assert.ok(row, `the ${id} row must render`);
+    const dot = findNode(row, (entry) => entry.props?.['data-state'] !== undefined && entry.type === 'span');
+    assert.ok(dot, `the ${id} row must carry a status dot`);
+    const text = textOf(row);
+    return text;
+  };
+  // Nothing is configured in a fresh profile, and every backend starts enabled.
+  assert.match(stateText('exa'), /Missing credentials/u, 'a backend that requires a key and has none is missing credentials');
+  assert.match(stateText('anysearch'), /Works anonymously/u, 'a backend whose key is optional runs anonymously');
+  assert.match(stateText('github'), /Works anonymously/u, 'a PAT only raises the allowance, so the key stays optional');
+  assert.match(stateText('bing'), /No key needed/u, 'a backend with no credential at all needs no key');
+  assert.match(stateText('aihot'), /No key needed/u, 'a backend with no credential at all needs no key');
+});
+
+test('a backend whose switch is off reports that it is off', async () => {
+  const page = await open();
+  let tree = page.getTree();
+  const row = findAll(tree, (entry) => entry.props?.['data-backend'] === 'bing')[0];
+  const toggle = findNode(row, (entry) => entry.type === 'button' && entry.props?.role === 'switch');
+  assert.ok(toggle, 'every backend row must offer an enable switch');
+  toggle.props.onClick();
+  tree = await page.settle();
+  const off = findAll(tree, (entry) => entry.props?.['data-backend'] === 'bing')[0];
+  assert.match(textOf(off), /Off/u, 'a disabled backend must say so');
+});
+
+test('credential reads stay batched under the host limit', async () => {  const page = await open();
   assert.ok(page.harness.credentialsDescribeCalls.length >= 2,
     'eighty-eight references must not ride one describe call');
   for (const batch of page.harness.credentialsDescribeCalls) {

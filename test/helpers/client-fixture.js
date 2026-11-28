@@ -250,6 +250,24 @@ export function createPrimitivesStubs() {
 
   const Tag = ({ tone = 'outline', children }) => h('span', { 'data-tone': tone }, children);
 
+  /**
+   * The host's disclosure row. The upstream component renders a header (a leading
+   * icon, the title and the collapsed content) with the accessory beside it, and
+   * the children only while the row is open. The stub keeps that observable
+   * surface so a test can open a row the way a user does.
+   */
+  const DisclosureRow = ({
+    icon, title, open, expandable, onToggle, collapsedContent, headerAccessory, children,
+  }) => h('div', { 'data-disclosure': true, 'data-open': open === true ? 'true' : 'false' },
+    h('div', { 'data-disclosure-header': true },
+      h('div', { 'data-disclosure-row': true },
+        expandable === true
+          ? h('button', { type: 'button', 'data-disclosure-toggle': true, onClick: onToggle }, icon ?? null)
+          : (icon ?? null),
+        h('span', { 'data-disclosure-title': true }, title),
+        collapsedContent ?? null),
+      headerAccessory ?? null),
+    open === true ? h('div', { 'data-disclosure-body': true }, children ?? null) : null);
   return {
     Switch,
     SettingsValueField,
@@ -261,6 +279,7 @@ export function createPrimitivesStubs() {
     StateDot,
     Button,
     Tag,
+    DisclosureRow,
   };
 }
 
