@@ -1,25 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import vm from 'node:vm';
 
-function loadDefinition() {
-  let definition;
-  const sandbox = {
-    window: {
-      __ModuleLoader__: {
-        load(value) { definition = value; },
-      },
-    },
-  };
-  vm.runInNewContext(readFileSync('client.js', 'utf8'), sandbox);
-  return definition;
-}
+import { loadClientDefinition } from './helpers/client-fixture.js';
 
 // Values built inside the vm context have foreign prototypes; normalize before deepEqual.
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
-const { splitKeyInput, planKeyWrites, applyKeyPlan, beginKeySave, saveKey } = loadDefinition();
+const { splitKeyInput, planKeyWrites, applyKeyPlan, beginKeySave, saveKey } = loadClientDefinition();
 const REFS = ['KEY', 'KEY_2', 'KEY_3', 'KEY_4', 'KEY_5', 'KEY_6', 'KEY_7', 'KEY_8'];
 
 test('splits a pasted key box on commas and whitespace', () => {

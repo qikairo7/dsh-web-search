@@ -1,21 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import vm from 'node:vm';
 
-// Load the browser bundle, optionally injecting a fetch so the settings page's
-// real Test button can be driven end to end (the C error-mapping wiring).
-function loadDefinition(fetchImpl) {
-  let definition;
-  const sandbox = {
-    window: { __ModuleLoader__: { load(value) { definition = value; } } },
-  };
-  if (typeof fetchImpl === 'function') sandbox.fetch = fetchImpl;
-  vm.runInNewContext(readFileSync('client.js', 'utf8'), sandbox);
-  return definition;
-}
+import {
+  findNode,
+  loadClientDefinition,
+  openSettingsPage,
+  textOf,
+} from './helpers/client-fixture.js';
 
-const helpers = loadDefinition();
+const helpers = loadClientDefinition();
 const { humanizeVerifyError, maskSavedKey } = helpers;
 
 // ---- C: verification failure copy maps to readable Chinese, no internal code,
@@ -62,84 +55,30 @@ test('maskSavedKey handles empty and short previews', () => {
 // ---- Wiring: the settings page Test button routes a failed verification
 // through humanizeVerifyError (drives the real factory closure). ----
 
-function createFakeReact() {
-  const instances = new Map();
-  let current = null;
-  let dirty = false;
-  let pendingEffects = [];
-  const instanceFor = (component) => {
-    let instance = instances.get(component);
-    if (instance === undefined) { instance = { hooks: [], cursor: 0 }; instances.set(component, instance); }
-    return instance;
-  };
-  const React = {
-    createElement(type, props, ...children) { return { type, props: props ?? {}, children }; },
-    useState(initial) {
-      const instance = current; const slot = instance.cursor++;
-      if (!(slot in instance.hooks)) instance.hooks[slot] = typeof initial === 'function' ? initial() : initial;
-      const setter = (next) => { const previous = instance.hooks[slot]; instance.hooks[slot] = typeof next === 'function' ? next(previous) : next; dirty = true; };
-      return [instance.hooks[slot], setter];
-    },
-    useCallback(callback) { const instance = current; const slot = instance.cursor++; if (!(slot in instance.hooks)) instance.hooks[slot] = callback; return instance.hooks[slot]; },
-    useEffect(effect) { const instance = current; const slot = instance.cursor++; if (!(slot in instance.hooks)) { instance.hooks[slot] = true; pendingEffects.push(effect); } },
-  };
-  const renderComponent = (component, props) => {
-    const instance = instanceFor(component); const previous = current; current = instance; instance.cursor = 0;
-    try { return component(props); } finally { current = previous; }
-  };
-  const expand = (node) => {
-    if (node === null || node === undefined || typeof node === 'boolean') return null;
-    if (typeof node === 'string' || typeof node === 'number') return { text: String(node) };
-    if (Array.isArray(node)) return node.map(expand).filter((child) => child !== null);
-    if (typeof node.type === 'function') return expand(renderComponent(node.type, { ...node.props, children: node.children }));
-    const children = [];
-    for (const child of node.children) { const e = expand(child); if (e === null) continue; if (Array.isArray(e)) children.push(...e); else children.push(e); }
-    return { type: node.type, props: node.props, children };
-  };
+function namespaceValue(overrides = {}) {
   return {
-    React,
-    render(page) { pendingEffects = []; dirty = false; const tree = expand(renderComponent(page, {})); for (const effect of pendingEffects) effect(); return tree; },
-    get dirty() { return dirty; },
+    namespaces: [{
+      ns: 'web-search-router',
+      revision: 1,
+      value: { searchMode: 'quality', fetchMode: 'clean', ...overrides },
+    }],
   };
 }
-function flatten(node, out = []) {
-  if (node === null || node === undefined) return out;
-  if (Array.isArray(node)) { for (const c of node) flatten(c, out); return out; }
-  out.push(node); if (node.children !== undefined) for (const c of node.children) flatten(c, out); return out;
-}
-function textOf(node) { if (node.text !== undefined) return node.text; return (node.children ?? []).map(textOf).join(''); }
-function findNode(node, predicate) { return flatten(node).find((entry) => entry.type !== undefined && predicate(entry)); }
 
 test('the settings page Test button shows the humanized 401 hint, not the raw error', async () => {
   const fetchImpl = async () => ({ json: async () => ({ ok: false, code: 'WEB_PROVIDER_ERROR', message: 'WEB_PROVIDER_ERROR: GitHub search failed: GitHub search failed (HTTP 401): Bad credentials' }) });
-  const definition = loadDefinition(fetchImpl);
-  const fake = createFakeReact();
-  const dicts = {};
-  let page = null;
-  const ctx = {
-    effect(effect) { effect(); return () => {}; },
-    locale: {
-      register(ns, value) { dicts[ns] = value; },
-      bind(ns) { const bundle = dicts[ns] ?? {}; const table = bundle.en ?? bundle; return (key, params) => { const template = table[key] ?? key; if (params === undefined) return template; return Object.entries(params).reduce((text, [name, value]) => text.replaceAll('{' + name + '}', String(value)), template); }; },
-    },
-    slots: { inject(_n, register) { register(); }, register(_spec, component) { page = component; } },
-    remote: {
-      settings: { async describe() { return { ok: true, value: { namespaces: [{ ns: 'web-search-router', revision: 1, value: { searchMode: 'quality', fetchMode: 'clean' } }] } }; } },
-      credentials: { async describe() { return { ok: true, value: {} }; }, async set() { return { ok: true }; }, async unset() { return { ok: true }; } },
-    },
-  };
-  const plugin = definition.factory((name) => { if (name === 'react') return fake.React; throw new Error('unexpected require ' + name); });
-  plugin.apply(ctx);
-  if (page === null) throw new Error('no settings page');
-  const settle = async () => { let tree = null; for (let round = 0; round < 60; round += 1) { tree = fake.render(page); for (let t = 0; t < 800; t += 1) await Promise.resolve(); if (!fake.dirty) return tree; } throw new Error('did not settle'); };
-  let tree = await settle();
-  const card = findNode(tree, (e) => e.props.key === 'github');
+  const page = await openSettingsPage({
+    fetch: fetchImpl,
+    describe: () => ({ ok: true, value: namespaceValue() }),
+    credentialsDescribe: () => ({ ok: true, value: {} }),
+  });
+  const card = findNode(page.getTree(), (entry) => entry.props.key === 'github');
   assert.ok(card, 'the github card must render');
-  const testButton = findNode(card, (e) => e.type === 'button' && textOf(e) === 'Test');
+  const testButton = findNode(card, (entry) => entry.type === 'button' && textOf(entry) === 'Test');
   assert.ok(testButton, 'the Test button must render');
   testButton.props.onClick();
-  tree = await settle();
-  const status = findNode(findNode(tree, (e) => e.props.key === 'github'), (e) => e.type === 'p' && e.props.role === 'status');
+  const tree = await page.settle();
+  const status = findNode(findNode(tree, (entry) => entry.props.key === 'github'), (entry) => entry.type === 'p' && entry.props.role === 'status');
   assert.ok(status, 'a status message must render');
   const text = textOf(status);
   assert.match(text, /PAT 无效或已过期/u, 'shows the actionable Chinese hint');
@@ -152,44 +91,40 @@ test('the settings page Test button shows the humanized 401 hint, not the raw er
 
 test('a settings refresh keeps the verified badge instead of resetting it', async () => {
   const fetchImpl = async () => ({ json: async () => ({ ok: true, capability: 'search', latencyMs: 42, count: 1 }) });
-  const definition = loadDefinition(fetchImpl);
-  const fake = createFakeReact();
-  const dicts = {};
-  let page = null;
   let describeCalls = 0;
-  const ctx = {
-    effect(effect) { effect(); return () => {}; },
-    locale: {
-      register(ns, value) { dicts[ns] = value; },
-      bind(ns) { const bundle = dicts[ns] ?? {}; const table = bundle.en ?? bundle; return (key, params) => { const template = table[key] ?? key; if (params === undefined) return template; return Object.entries(params).reduce((text, [name, value]) => text.replaceAll('{' + name + '}', String(value)), template); }; },
+  const page = await openSettingsPage({
+    fetch: fetchImpl,
+    describe: () => {
+      describeCalls += 1;
+      return {
+        ok: true,
+        value: {
+          namespaces: [{
+            ns: 'web-search-router',
+            revision: describeCalls,
+            value: { searchMode: 'quality', fetchMode: 'clean' },
+          }],
+        },
+      };
     },
-    slots: { inject(_n, register) { register(); }, register(_spec, component) { page = component; } },
-    remote: {
-      settings: { async describe() { describeCalls += 1; return { ok: true, value: { namespaces: [{ ns: 'web-search-router', revision: describeCalls, value: { searchMode: 'quality', fetchMode: 'clean' } }] } }; } },
-      credentials: { async describe() { return { ok: true, value: { KEENABLE_API_KEY: { configured: true, masked: 'ke_***' } } }; }, async set() { return { ok: true }; }, async unset() { return { ok: true }; } },
-    },
-  };
-  const plugin = definition.factory((name) => { if (name === 'react') return fake.React; throw new Error('unexpected require ' + name); });
-  plugin.apply(ctx);
-  if (page === null) throw new Error('no settings page');
-  const settle = async () => { let tree = null; for (let round = 0; round < 60; round += 1) { tree = fake.render(page); for (let t = 0; t < 800; t += 1) await Promise.resolve(); if (!fake.dirty) return tree; } throw new Error('did not settle'); };
-  let tree = await settle();
-  const cardOf = () => findNode(tree, (e) => e.props.key === 'keenable');
-  const testButton = findNode(cardOf(), (e) => e.type === 'button' && textOf(e) === 'Test');
+    credentialsDescribe: () => ({ ok: true, value: { KEENABLE_API_KEY: { configured: true, masked: 'ke_***' } } }),
+  });
+  const cardOf = (tree) => findNode(tree, (entry) => entry.props.key === 'keenable');
+  const testButton = findNode(cardOf(page.getTree()), (entry) => entry.type === 'button' && textOf(entry) === 'Test');
   assert.ok(testButton, 'the Test button must render');
   testButton.props.onClick();
-  tree = await settle();
+  let tree = await page.settle();
   const badgeText = () => {
-    const card = cardOf();
-    const badge = findNode(card, (e) => e.type === 'span' && textOf(e).includes('Configured'));
+    const card = cardOf(tree);
+    const badge = findNode(card, (entry) => entry.type === 'span' && textOf(entry).includes('Configured'));
     return badge === undefined ? null : textOf(badge);
   };
   assert.equal(badgeText(), 'Configured · verified', 'a successful Test must mark the card verified');
   // Refresh status (the page-bottom button) must not wipe the verdict.
-  const refreshButton = findNode(tree, (e) => e.type === 'button' && textOf(e) === 'Refresh status');
+  const refreshButton = findNode(tree, (entry) => entry.type === 'button' && textOf(entry) === 'Refresh status');
   assert.ok(refreshButton, 'the Refresh status button must render');
   refreshButton.props.onClick();
-  tree = await settle();
+  tree = await page.settle();
   assert.ok(describeCalls >= 2, 'refresh must re-describe settings');
   assert.equal(badgeText(), 'Configured · verified', 'refresh must keep the verification verdict');
 });
