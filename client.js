@@ -134,6 +134,133 @@ const handleKeySave = async ({ rows, ref, setBusy, setCredential, onRefused, onS
   });
 };
 
+/**
+ * The settings page's field table: one row per `SETTINGS_SPEC` entry, saying which card
+ * the field belongs to, whether it sits on the card face or behind a folded group, and
+ * which host control renders it. `lib/settings.js` owns kind, bounds and enum members;
+ * `test/client-settings-table.test.js` reconciles the two tables so this one cannot
+ * drift. Values and defaults are never copied here: the page reads them from the host's
+ * configuration snapshot.
+ */
+const SETTINGS_UI = [
+  { key: 'searchMode', card: 'search', group: null, level: 'common', kind: 'enum', control: 'menu', options: ['fast', 'quality'] },
+  { key: 'fetchMode', card: 'fetch', group: null, level: 'common', kind: 'enum', control: 'menu', options: ['fast', 'clean'] },
+  { key: 'qualityMaxEngines', card: 'search', group: 'quality', level: 'advanced', kind: 'number', control: 'number', min: 1, max: 8 },
+  { key: 'qualityRerankEnabled', card: 'search', group: null, level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'qualityExcludedProviders', card: 'search', group: 'quality', level: 'advanced', kind: 'order', control: 'text' },
+  { key: 'fastPrimaryProvider', card: 'search', group: 'quality', level: 'advanced', kind: 'string', control: 'text' },
+  { key: 'fastMaxFallbacks', card: 'search', group: 'quality', level: 'advanced', kind: 'number', control: 'number', min: 0, max: 5 },
+  { key: 'cleanExtractProviders', card: 'fetch', group: 'enrich', level: 'advanced', kind: 'order', control: 'text' },
+  { key: 'intentRouting', card: 'search', group: null, level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'languageRouting', card: 'fetch', group: null, level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'officialDocsEnabled', card: 'search', group: null, level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'newsFreshnessEnabled', card: 'search', group: null, level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'chineseSearchOrder', card: 'routing', group: 'orders', level: 'advanced', kind: 'order', control: 'text' },
+  { key: 'defaultSearchOrder', card: 'routing', group: 'orders', level: 'advanced', kind: 'order', control: 'text' },
+  { key: 'fetchOrder', card: 'routing', group: 'orders', level: 'advanced', kind: 'order', control: 'text' },
+  { key: 'cleanFetchOrder', card: 'routing', group: 'orders', level: 'advanced', kind: 'order', control: 'text' },
+  { key: 'anysearchEnabled', card: 'backends', group: 'backend:anysearch', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'anysearchApiKeyEnv', card: 'backends', group: 'backend:anysearch', level: 'common', kind: 'string', control: 'text' },
+  { key: 'anysearchBaseURL', card: 'backends', group: 'backend:anysearch', level: 'advanced', kind: 'string', control: 'text' },
+  { key: 'anysearchSearchEnabled', card: 'backends', group: 'backend:anysearch', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'anysearchFetchEnabled', card: 'backends', group: 'backend:anysearch', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'anysearchTag', card: 'backends', group: 'backend:anysearch', level: 'advanced', kind: 'string', control: 'text' },
+  { key: 'anysearchZone', card: 'backends', group: 'backend:anysearch', level: 'common', kind: 'enum', control: 'menu', options: ['auto', 'cn', 'intl'] },
+  { key: 'anysearchCleanContent', card: 'backends', group: 'backend:anysearch', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'anysearchBatchEnabled', card: 'backends', group: 'backend:anysearch', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'keenableEnabled', card: 'backends', group: 'backend:keenable', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'keenableApiKeyEnv', card: 'backends', group: 'backend:keenable', level: 'common', kind: 'string', control: 'text' },
+  { key: 'keenableBaseURL', card: 'backends', group: 'backend:keenable', level: 'advanced', kind: 'string', control: 'text' },
+  { key: 'keenableSearchEnabled', card: 'backends', group: 'backend:keenable', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'keenableFetchEnabled', card: 'backends', group: 'backend:keenable', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'exaEnabled', card: 'backends', group: 'backend:exa', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'exaApiKeyEnv', card: 'backends', group: 'backend:exa', level: 'common', kind: 'string', control: 'text' },
+  { key: 'exaBaseURL', card: 'backends', group: 'backend:exa', level: 'advanced', kind: 'string', control: 'text' },
+  { key: 'exaSearchEnabled', card: 'backends', group: 'backend:exa', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'exaFetchEnabled', card: 'backends', group: 'backend:exa', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'bingEnabled', card: 'backends', group: 'backend:bing', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'bingBaseURL', card: 'backends', group: 'backend:bing', level: 'advanced', kind: 'string', control: 'text' },
+  { key: 'bingMarket', card: 'backends', group: 'backend:bing', level: 'advanced', kind: 'string', control: 'text' },
+  { key: 'githubEnabled', card: 'backends', group: 'backend:github', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'githubApiKeyEnv', card: 'backends', group: 'backend:github', level: 'common', kind: 'string', control: 'text' },
+  { key: 'githubBaseURL', card: 'backends', group: 'backend:github', level: 'advanced', kind: 'string', control: 'text' },
+  { key: 'githubSearchEnabled', card: 'backends', group: 'backend:github', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'githubFetchEnabled', card: 'backends', group: 'backend:github', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'anysearchMaxRenderedContentChars', card: 'backends', group: 'backend:anysearch', level: 'advanced', kind: 'number', control: 'number', min: 1 },
+  { key: 'tavilyEnabled', card: 'backends', group: 'backend:tavily', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'tavilyApiKeyEnv', card: 'backends', group: 'backend:tavily', level: 'common', kind: 'string', control: 'text' },
+  { key: 'tavilyBaseURL', card: 'backends', group: 'backend:tavily', level: 'advanced', kind: 'string', control: 'text' },
+  { key: 'tavilySearchEnabled', card: 'backends', group: 'backend:tavily', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'tavilyFetchEnabled', card: 'backends', group: 'backend:tavily', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'tavilyIncludeAnswer', card: 'backends', group: 'backend:tavily', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'firecrawlEnabled', card: 'backends', group: 'backend:firecrawl', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'firecrawlApiKeyEnv', card: 'backends', group: 'backend:firecrawl', level: 'common', kind: 'string', control: 'text' },
+  { key: 'firecrawlBaseURL', card: 'backends', group: 'backend:firecrawl', level: 'advanced', kind: 'string', control: 'text' },
+  { key: 'firecrawlSearchEnabled', card: 'backends', group: 'backend:firecrawl', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'firecrawlFetchEnabled', card: 'backends', group: 'backend:firecrawl', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'zhihuEnabled', card: 'backends', group: 'backend:zhihu', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'zhihuApiKeyEnv', card: 'backends', group: 'backend:zhihu', level: 'common', kind: 'string', control: 'text' },
+  { key: 'zhihuBaseURL', card: 'backends', group: 'backend:zhihu', level: 'advanced', kind: 'string', control: 'text' },
+  { key: 'zhihuSearchEnabled', card: 'backends', group: 'backend:zhihu', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'zhihuSearchMode', card: 'backends', group: 'backend:zhihu', level: 'common', kind: 'enum', control: 'menu', options: ['global', 'site'] },
+  { key: 'zhihuIncludeMetadata', card: 'backends', group: 'backend:zhihu', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'httpEnabled', card: 'backends', group: 'backend:http', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'aihotEnabled', card: 'backends', group: 'backend:aihot', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'aihotBaseURL', card: 'backends', group: 'backend:aihot', level: 'advanced', kind: 'string', control: 'text' },
+  { key: 'xToolsEnabled', card: 'backends', group: 'backend:x', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'xToolsCookieRef', card: 'backends', group: 'backend:x', level: 'common', kind: 'string', control: 'text' },
+  { key: 'siliconflowEnabled', card: 'backends', group: 'backend:siliconflow', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'siliconflowApiKeyEnv', card: 'backends', group: 'backend:siliconflow', level: 'common', kind: 'string', control: 'text' },
+  { key: 'siliconflowBaseURL', card: 'backends', group: 'backend:siliconflow', level: 'advanced', kind: 'string', control: 'text' },
+  { key: 'siliconflowRerankModel', card: 'backends', group: 'backend:siliconflow', level: 'advanced', kind: 'string', control: 'text' },
+  { key: 'siliconflowEmbeddingsEnabled', card: 'backends', group: 'backend:siliconflow', level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'siliconflowEmbeddingModel', card: 'backends', group: 'backend:siliconflow', level: 'advanced', kind: 'string', control: 'text' },
+  { key: 'semanticDedupThreshold', card: 'search', group: 'quality', level: 'advanced', kind: 'number', control: 'number', min: 0, max: 1 },
+  { key: 'enrichEnabled', card: 'fetch', group: null, level: 'common', kind: 'boolean', control: 'switch' },
+  { key: 'enrichTopN', card: 'fetch', group: 'enrich', level: 'advanced', kind: 'number', control: 'number', min: 0, max: 10 },
+  { key: 'enrichSummaryMinChars', card: 'fetch', group: 'enrich', level: 'advanced', kind: 'number', control: 'number', min: 1 },
+  { key: 'enrichSummaryMaxChars', card: 'fetch', group: 'enrich', level: 'advanced', kind: 'number', control: 'number', min: 1 },
+  { key: 'requestTimeoutMs', card: 'routing', group: 'limits', level: 'advanced', kind: 'number', control: 'number', min: 1 },
+  { key: 'maxFetchChars', card: 'routing', group: 'limits', level: 'advanced', kind: 'number', control: 'number', min: 1 },
+  { key: 'maxSnippetChars', card: 'routing', group: 'limits', level: 'advanced', kind: 'number', control: 'number', min: 1 },
+  { key: 'minDirectHtmlChars', card: 'routing', group: 'limits', level: 'advanced', kind: 'number', control: 'number', min: 1 },
+  { key: 'searchCacheTtlMs', card: 'routing', group: 'limits', level: 'advanced', kind: 'number', control: 'number', min: 1 },
+  { key: 'searchCacheMaxEntries', card: 'routing', group: 'limits', level: 'advanced', kind: 'number', control: 'number', min: 1 },
+  { key: 'fetchCacheTtlMs', card: 'routing', group: 'limits', level: 'advanced', kind: 'number', control: 'number', min: 1 },
+  { key: 'fetchCacheMaxEntries', card: 'routing', group: 'limits', level: 'advanced', kind: 'number', control: 'number', min: 1 },
+  { key: 'fallbackFailureClasses', card: 'routing', group: 'fallback', level: 'advanced', kind: 'failure-classes', control: 'checkgroup', options: ['quota', 'auth', 'bot-wall', 'transient', 'invalid-response', 'unknown'] },
+  { key: 'breakerFailureThreshold', card: 'routing', group: 'fallback', level: 'advanced', kind: 'number', control: 'number', min: 1 },
+  { key: 'breakerCooldownMs', card: 'routing', group: 'fallback', level: 'advanced', kind: 'number', control: 'number', min: 1 },
+];
+
+/**
+ * One row per backend group of the backends card; the field table names these groups
+ * `backend:<id>`. `needsKey` drives the credential controls, `quota` the usage line,
+ * `canVerify` the test button, and `special` the one extra control a backend has.
+ */
+const BACKENDS = [
+  { id: 'anysearch', labelKey: 'backendAnysearch', descKey: 'backendAnysearchDesc', toggleKey: 'anysearchEnabled', refKey: 'anysearchApiKeyEnv', needsKey: true, quota: false, canVerify: true, special: 'zone' },
+  { id: 'keenable', labelKey: 'backendKeenable', descKey: 'backendKeenableDesc', toggleKey: 'keenableEnabled', refKey: 'keenableApiKeyEnv', needsKey: true, quota: true, canVerify: true, special: null },
+  { id: 'exa', labelKey: 'backendExa', descKey: 'backendExaDesc', toggleKey: 'exaEnabled', refKey: 'exaApiKeyEnv', needsKey: true, quota: false, canVerify: true, special: null },
+  { id: 'bing', labelKey: 'backendBing', descKey: 'backendBingDesc', toggleKey: 'bingEnabled', refKey: null, needsKey: false, quota: false, canVerify: true, special: null },
+  { id: 'github', labelKey: 'backendGithub', descKey: 'backendGithubDesc', toggleKey: 'githubEnabled', refKey: 'githubApiKeyEnv', needsKey: true, quota: true, canVerify: true, special: null },
+  { id: 'tavily', labelKey: 'backendTavily', descKey: 'backendTavilyDesc', toggleKey: 'tavilyEnabled', refKey: 'tavilyApiKeyEnv', needsKey: true, quota: true, canVerify: true, special: null },
+  { id: 'firecrawl', labelKey: 'backendFirecrawl', descKey: 'backendFirecrawlDesc', toggleKey: 'firecrawlEnabled', refKey: 'firecrawlApiKeyEnv', needsKey: true, quota: true, canVerify: true, special: null },
+  { id: 'zhihu', labelKey: 'backendZhihu', descKey: 'backendZhihuDesc', toggleKey: 'zhihuEnabled', refKey: 'zhihuApiKeyEnv', needsKey: true, quota: true, canVerify: true, special: 'searchMode' },
+  { id: 'aihot', labelKey: 'backendAihot', descKey: 'backendAihotDesc', toggleKey: 'aihotEnabled', refKey: null, needsKey: false, quota: false, canVerify: true, special: null },
+  { id: 'http', labelKey: 'backendHttp', descKey: 'backendHttpDesc', toggleKey: 'httpEnabled', refKey: null, needsKey: false, quota: false, canVerify: false, special: null },
+  { id: 'x', labelKey: 'backendX', descKey: 'backendXDesc', toggleKey: 'xToolsEnabled', refKey: 'xToolsCookieRef', needsKey: true, quota: false, canVerify: true, special: 'cookie' },
+  { id: 'siliconflow', labelKey: 'backendSiliconflow', descKey: 'backendSiliconflowDesc', toggleKey: 'siliconflowEnabled', refKey: 'siliconflowApiKeyEnv', needsKey: true, quota: true, canVerify: false, special: 'models' },
+];
+
+/** The page's four task cards, in render order. */
+const CARDS = [
+  { id: 'search', titleKey: 'cardSearch', descKey: 'cardSearchDesc' },
+  { id: 'fetch', titleKey: 'cardFetch', descKey: 'cardFetchDesc' },
+  { id: 'backends', titleKey: 'cardBackends', descKey: 'cardBackendsDesc' },
+  { id: 'routing', titleKey: 'cardRouting', descKey: 'cardRoutingDesc' },
+];
+
 window.__ModuleLoader__.load({
   id: '@qikairo7/dsh-web-search',
   // Pure helpers exposed for unit tests; the host reads only `id` and `factory`.
@@ -145,6 +272,9 @@ window.__ModuleLoader__.load({
   handleKeySave,
   humanizeVerifyError,
   maskSavedKey,
+  SETTINGS_UI,
+  BACKENDS,
+  CARDS,
   factory(require) {
     const React = require('react');
     const h = React.createElement;
