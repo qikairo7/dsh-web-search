@@ -37,10 +37,15 @@ test('apply registers every catalog provider and the allowlisted tools', () => {
     'tavily_extract',
     'aihot_latest',
     'aihot_hot',
-    'x_search',
   ]);
   assert.ok(inject.includes('tools'));
   assert.ok(PROVIDER_CATALOG.length > 0);
+});
+
+test('the model-facing tool registry has no x_search', () => {
+  const { ctx, tools } = fakeContext();
+  apply(ctx, {});
+  assert.equal(tools.includes('x_search'), false);
 });
 
 test('apply warns when the profile does not declare the tool-web bundle', () => {
