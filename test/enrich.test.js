@@ -36,6 +36,23 @@ function pageFetcher(content, kind = 'text') {
   };
 }
 
+/**
+ * A GitHub repository page body: navigation lines that only the github.com
+ * branch of cleanMarkdown removes, wrapped around real prose.
+ */
+function githubPageBody() {
+  return [
+    '## Releases',
+    '## Languages',
+    '[Code](https://github.com/deepseek-ai/dsh-web-search/tree/main)',
+    '[Issues](https://github.com/deepseek-ai/dsh-web-search/issues)',
+    '![deepseek-ai](https://avatars.githubusercontent.com/u/1?v=4)',
+    prose(6),
+  ].join('\n');
+}
+
+const GITHUB_URL = 'https://github.com/deepseek-ai/dsh-web-search';
+
 test('enrichSources returns the input unchanged when enrichEnabled is false', async () => {
   const sources = [{ url: 'https://freshgreens.net/log', title: 'Garden log', summary: 'old' }];
   const fetcher = {
@@ -289,6 +306,39 @@ test('enrichSources rejects a candidate summary shorter than 200 chars', async (
     query: 'orbital station',
     settings: settings({ enrichSummaryMinChars: 1 }),
     fetcher: pageFetcher(prose(30)),
+    signal: undefined,
+  });
+  assert.equal(outcome[0], sources[0]);
+});
+
+test('enrichSources drops GitHub navigation lines from a repository summary', async () => {
+  const sources = [{ url: GITHUB_URL, title: 'dsh-web-search', summary: 'old' }];
+  const outcome = await enrichSources({
+    sources,
+    query: 'orbital station',
+    settings: settings({ enrichSummaryMinChars: 200, enrichSummaryMaxChars: 2000 }),
+    fetcher: pageFetcher(githubPageBody()),
+    signal: undefined,
+  });
+  const summary = outcome[0].summary;
+  assert.notEqual(summary, 'old');
+  assert.doesNotMatch(summary, /^#{1,6}\s+(?:releases|languages)$/imu);
+  assert.doesNotMatch(summary, /\[(?:code|issues)\]\(/iu);
+  assert.doesNotMatch(summary, /avatars\.githubusercontent\.com/u);
+  assert.match(summary, /orbital station/u);
+});
+
+test('enrichSources applies the 200-char floor to the cleaned body', async () => {
+  const navigation = Array.from(
+    { length: 6 },
+    (_, index) => `[Issues](https://github.com/deepseek-ai/dsh-web-search/issues/${index})`,
+  ).join('\n');
+  const sources = [{ url: GITHUB_URL, title: 'dsh-web-search', summary: 'old' }];
+  const outcome = await enrichSources({
+    sources,
+    query: 'orbital station',
+    settings: settings({ enrichSummaryMinChars: 1, enrichSummaryMaxChars: 2000 }),
+    fetcher: pageFetcher(`${prose(2)}\n${navigation}`),
     signal: undefined,
   });
   assert.equal(outcome[0], sources[0]);
