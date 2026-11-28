@@ -6,8 +6,7 @@ import { loadClientDefinition } from './helpers/client-fixture.js';
 // Values built inside the vm context have foreign prototypes; normalize before deepEqual.
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
-const { splitKeyInput, planKeyWrites, applyKeyPlan, beginKeySave, saveKey } = loadClientDefinition();
-const REFS = ['KEY', 'KEY_2', 'KEY_3', 'KEY_4', 'KEY_5', 'KEY_6', 'KEY_7', 'KEY_8'];
+const { splitKeyInput, applyKeyPlan, beginKeySave, saveKey } = loadClientDefinition();
 
 test('splits a pasted key box on commas and whitespace', () => {
   assert.deepEqual(plain(splitKeyInput('k1,k2')), ['k1', 'k2']);
@@ -21,45 +20,8 @@ test('an all-separator value yields no keys', () => {
   assert.deepEqual(plain(splitKeyInput('')), []);
 });
 
-test('writes a single key to the first free ref', () => {
-  const plan = planKeyWrites([{ ref: null, value: ' a ' }], REFS, {});
-  assert.deepEqual(plain(plan), { writes: [{ ref: 'KEY', value: 'a' }], overflow: false });
-});
-
-test('writes pasted keys to consecutive numbered refs', () => {
-  const plan = planKeyWrites([{ ref: null, value: 'k1, k2 k3' }], REFS, {});
-  assert.deepEqual(plain(plan.writes), [
-    { ref: 'KEY', value: 'k1' },
-    { ref: 'KEY_2', value: 'k2' },
-    { ref: 'KEY_3', value: 'k3' },
-  ]);
-  assert.equal(plan.overflow, false);
-});
-
-test('skips refs that are already configured', () => {
-  const rows = [{ ref: 'KEY', value: '' }, { ref: null, value: 'k2' }];
-  const plan = planKeyWrites(rows, REFS, { KEY: { configured: true } });
-  assert.deepEqual(plain(plan.writes), [{ ref: 'KEY_2', value: 'k2' }]);
-});
-
-test('refuses a paste that exceeds the eight-ref limit', () => {
-  const ten = Array.from({ length: 10 }, (_, index) => `k${index + 1}`).join(',');
-  const plan = planKeyWrites([{ ref: null, value: ten }], REFS, {});
-  assert.equal(plan.overflow, true);
-  assert.equal(plan.writes.length, 8);
-});
-
-test('counts existing keys toward the eight-ref limit', () => {
-  const rows = REFS.slice(0, 6).map((ref) => ({ ref, value: '' })).concat([{ ref: null, value: 'n1,n2,n3' }]);
-  const credentials = Object.fromEntries(REFS.slice(0, 6).map((ref) => [ref, { configured: true }]));
-  const plan = planKeyWrites(rows, REFS, credentials);
-  assert.equal(plan.overflow, true);
-  assert.equal(plan.writes.length, 2);
-});
-
 test('an overflowing plan writes no credentials', async () => {
-  const ten = Array.from({ length: 10 }, (_, index) => `k${index + 1}`).join(',');
-  const plan = planKeyWrites([{ ref: null, value: ten }], REFS, {});
+  const plan = { writes: [{ ref: 'KEY', value: 'k1' }], overflow: true };
   const calls = [];
   const status = await applyKeyPlan(plan, (ref, value) => {
     calls.push([ref, value]);
@@ -70,7 +32,7 @@ test('an overflowing plan writes no credentials', async () => {
 });
 
 test('a ready plan writes every key once in order', async () => {
-  const plan = planKeyWrites([{ ref: null, value: 'k1 k2' }], REFS, {});
+  const plan = { writes: [{ ref: 'KEY', value: 'k1' }, { ref: 'KEY_2', value: 'k2' }], overflow: false };
   const calls = [];
   const status = await applyKeyPlan(plan, (ref, value) => {
     calls.push([ref, value]);
@@ -81,7 +43,7 @@ test('a ready plan writes every key once in order', async () => {
 });
 
 test('an empty plan writes nothing', async () => {
-  const plan = planKeyWrites([{ ref: null, value: '  , ' }], REFS, {});
+  const plan = { writes: [], overflow: false };
   const calls = [];
   const status = await applyKeyPlan(plan, () => {
     calls.push('x');
@@ -92,9 +54,8 @@ test('an empty plan writes nothing', async () => {
 });
 
 test('invalid input never raises the busy saving state', () => {
-  const ten = Array.from({ length: 10 }, (_, index) => `k${index + 1}`).join(',');
-  const overflow = planKeyWrites([{ ref: null, value: ten }], REFS, {});
-  const empty = planKeyWrites([{ ref: null, value: '  , ' }], REFS, {});
+  const overflow = { writes: [{ ref: 'KEY', value: 'k1' }], overflow: true };
+  const empty = { writes: [], overflow: false };
   for (const plan of [overflow, empty]) {
     const busy = [];
     assert.equal(beginKeySave(plan, (value) => busy.push(value)), false);
@@ -103,7 +64,7 @@ test('invalid input never raises the busy saving state', () => {
 });
 
 test('valid input raises the busy saving state exactly once', () => {
-  const plan = planKeyWrites([{ ref: null, value: 'k1 k2' }], REFS, {});
+  const plan = { writes: [{ ref: 'KEY', value: 'k1' }], overflow: false };
   const busy = [];
   assert.equal(beginKeySave(plan, (value) => busy.push(value)), true);
   assert.deepEqual(busy, [true]);
@@ -112,10 +73,9 @@ test('valid input raises the busy saving state exactly once', () => {
 // Wiring coverage: the real save path (saveKey) must refuse invalid plans before touching busy,
 // so the #117 flashing write (setBusy before the gate) turns these tests red.
 test('saveKey refuses invalid input without raising busy', async () => {
-  const ten = Array.from({ length: 10 }, (_, index) => `k${index + 1}`).join(',');
   const cases = [
-    { plan: planKeyWrites([{ ref: null, value: ten }], REFS, {}), prompt: 'tooManyKeys' },
-    { plan: planKeyWrites([{ ref: null, value: '  , ' }], REFS, {}), prompt: 'enterKey' },
+    { plan: { writes: [{ ref: 'KEY', value: 'k1' }], overflow: true }, prompt: 'tooManyKeys' },
+    { plan: { writes: [], overflow: false }, prompt: 'enterKey' },
   ];
   for (const { plan, prompt } of cases) {
     const busy = [];
@@ -136,7 +96,7 @@ test('saveKey refuses invalid input without raising busy', async () => {
 });
 
 test('saveKey writes a valid plan and lowers busy after saving', async () => {
-  const plan = planKeyWrites([{ ref: null, value: 'k1 k2' }], REFS, {});
+  const plan = { writes: [{ ref: 'KEY', value: 'k1' }, { ref: 'KEY_2', value: 'k2' }], overflow: false };
   const calls = [];
   const busy = [];
   await saveKey({
@@ -152,7 +112,7 @@ test('saveKey writes a valid plan and lowers busy after saving', async () => {
 });
 
 test('saveKey lowers busy after a failed write', async () => {
-  const plan = planKeyWrites([{ ref: null, value: 'k1' }], REFS, {});
+  const plan = { writes: [{ ref: 'KEY', value: 'k1' }], overflow: false };
   const busy = [];
   const events = [];
   await saveKey({

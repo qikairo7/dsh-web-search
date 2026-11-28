@@ -2,9 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  findAll,
   findNode,
   loadClientDefinition,
   openSettingsPage,
+  settingsSection,
   textOf,
 } from './helpers/client-fixture.js';
 
@@ -52,79 +54,58 @@ test('maskSavedKey handles empty and short previews', () => {
   assert.equal(maskSavedKey('abc'), '••••');
 });
 
-// ---- Wiring: the settings page Test button routes a failed verification
+// ---- Wiring: the backend card's verify button routes a failed verification
 // through humanizeVerifyError (drives the real factory closure). ----
 
-function namespaceValue(overrides = {}) {
-  return {
-    namespaces: [{
-      ns: 'web-search-router',
-      revision: 1,
-      value: { searchMode: 'quality', fetchMode: 'clean', ...overrides },
-    }],
-  };
-}
-
-test('the settings page Test button shows the humanized 401 hint, not the raw error', async () => {
-  const fetchImpl = async () => ({ json: async () => ({ ok: false, code: 'WEB_PROVIDER_ERROR', message: 'WEB_PROVIDER_ERROR: GitHub search failed: GitHub search failed (HTTP 401): Bad credentials' }) });
-  const page = await openSettingsPage({
-    fetch: fetchImpl,
-    describe: () => ({ ok: true, value: namespaceValue() }),
+function open(fetchImpl, options = {}) {
+  return openSettingsPage({
+    definition: options.definition ?? loadClientDefinition({ fetch: fetchImpl }),
+    section: settingsSection(),
     credentialsDescribe: () => ({ ok: true, value: {} }),
   });
-  const card = findNode(page.getTree(), (entry) => entry.props.key === 'github');
-  assert.ok(card, 'the github card must render');
-  const testButton = findNode(card, (entry) => entry.type === 'button' && textOf(entry) === 'Test');
-  assert.ok(testButton, 'the Test button must render');
-  testButton.props.onClick();
-  const tree = await page.settle();
-  const status = findNode(findNode(tree, (entry) => entry.props.key === 'github'), (entry) => entry.type === 'p' && entry.props.role === 'status');
-  assert.ok(status, 'a status message must render');
+}
+
+const verifyButtonOf = (tree, backend) => findNode(
+  findAll(tree, (entry) => entry.props?.['data-backend-actions'] === backend)[0],
+  (entry) => entry.type === 'button' && textOf(entry) === 'Verify',
+);
+const statusOf = (tree, backend) => findAll(tree, (entry) => entry.props?.['data-message'] === backend)[0];
+
+test('a failed verification shows the humanized 401 hint, not the raw error', async () => {
+  const fetchImpl = async () => ({ json: async () => ({ ok: false, code: 'WEB_PROVIDER_ERROR', message: 'WEB_PROVIDER_ERROR: GitHub search failed: GitHub search failed (HTTP 401): Bad credentials' }) });
+  const page = await open(fetchImpl);
+  let tree = page.getTree();
+  const button = verifyButtonOf(tree, 'github');
+  assert.ok(button, 'the github backend must offer a verify control');
+  button.props.onClick();
+  tree = await page.settle();
+
+  const status = statusOf(tree, 'github');
+  assert.ok(status, 'a verification failure must render a status line');
   const text = textOf(status);
   assert.match(text, /PAT 无效或已过期/u, 'shows the actionable Chinese hint');
   assert.equal(text.includes('WEB_PROVIDER_ERROR'), false, 'no internal code leaks to the UI');
   assert.equal(text.includes('GitHub search failed: GitHub search failed'), false, 'no duplicated prefix reaches the UI');
 });
 
-// ---- Review F1: a settings refresh keeps the verification verdict ----
-// (walkthrough W6 acceptance: the badge must survive a refresh until re-verified).
-
-test('a settings refresh keeps the verified badge instead of resetting it', async () => {
+test('a successful verification marks the backend and survives a settings update', async () => {
   const fetchImpl = async () => ({ json: async () => ({ ok: true, capability: 'search', latencyMs: 42, count: 1 }) });
-  let describeCalls = 0;
-  const page = await openSettingsPage({
-    fetch: fetchImpl,
-    describe: () => {
-      describeCalls += 1;
-      return {
-        ok: true,
-        value: {
-          namespaces: [{
-            ns: 'web-search-router',
-            revision: describeCalls,
-            value: { searchMode: 'quality', fetchMode: 'clean' },
-          }],
-        },
-      };
-    },
-    credentialsDescribe: () => ({ ok: true, value: { KEENABLE_API_KEY: { configured: true, masked: 'ke_***' } } }),
-  });
-  const cardOf = (tree) => findNode(tree, (entry) => entry.props.key === 'keenable');
-  const testButton = findNode(cardOf(page.getTree()), (entry) => entry.type === 'button' && textOf(entry) === 'Test');
-  assert.ok(testButton, 'the Test button must render');
-  testButton.props.onClick();
-  let tree = await page.settle();
-  const badgeText = () => {
-    const card = cardOf(tree);
-    const badge = findNode(card, (entry) => entry.type === 'span' && textOf(entry).includes('Configured'));
-    return badge === undefined ? null : textOf(badge);
-  };
-  assert.equal(badgeText(), 'Configured · verified', 'a successful Test must mark the card verified');
-  // Refresh status (the page-bottom button) must not wipe the verdict.
-  const refreshButton = findNode(tree, (entry) => entry.type === 'button' && textOf(entry) === 'Refresh status');
-  assert.ok(refreshButton, 'the Refresh status button must render');
-  refreshButton.props.onClick();
+  const page = await open(fetchImpl);
+  let tree = page.getTree();
+  verifyButtonOf(tree, 'keenable').props.onClick();
   tree = await page.settle();
-  assert.ok(describeCalls >= 2, 'refresh must re-describe settings');
-  assert.equal(badgeText(), 'Configured · verified', 'refresh must keep the verification verdict');
+
+  const verdict = () => {
+    const head = findAll(tree, (entry) => entry.props?.['data-backend-head'] === 'keenable')[0];
+    return textOf(head);
+  };
+  assert.match(verdict(), /Verified/u, 'a passing verify must mark the backend');
+
+  // Another client's write (or a settings reload) republishes the snapshot; the
+  // verdict is the page's own state and must not be reset by the republication.
+  page.harness.section.value = { ...page.harness.section.value, enrichTopN: 7 };
+  page.harness.section.revision += 1;
+  page.harness.notify();
+  tree = await page.settle();
+  assert.match(verdict(), /Verified/u, 'republication must keep the verification verdict');
 });

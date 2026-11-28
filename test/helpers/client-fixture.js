@@ -12,6 +12,8 @@
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
+import { DEFAULT_SETTINGS, SETTINGS_SPEC } from '../../lib/settings.js';
+
 /** Load `client.js` in a fresh sandbox and return the entry it registers. */
 export function loadClientDefinition(options = {}) {
   let definition;
@@ -96,7 +98,11 @@ export function createFakeReact() {
     if (typeof node === 'string' || typeof node === 'number') return { text: String(node) };
     if (Array.isArray(node)) return node.map(expand).filter((child) => child !== null);
     if (typeof node.type === 'function') {
-      return expand(renderComponent(node.type, { ...node.props, children: node.children }));
+      // React gives positional children precedence and keeps a `children` prop when
+      // there are none; the fixture merges the same way so a component written in
+      // either style renders what the host would render.
+      const children = node.children.length > 0 ? node.children : node.props.children;
+      return expand(renderComponent(node.type, { ...node.props, children }));
     }
     const children = [];
     for (const child of node.children) {
@@ -441,6 +447,30 @@ export function findAll(node, predicate) {
 /** Every `data-field` anchor carrying one settings field's key. */
 export function fieldAnchors(tree, key) {
   return findAll(tree, (entry) => entry.props?.['data-field'] === key);
+}
+
+/**
+ * A settings document the way the host serves one: `value` and `base` carry every
+ * field at its real default, read from `lib/settings.js` rather than copied, so a
+ * changed default moves the tests with it.
+ * @param overrides - stored values that differ from the defaults.
+ */
+export function settingsSection(overrides = {}) {
+  const value = {};
+  for (const spec of SETTINGS_SPEC) {
+    let node = DEFAULT_SETTINGS;
+    for (const part of spec.path.split('.')) node = node?.[part];
+    value[spec.key] = node;
+  }
+  const merged = { ...value, ...overrides };
+  return {
+    status: 'ready',
+    value: merged,
+    base: { ...value },
+    user: {},
+    revision: 1,
+    writable: true,
+  };
 }
 
 /** Load and mount in one step; the common entry point for page-level tests. */

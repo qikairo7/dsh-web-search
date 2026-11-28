@@ -3,113 +3,83 @@ import assert from 'node:assert/strict';
 
 import { Config } from '../lib/index.js';
 import {
+  fieldAnchors,
   findNode,
-  flatten,
   loadClientDefinition,
   openSettingsPage,
+  settingsSection,
   textOf,
 } from './helpers/client-fixture.js';
 
-// The settings page works with arrays for the two order fields
-// (qualityExcludedProviders, cleanExtractProviders) while the host schema stores
-// them as comma-separated strings (lib/index.js kind:'order' -> z.string()). These
-// tests drive the real SettingsPage through the factory: if the stored string stops
-// rehydrating into the control's selection, or the save stops joining the selection
-// back into a string, they go red.
+// Four settings are order tables, and the host schema stores each as one comma
+// separated string (lib/index.js kind:'order' -> z.string()). The page edits them as
+// text, so the value it renders and the value it writes are the same string: a page
+// that wrote an array the host rejects would save nothing and say it saved.
 
-function mountSettingsPage(definition, behavior) {
-  return openSettingsPage({
-    definition,
-    describe: behavior.describe,
-    credentialsDescribe: behavior.credentialsDescribe,
-    mutate: behavior.mutate,
-  });
+const definition = loadClientDefinition();
+const ORDER_KEYS = ['qualityExcludedProviders', 'cleanExtractProviders', 'defaultSearchOrder', 'fetchOrder'];
+
+function open(overrides) {
+  return openSettingsPage({ definition, section: settingsSection(overrides) });
 }
 
-function namespaceValue(overrides = {}) {
-  return {
-    namespaces: [{
-      ns: 'web-search-router',
-      revision: 1,
-      value: { searchMode: 'quality', fetchMode: 'clean', ...overrides },
-    }],
-  };
-}
+const inputOf = (tree, key) => findNode(fieldAnchors(tree, key)[0], (entry) => entry.type === 'input');
+const saveOf = (tree) => findNode(tree, (entry) => entry.type === 'button' && textOf(entry) === 'Save');
 
-function checkboxFor(tree, key) {
-  const cell = findNode(tree, (entry) => entry.props !== undefined && entry.props.key === key);
-  assert.ok(cell, `${key} must render`);
-  return findNode(cell, (entry) => entry.type === 'input');
-}
-
-test('stored order strings rehydrate into the matching checkbox selections', async () => {
-  const page = await mountSettingsPage(loadClientDefinition(), {
-    describe: () => ({ ok: true, value: namespaceValue({ qualityExcludedProviders: 'github', cleanExtractProviders: 'keenable,anysearch' }) }),
-    credentialsDescribe: () => ({ ok: true, value: {} }),
-    mutate: () => ({ ok: true }),
+test('every order field renders the stored comma string as-is', async () => {
+  const page = await open({
+    qualityExcludedProviders: '',
+    cleanExtractProviders: 'keenable,anysearch',
+    defaultSearchOrder: 'keenable,exa',
+    fetchOrder: 'keenable,http,anysearch',
   });
   const tree = page.getTree();
-
-  // 'github' in the stored string means GitHub is excluded from quality mode -> unchecked.
-  assert.equal(checkboxFor(tree, 'quality-github').props.checked, false,
-    'stored qualityExcludedProviders "github" must leave GitHub unchecked');
-  assert.equal(checkboxFor(tree, 'quality-keenable').props.checked, true,
-    'a provider absent from the excluded string stays checked');
-
-  // 'keenable,anysearch' means Keenable/AnySearch extract, Exa does not -> Exa unchecked.
-  assert.equal(checkboxFor(tree, 'clean-keenable').props.checked, true);
-  assert.equal(checkboxFor(tree, 'clean-anysearch').props.checked, true);
-  assert.equal(checkboxFor(tree, 'clean-exa').props.checked, false,
-    'stored cleanExtractProviders without exa must leave Exa unchecked');
+  assert.equal(inputOf(tree, 'qualityExcludedProviders').props.value, '', 'an empty order renders empty');
+  assert.equal(inputOf(tree, 'cleanExtractProviders').props.value, 'keenable,anysearch');
+  assert.equal(inputOf(tree, 'defaultSearchOrder').props.value, 'keenable,exa');
+  assert.equal(inputOf(tree, 'fetchOrder').props.value, 'keenable,http,anysearch');
 });
 
-test('saving the order fields writes comma-separated strings, not arrays', async () => {
-  const page = await mountSettingsPage(loadClientDefinition(), {
-    describe: () => ({ ok: true, value: namespaceValue({ qualityExcludedProviders: '', cleanExtractProviders: 'keenable,anysearch' }) }),
-    credentialsDescribe: () => ({ ok: true, value: {} }),
-    mutate: () => ({ ok: true }),
-  });
-
-  // Exclude GitHub from quality mode and add Exa to clean extraction.
-  checkboxFor(page.getTree(), 'quality-github').props.onChange({ target: { checked: false } });
-  await page.settle();
-  checkboxFor(page.getTree(), 'clean-exa').props.onChange({ target: { checked: true } });
+test('editing an order field writes one comma string per field, never an array', async () => {
+  const page = await open({ qualityExcludedProviders: '', cleanExtractProviders: 'keenable,anysearch' });
+  let tree = page.getTree();
+  inputOf(tree, 'qualityExcludedProviders').props.onChange({ target: { value: 'github' } });
+  tree = await page.settle();
+  inputOf(tree, 'cleanExtractProviders').props.onChange({ target: { value: 'keenable,anysearch,exa' } });
+  tree = await page.settle();
+  saveOf(tree).props.onClick();
   await page.settle();
 
-  const saveBar = findNode(page.getTree(), (entry) => entry.props !== undefined
-    && entry.props.role === 'status'
-    && flatten(entry).some((child) => child.type === 'button' && textOf(child) === 'Save'));
-  assert.ok(saveBar, 'the unsaved-changes save bar must render after editing');
-  findNode(saveBar, (entry) => entry.type === 'button' && textOf(entry) === 'Save').props.onClick();
-  await page.settle();
-
-  assert.equal(page.harness.settingsMutateCalls.length, 1, 'the save must issue exactly one mutate call');
-  const operations = page.harness.settingsMutateCalls[0].operations;
-  const byPath = (path) => operations.find((operation) => operation.path[0] === path);
-
-  const quality = byPath('qualityExcludedProviders');
+  assert.equal(page.harness.formMutateCalls.length, 1, 'the save must issue exactly one mutation');
+  const operations = page.harness.formMutateCalls[0].ops;
+  const byKey = (key) => operations.find((operation) => operation.path[0] === key);
+  const quality = byKey('qualityExcludedProviders');
   assert.ok(quality, 'excluding GitHub must emit a qualityExcludedProviders operation');
   assert.equal(quality.value, 'github', 'the excluded list must be written as a comma-separated string');
   assert.equal(typeof quality.value, 'string', 'the host z.string() field rejects arrays');
-
-  const clean = byPath('cleanExtractProviders');
+  const clean = byKey('cleanExtractProviders');
   assert.ok(clean, 'adding Exa must emit a cleanExtractProviders operation');
-  assert.equal(clean.value, 'keenable,anysearch,exa', 'the clean list must be written as a comma-separated string');
-  assert.equal(typeof clean.value, 'string', 'the host z.string() field rejects arrays');
-
+  assert.equal(clean.value, 'keenable,anysearch,exa');
   for (const operation of operations) {
     assert.equal(Array.isArray(operation.value), false, `${operation.path[0]} must not be written as an array`);
   }
 });
 
-// Anchors the contract the page must respect: the host Config schema stores these
-// two fields as z.string(), so the comma strings the page writes are accepted and
-// the arrays it used to write are rejected.
-test('host Config accepts the comma strings the page writes and rejects the old arrays', () => {
-  assert.doesNotThrow(
-    () => Config({ qualityExcludedProviders: 'github', cleanExtractProviders: 'keenable,anysearch' }),
-    'comma-separated strings must pass the host schema',
-  );
-  assert.throws(() => Config({ qualityExcludedProviders: ['github'] }), /expected string/u);
-  assert.throws(() => Config({ cleanExtractProviders: ['keenable', 'anysearch'] }), /expected string/u);
+test('clearing an order field stages a clear instead of storing an empty string', async () => {
+  const page = await open({ fetchOrder: 'keenable,http' });
+  let tree = page.getTree();
+  inputOf(tree, 'fetchOrder').props.onChange({ target: { value: '' } });
+  tree = await page.settle();
+  saveOf(tree).props.onClick();
+  await page.settle();
+  const clear = page.harness.formMutateCalls[0].ops.find((operation) => operation.path[0] === 'fetchOrder');
+  assert.deepEqual(JSON.parse(JSON.stringify(clear)), { op: 'unset', path: ['fetchOrder'] },
+    'an emptied field must re-inherit the deployment value, not override it with ""');
+});
+
+test('every order field in the table is an order-kind string the host accepts', () => {
+  for (const key of ORDER_KEYS) {
+    assert.doesNotThrow(() => Config({ [key]: 'keenable,exa' }), `${key} must accept a comma string`);
+    assert.throws(() => Config({ [key]: ['keenable'] }), /expected string/u, `${key} must reject an array`);
+  }
 });

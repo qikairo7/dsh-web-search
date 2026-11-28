@@ -2,179 +2,118 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  findAll,
   findNode,
   loadClientDefinition,
   openSettingsPage,
+  settingsSection,
   textOf,
 } from './helpers/client-fixture.js';
 
-const { handleKeySave } = loadClientDefinition();
-const BASE = 'TAVILY_API_KEY';
+// Credential writes ride the host credential store, not the settings document: a key
+// typed into a backend's box goes to that backend's reference, a failed write is
+// reported in place, and the boxes clear only after the host accepted the write.
 
-// Component-level coverage for the factory's former inline handleSaveKey: it builds the
-// write plan from the provider's current rows and the target reference, then drives the
-// busy state and result callbacks through saveKey (#174). If the exported handler is
-// removed or its plan wiring changes, these tests go red.
+const definition = loadClientDefinition();
 
-test('a valid save writes every planned key with one busy raise and one lower', async () => {
-  const busy = [];
-  const writes = [];
-  await handleKeySave({
-    rows: [{ ref: null, value: 'k1 k2' }],
-    ref: BASE,
-    setBusy: (value) => busy.push(value),
-    setCredential: async (ref, value) => { writes.push([ref, value]); return { ok: true }; },
-    onRefused: () => {},
-    onSaved: async () => {},
-    onFailed: () => {},
-  });
-  assert.deepEqual(writes, [[BASE, 'k1'], [`${BASE}_2`, 'k2']]);
-  assert.deepEqual(busy, [true, false], 'busy must rise exactly once and fall exactly once');
-});
-
-test('invalid input is refused without raising busy or writing keys', async () => {
-  const busy = [];
-  const refused = [];
-  let writes = 0;
-  await handleKeySave({
-    rows: [{ ref: null, value: '  , ' }],
-    ref: BASE,
-    setBusy: (value) => busy.push(value),
-    setCredential: async () => { writes += 1; return { ok: true }; },
-    onRefused: (kind) => refused.push(kind),
-    onSaved: async () => refused.push('saved'),
-    onFailed: () => refused.push('failed'),
-  });
-  assert.deepEqual(busy, [], 'invalid input must never raise the saving state');
-  assert.equal(writes, 0, 'invalid input must never write a credential');
-  assert.deepEqual(refused, ['enterKey']);
-});
-
-test('a failed write keeps the attempted write and still lowers busy', async () => {
-  const busy = [];
-  const writes = [];
-  const events = [];
-  await handleKeySave({
-    rows: [{ ref: null, value: 'k1 k2' }],
-    ref: BASE,
-    setBusy: (value) => busy.push(value),
-    setCredential: async (ref, value) => { writes.push([ref, value]); return { ok: false }; },
-    onRefused: (kind) => events.push(['refused', kind]),
-    onSaved: async () => events.push('saved'),
-    onFailed: () => events.push('failed'),
-  });
-  assert.deepEqual(writes, [[BASE, 'k1']], 'the first planned write is attempted before failing');
-  assert.deepEqual(events, ['failed']);
-  assert.deepEqual(busy, [true, false], 'a failed save must still lower busy');
-});
-
-// ---- Factory-closure coverage: drive the settings page save button end to end (#190) ----
-// The tests above feed the module-level handleKeySave its callbacks directly, so they stay green
-// even when the factory closure is broken. These tests render the real SettingsPage through the
-// factory and click the real Save button, so a stray busy raise, a dropped refresh(false), or a
-// dropped failure notice inside that closure turns them red.
-
-const ERROR_TEXT_COLOR = 'var(--dsw-alias-state-error-primary)';
-
-function mountSettingsPage(definition, behavior) {
+function open(options = {}) {
   return openSettingsPage({
     definition,
-    describe: behavior.describe,
-    credentialsDescribe: behavior.credentialsDescribe,
-    setCredential: behavior.set,
-    mutate: () => ({ ok: true }),
+    section: settingsSection(),
+    credentialsDescribe: options.credentialsDescribe ?? (() => ({ ok: true, value: {} })),
+    setCredential: options.setCredential ?? (() => ({ ok: true })),
+    unsetCredential: () => ({ ok: true }),
   });
 }
 
-function namespaceValue(overrides = {}) {
-  return {
-    namespaces: [{
-      ns: 'web-search-router',
-      revision: 1,
-      value: { searchMode: 'quality', fetchMode: 'clean', ...overrides },
-    }],
-  };
-}
+const actionsOf = (tree, backend) => findAll(tree, (entry) => entry.props?.['data-backend-actions'] === backend)[0];
+const keyInputOf = (tree, slot) => findNode(
+  findAll(tree, (entry) => entry.props?.['data-secret'] === slot)[0],
+  (entry) => entry.type === 'input',
+);
+const saveKeysOf = (tree, backend) => findNode(actionsOf(tree, backend),
+  (entry) => entry.type === 'button' && textOf(entry) === 'Save key');
 
-test('a successful factory save writes the key, refreshes once without resetting the draft, and shows the success notice', async () => {
-  const page = await mountSettingsPage(loadClientDefinition(), {
-    describe: () => ({ ok: true, value: namespaceValue() }),
-    credentialsDescribe: () => ({ ok: true, value: {} }),
-    set: () => ({ ok: true }),
+test('a key typed into a configured backend box is written to that backend reference', async () => {
+  const page = await open({
+    credentialsDescribe: () => ({ ok: true, value: { KEENABLE_API_KEY: { configured: true, masked: 'ke_***' } } }),
   });
-  const initialDescribeCalls = page.harness.settingsDescribeCalls.length;
+  let tree = page.getTree();
+  const input = keyInputOf(tree, 'keenable:1');
+  assert.ok(input, 'a configured backend must offer a key box');
+  input.props.onChange({ target: { value: 'fresh-key' } });
+  tree = await page.settle();
+  saveKeysOf(tree, 'keenable').props.onClick();
+  tree = await page.settle();
 
-  const card = findNode(page.getTree(), (entry) => entry.props.key === 'tavily');
-  assert.ok(card, 'the tavily provider card must render');
-  const input = findNode(card, (entry) => entry.type === 'input');
-  input.props.onChange({ target: { value: 'k1' } });
-  await page.settle();
-
-  const modeSelect = findNode(page.getTree(), (entry) => entry.type === 'select' && entry.props['aria-label'] === 'Search mode');
-  modeSelect.props.onChange({ target: { value: 'fast' } });
-  await page.settle();
-
-  const setterMark = page.fake.setterLog.length;
-  const saveButton = findNode(
-    findNode(page.getTree(), (entry) => entry.props.key === 'tavily'),
-    (entry) => entry.type === 'button' && textOf(entry) === 'Save',
-  );
-  assert.ok(saveButton, 'the tavily save button must render');
-  saveButton.props.onClick();
-  await page.settle();
-
-  assert.deepEqual(page.harness.credentialSetCalls, [['TAVILY_API_KEY', 'k1']], 'the save must write the key to the provider reference');
-  assert.equal(page.harness.settingsDescribeCalls.length, initialDescribeCalls + 1, 'a successful save must trigger exactly one settings refresh(false)');
-  const busyRaises = page.fake.setterLog.slice(setterMark).filter((entry) => entry.value === true).length;
-  const busyLowers = page.fake.setterLog.slice(setterMark).filter((entry) => entry.value === false).length;
-  assert.equal(busyRaises, 1, 'the save must raise busy exactly once');
-  assert.equal(busyLowers, 1, 'the save must lower busy exactly once');
-
-  const status = findNode(
-    findNode(page.getTree(), (entry) => entry.props.key === 'tavily'),
-    (entry) => entry.type === 'p' && entry.props.role === 'status',
-  );
-  assert.ok(status, 'the success notice must render in the provider card');
-  assert.equal(textOf(status), 'Saved Tavily key.');
-  assert.notEqual(status.props.style.color, ERROR_TEXT_COLOR, 'the success notice must not be styled as an error');
-
-  const modeAfter = findNode(page.getTree(), (entry) => entry.type === 'select' && entry.props['aria-label'] === 'Search mode');
-  assert.equal(modeAfter.props.value, 'fast', 'refresh(false) must not reset the unsaved draft back to the stored settings');
+  assert.deepEqual(page.harness.credentialSetCalls, [['KEENABLE_API_KEY', 'fresh-key']],
+    'the write must target the reference the backend names');
+  assert.equal(keyInputOf(tree, 'keenable:1').props.value, '', 'an accepted write clears the box');
+  const confirm = findAll(tree, (entry) => entry.props?.['data-message'] === 'keenable')[0];
+  assert.match(textOf(confirm), /Saved a key/u, 'the backend must confirm the write');
 });
 
-test('a failed factory save keeps busy down and shows an error notice without refreshing', async () => {
-  const page = await mountSettingsPage(loadClientDefinition(), {
-    describe: () => ({ ok: true, value: namespaceValue() }),
-    credentialsDescribe: () => ({ ok: true, value: {} }),
-    set: () => ({ ok: false }),
+test('a failed credential write is reported in place and leaves the box usable', async () => {
+  const page = await open({
+    credentialsDescribe: () => ({ ok: true, value: { KEENABLE_API_KEY: { configured: true, masked: 'ke_***' } } }),
+    setCredential: () => ({ ok: false }),
   });
-  const initialDescribeCalls = page.harness.settingsDescribeCalls.length;
+  let tree = page.getTree();
+  keyInputOf(tree, 'keenable:1').props.onChange({ target: { value: 'fresh-key' } });
+  tree = await page.settle();
+  saveKeysOf(tree, 'keenable').props.onClick();
+  tree = await page.settle();
 
-  const input = findNode(findNode(page.getTree(), (entry) => entry.props.key === 'tavily'), (entry) => entry.type === 'input');
-  input.props.onChange({ target: { value: 'k1' } });
+  assert.deepEqual(page.harness.credentialSetCalls, [['KEENABLE_API_KEY', 'fresh-key']],
+    'a refused write still attempted the write once');
+  const message = findAll(tree, (entry) => entry.props?.['data-message'] === 'keenable')[0];
+  assert.ok(message, 'the failure must render in the backend group');
+  assert.match(textOf(message), /could not be saved/u);
+  assert.equal(findNode(actionsOf(tree, 'keenable'), (entry) => entry.type === 'button' && textOf(entry) === 'Save key').props.disabled,
+    false, 'a failed write must leave the control usable');
+});
+
+test('a box holding more than one key is refused instead of writing a partial batch', async () => {
+  const page = await open({
+    credentialsDescribe: () => ({ ok: true, value: { KEENABLE_API_KEY: { configured: true, masked: 'ke_***' } } }),
+  });
+  let tree = page.getTree();
+  keyInputOf(tree, 'keenable:1').props.onChange({ target: { value: 'k1 k2' } });
+  tree = await page.settle();
+  saveKeysOf(tree, 'keenable').props.onClick();
+  tree = await page.settle();
+
+  assert.deepEqual(page.harness.credentialSetCalls, [], 'one box carries one key; a list must not be half-written');
+  const message = findAll(tree, (entry) => entry.props?.['data-message'] === 'keenable')[0];
+  assert.match(textOf(message), /One key per box/u);
+});
+
+test('add key grows the backend with another empty box and remove drops it again', async () => {
+  const page = await open();
+  let tree = page.getTree();
+  assert.equal(findAll(tree, (entry) => entry.props?.['data-secret'] === 'keenable:2').length, 0,
+    'a backend with no configured keys starts with one box');
+  findNode(actionsOf(tree, 'keenable'), (entry) => entry.type === 'button' && textOf(entry) === 'Add key').props.onClick();
+  tree = await page.settle();
+  assert.equal(findAll(tree, (entry) => entry.props?.['data-secret'] === 'keenable:2').length, 1,
+    'add key must render a second box');
+  const second = findAll(tree, (entry) => entry.props?.['data-secret'] === 'keenable:2');
+  findNode(second[0], (entry) => entry.type === 'button' && textOf(entry) === 'Remove').props.onClick();
+  tree = await page.settle();
+  assert.equal(findAll(tree, (entry) => entry.props?.['data-secret'] === 'keenable:2').length, 0,
+    'removing an empty box must drop it');
+  assert.deepEqual(page.harness.credentialUnsetCalls, [], 'an empty box has no credential to unset');
+});
+
+test('the X backend takes a cookie through the same credential store', async () => {
+  const page = await open();
+  let tree = page.getTree();
+  const input = keyInputOf(tree, 'x:1');
+  assert.ok(input, 'the cookie backend must offer its box');
+  input.props.onChange({ target: { value: 'cookie-value' } });
+  tree = await page.settle();
+  saveKeysOf(tree, 'x').props.onClick();
   await page.settle();
-
-  const setterMark = page.fake.setterLog.length;
-  const saveButton = findNode(
-    findNode(page.getTree(), (entry) => entry.props.key === 'tavily'),
-    (entry) => entry.type === 'button' && textOf(entry) === 'Save',
-  );
-  saveButton.props.onClick();
-  await page.settle();
-
-  assert.deepEqual(page.harness.credentialSetCalls, [['TAVILY_API_KEY', 'k1']], 'the failed save still attempts the planned write once');
-  assert.equal(page.harness.settingsDescribeCalls.length, initialDescribeCalls, 'a failed save must not refresh');
-  const busyRaises = page.fake.setterLog.slice(setterMark).filter((entry) => entry.value === true).length;
-  const busyLowers = page.fake.setterLog.slice(setterMark).filter((entry) => entry.value === false).length;
-  assert.equal(busyRaises, 1, 'the failed save must raise busy exactly once');
-  assert.equal(busyLowers, 1, 'the failed save must lower busy exactly once');
-
-  const card = findNode(page.getTree(), (entry) => entry.props.key === 'tavily');
-  const status = findNode(card, (entry) => entry.type === 'p' && entry.props.role === 'status');
-  assert.ok(status, 'the failure notice must render in the provider card');
-  assert.ok(textOf(status).length > 0, 'the failure notice must not be empty');
-  assert.equal(status.props.style.color, ERROR_TEXT_COLOR, 'keyMessages[provider.id].error must be true, styled as an error');
-
-  const saveAfter = findNode(card, (entry) => entry.type === 'button' && textOf(entry) === 'Save');
-  assert.equal(saveAfter.props.disabled, false, 'busy must be false after the failure, so the save button is enabled again');
+  assert.deepEqual(page.harness.credentialSetCalls, [['X_COOKIE', 'cookie-value']],
+    'the cookie must be written under the reference the backend names');
 });
