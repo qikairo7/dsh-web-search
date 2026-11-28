@@ -8,7 +8,7 @@
 
 - `lib/**/*.js` 是唯一随包发布的 JS。新增运行时文件放进 `lib/`，否则同步修改 `package.json#files`。
 - `package.json` 的 `scripts` 是命令的唯一来源。除 `lint:zh` 外，仓库没有 `dev` / `build` / `typecheck` 脚本，也不新增其他脚本类命令。`lint:zh` 是中文排版检查（autocorrect），本机装了才跑得动，属可选工具，不进 CI 与 `pnpm check`；安装方式与前置见 `docs/development.md` 的 autocorrect 节。
-- 基准结果写 `.research/`（gitignored），不提交；临时脚本同样不提交。
+- 临时脚本不提交。
 - 依赖方向：`lib/index.js` → `lib/providers/*` → `lib/*` 共用模块。共用模块不得 import `providers/` 或 `index.js`，反向 import 是架构缺陷。`lib/tools/` 视同 provider 层。
 
 ## 2. 实现原则
@@ -70,7 +70,7 @@
 - 用本地 stub provider；需要拦截 HTTP 的测试用 `test/helpers/withFetch.js`，不要在各测试内手写保存、恢复 `globalThis.fetch`。不引入 mock 库。
 - 新行为在映射层和路由层都有覆盖；行为改动必须有一个改动前失败、改动后通过的测试；纯文档或格式改动不需要新增测试。
 - 单文件：`node --test --test-isolation=none test/<name>.test.js`。沙箱的 `spawn EPERM` 变体见 `docs/development.md` 的 DSH 沙箱一节。
-- `test/architecture.test.js` 会扫描 `lib/` 和 `scripts/` 中的付费 API 标记（`api.deepseek.com`、`/v1/tools/search`、`/v1/tools/fetch`、`x-dsh-auth-token`），只有 `scripts/public-benchmark.mjs` 例外。不要绕过或削弱该测试，也不要把基准脚本里的对比调用复制进运行时。
+- `test/architecture.test.js` 会扫描 `lib/` 和 `scripts/` 中的付费 API 标记（`api.deepseek.com`、`/v1/tools/search`、`/v1/tools/fetch`、`x-dsh-auth-token`）。不要绕过或削弱该测试，也不要把对比调用复制进运行时。
 - **测试存在性问句**：每个用例答得出「哪个未来 diff 会把它变红」，只改测试自身就能过的用例删除。一个强用例胜过多个弱用例，同输入同断言的重复行合并，删用例前说出它会放走的回归。
 - 测公共契约不测内部表示：断言输入到输出与可观察状态，不快照缓存键布局、辅助元组等内部结构；保持调用方可见行为的重构不应破坏测试。
 
@@ -82,7 +82,7 @@
 - 证据贴原始输出：行为改动附实际命令与输出摘录；界面或交互改动附截图。
 - 声称已推送、已合并或已发布前，与远端核对（`git fetch` 后 `rev-parse`，或 `gh` 查询）；以远端返回为准，不以本地退出码为准。
 - 测试满足 §5；纯文档或格式改动确认无需新增测试。
-- 涉及后端协议、凭据解析、路由顺序或 DSH 注册的改动：有凭据时跑 `pnpm benchmark`，或安装并重启 DSH 后用 `web_search`（中英文各一次）和 `web_fetch` 各验证一次；纯逻辑改动以单测为准。
+- 涉及后端协议、凭据解析、路由顺序或 DSH 注册的改动：安装并重启 DSH 后用 `web_search`（中英文各一次）和 `web_fetch` 各验证一次；纯逻辑改动以单测为准。
 - 新配置字段满足 §4。新 Provider 同时完成：provider 文件、`lib/catalog.js` 条目与 `lib/index.js` factory（注册顺序由 catalog 派生）、配置与默认值、`docs/configuration.md` 配置表、`docs/architecture.md` 的 Provider 矩阵、映射测试、路由顺序与回退测试。
 - 默认值或配额变化时，更新 `docs/configuration.md` 的配置表和免费额度说明（ADR-0003 要求）；随包默认行为变化时同步 `cordis.patch.yml`。
 
@@ -118,7 +118,7 @@
 
 - 生成表 `docs/subsystems/providers.md`：由 `pnpm docs:gen` 从 `lib/catalog.js` 生成，只核源改对、结果与源同步。
 - 锁文件 `pnpm-lock.yaml`：只看依赖增删对不对得上 `package.json`，不抠版本解析。
-- 历史与镜像：`CHANGELOG.md` 已发版节、既有 ADR 正文、基准报告按「历史不改写」处理；`README.en.md` 镜像与 `*.zh.md` 法律文件只核语言配对与事实同步。
+- 历史与镜像：`CHANGELOG.md` 已发版节、既有 ADR 正文按「历史不改写」处理；`README.en.md` 镜像与 `*.zh.md` 法律文件只核语言配对与事实同步。
 - 二进制与资源：图片、字体只看该不该进、体积合理。
 
 ### 每轮小问题上限

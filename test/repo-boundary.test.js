@@ -25,7 +25,7 @@ const gitAllowingNoMatch = async (...args) => {
 const tracked = async () => (await git('ls-files', '-z')).split('\0').filter(Boolean);
 
 const LOCAL_ONLY_RULES = [
-  { test: /^\.env(\..+)?$/, allow: /^\.env\.example$/, why: '密钥文件只留在本地' },
+  { test: /^\.env(\..+)?$/, why: '密钥文件只留在本地' },
   { test: /(^|\/)\.?(credentials|secrets?)\.(ya?ml|json|txt)$/i, why: '凭据库不进仓库' },
   { test: /(^|\/)\.secret$/, why: '凭据库不进仓库' },
   { test: /\.(pem|key|p12|pfx)$/i, why: '私钥不进仓库' },
@@ -48,7 +48,6 @@ const SHIP_DOCS = new Set(['docs/DETAIL.md', 'docs/DETAIL.en.md', 'docs/preview.
 
 const MUST_SHIP = [
   'LICENSE',
-  'LICENSES/Apache-2.0.txt',
   'LICENSES/geist-mono-OFL.txt',
   'LICENSES/inter-OFL.txt',
   'THIRD_PARTY_NOTICES.md',
@@ -83,7 +82,7 @@ test('a stray file on a local-only path is ignored, so git add cannot leak it', 
 });
 
 test('kept files stay committable even when no ignore rule matches any of them', async () => {
-  const keep = ['.env.example', '.agents/skills/verify/SKILL.md', 'docs/decisions.md', 'test/doc-target.txt', 'docs/design/tokens.json'];
+  const keep = ['.agents/skills/verify/SKILL.md', 'docs/decisions.md', 'test/doc-target.txt', 'docs/design/tokens.json'];
   const scratch = mkdtempSync(join(tmpdir(), 'repo-boundary-'));
   try {
     await git('init', { cwd: scratch });
@@ -124,14 +123,6 @@ test('the package carries every licence and legal file it redistributes under', 
   const files = await packList();
   const missing = MUST_SHIP.filter((file) => !files.includes(file));
   assert.deepEqual(missing, []);
-});
-
-test('.env.example names variables but never carries a value', async () => {
-  const text = await readFile('.env.example', 'utf8');
-  const lines = text.split(/\r?\n/).filter((line) => /^[A-Z][A-Z0-9_]*=/.test(line));
-  assert.ok(lines.length >= 1, '.env.example should list at least one variable');
-  const filled = lines.filter((line) => line.slice(line.indexOf('=') + 1).trim() !== '');
-  assert.deepEqual(filled, []);
 });
 
 test('the doc set equals the agreed target list', { skip: process.env.BOUNDARY_DOCS === '1' ? false : 'opens once the doc removal in phase 2 lands' }, async () => {

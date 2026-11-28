@@ -25,22 +25,14 @@ test('lib does not call the paid DeepSeek search/fetch APIs', async () => {
   }
 });
 
-test('scripts only allow the benchmark runner to reference the paid DeepSeek APIs', async () => {
-  const runner = 'scripts/public-benchmark.mjs';
-  const allowed = new Set([runner, 'scripts/benchmark-auth.mjs']);
-  let seenRunner = false;
+test('scripts do not reference the paid DeepSeek APIs', async () => {
   for (const file of await jsFiles('scripts', ['.js', '.mjs'])) {
     const normalized = file.replaceAll('\\', '/');
-    if (allowed.has(normalized)) {
-      if (normalized === runner) seenRunner = true;
-      continue;
-    }
     const text = await readFile(file, 'utf8');
     for (const pattern of PAID_DEEPSEEK_MARKERS) {
       assert.equal(text.includes(pattern), false, `${normalized} contains ${pattern}`);
     }
   }
-  assert.equal(seenRunner, true, `${runner} was not found`);
 });
 
 test('package does not depend on an MCP server', async () => {

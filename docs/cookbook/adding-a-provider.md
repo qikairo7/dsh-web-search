@@ -47,4 +47,4 @@
 - [ ] 两份 README 的 Provider 与配置表同步。
 - [ ] mapper 与路由器测试通过。
 - [ ] `pnpm docs:check` 和 `pnpm check` 通过。
-- [ ] 有凭据时完成一次 `pnpm benchmark` 或 DSH 内真实冒烟。
+- [ ] 有凭据时在 DSH 内完成一次真实冒烟。

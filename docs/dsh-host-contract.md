@@ -37,7 +37,7 @@ DSH `0.2.2-rc.5` 的 `standard` preset 在 `@deepseek-ai/dsh-web-app` 的 `prese
 ## DeepSeek 的两条链路
 
 - `@deepseek-ai/dsh-web-search-deepseek`（provider id `deepseek-official`）通过 Anthropic 兼容的 Messages 调用原生 `web_search_20250305`；每次搜索跑一轮模型，返回 citation 片段。
-- DeepSeek 付费 API `POST https://api.deepseek.com/v1/tools/search` 与 `GET /v1/tools/fetch` 是另一条链路，仅供 `scripts/public-benchmark.mjs` 的对比使用；运行时不得调用。
+- DeepSeek 付费 API `POST https://api.deepseek.com/v1/tools/search` 与 `GET /v1/tools/fetch` 是另一条链路，运行时不得调用。
 - 两者不要混称「DeepSeek Search」。
 
 ## profile 组合顺序

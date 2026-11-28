@@ -1,10 +1,9 @@
 # 仓库边界。什么进 GitHub、什么只留本地、什么进安装包，见 test/repo-boundary.test.js。
 # 规则按用途分组，每组第一行写它归哪一栏。
 
-# 密钥和凭据。只进 DSH 凭据库，哪里都不落文件。.env.example 只有变量名。
+# 密钥和凭据。只进 DSH 凭据库，哪里都不落文件。
 .env
 .env.*
-!.env.example
 *.pem
 *.key
 *.p12
