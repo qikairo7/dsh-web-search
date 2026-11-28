@@ -892,6 +892,21 @@ test('AutoFetchProvider retries the next free provider when the first returns an
   assert.equal(result.body.content, 'anysearch body');
 });
 
+test('AutoFetchProvider weak fallback stops after one extra free provider', async () => {
+  const calls = [];
+  const router = new AutoFetchProvider({
+    settings: () => weakSettings({ fetchOrder: ['http', 'anysearch', 'exa'] }),
+    providers: {
+      http: bodyFetchProvider('http', calls, { kind: 'text', content: '' }),
+      anysearch: bodyFetchProvider('anysearch', calls, { kind: 'text', content: '' }),
+      exa: bodyFetchProvider('exa', calls, { kind: 'text', content: 'exa body' }),
+    },
+  });
+  const result = await router.fetch({ url: 'https://example.com/' });
+  assert.deepEqual(calls, ['http', 'anysearch']);
+  assert.equal(result.body.content, '');
+});
+
 test('AutoFetchProvider treats an empty HTML shell as a weak fetch result', async () => {
   const calls = [];
   const router = new AutoFetchProvider({

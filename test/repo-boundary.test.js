@@ -82,7 +82,7 @@ test('a stray file on a local-only path is ignored, so git add cannot leak it', 
 });
 
 test('kept files stay committable even when no ignore rule matches any of them', async () => {
-  const keep = ['docs/decisions.md', 'test/doc-target.txt', 'docs/design/tokens.json'];
+  const keep = ['docs/decisions.md', 'test/doc-target.txt', 'docs/configuration.md'];
   const scratch = mkdtempSync(join(tmpdir(), 'repo-boundary-'));
   try {
     await git('init', { cwd: scratch });
