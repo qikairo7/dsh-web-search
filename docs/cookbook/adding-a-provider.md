@@ -6,7 +6,7 @@
 
 - 搜索、抓取还是两者都支持。
 - 选一个唯一的 provider id；标准集合是 `keenable`、`anysearch`、`exa`、`bing`、`github`、`tavily`、`firecrawl`、`zhihu`、`zhihu-site`、`aihot`、`http`、`auto`。
-- 新 id 或新能力缝先写 ADR，放在 `docs/adr/`。
+- 新 id 或新能力缝先写进 `docs/decisions.md`。
 
 ## 2. 建立 provider 文件
 
@@ -37,7 +37,7 @@
 
 - 在 `test/mapping.test.js` 或新测试文件覆盖 mapper 的正常输入、空响应、错误 envelope 和无效 URL；拦截 HTTP 用 `test/helpers/withFetch.js`。
 - 在 `test/router.test.js` 覆盖搜索/抓取顺序、回退和缓存行为。
-- 运行 `pnpm docs:check` 和 `pnpm check`。
+- 运行 `pnpm check`。
 
 ## 6. 验收清单
 
@@ -46,5 +46,5 @@
 - [ ] `SETTINGS_SPEC` 与 `DEFAULT_SETTINGS` 同步，`*ApiKeyEnv` 标了 `credential-ref`。
 - [ ] 两份 README 的 Provider 与配置表同步。
 - [ ] mapper 与路由器测试通过。
-- [ ] `pnpm docs:check` 和 `pnpm check` 通过。
+- [ ] `pnpm check` 通过。
 - [ ] 有凭据时在 DSH 内完成一次真实冒烟。

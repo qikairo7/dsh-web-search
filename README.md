@@ -36,9 +36,9 @@
 
 ## 为什么
 
-- 免费额度优先、自动故障切换的多后端池，中间有 Bing 免 Key 搜索保底（ADR-0011），用尽才落到付费后端兜底。 → [架构](docs/architecture.md) · [配置](docs/configuration.md)
+- 免费额度优先、自动故障切换的多后端池，中间有 Bing 免 Key 搜索保底，用尽才落到付费后端兜底。 → [架构](docs/architecture.md) · [配置](docs/configuration.md)
 - 质量管线：URL 去重、BGE 重排叠加域名权威，前 5 条做证据增强。 → [架构](docs/architecture.md)
-- 失败分类回退门控：`fallbackFailureClasses` 决定何时换下一后端；fast 模式首个免费后端空结果时再试一家（ADR-0015）。 → [配置](docs/configuration.md) · [架构决策](docs/adr/)
+- 失败分类回退门控：`fallbackFailureClasses` 决定何时换下一后端；fast 模式首个免费后端空结果时再试一家。 → [配置](docs/configuration.md)
 - 可选后端：[AnySearch](https://anysearch.com)、[Tavily](https://tavily.com)、[AIHOT](https://aihot.news) 等，含 [GitHub](https://github.com) 官方 API；另有 X 只读搜索工具 `x_search`（cookie 认证，站点抓取灰区见 [安全策略](SAFETY.zh.md)）。天气和汇率直连实时，重排与语义去重由 [硅基流动](https://cloud.siliconflow.cn/i/E3nhNFP4) 提供。全部后端与免费额度见[配置](docs/configuration.md)。
 
 ## 快速开始
@@ -57,11 +57,11 @@ API Key 经 DeepSeek Harness 凭据服务读取，优先在 Provider 卡片点 *
 
 ## 文档索引
 
-- 使用：[配置参考](docs/configuration.md) · [版本日志](CHANGELOG.md) · [历史归档](docs/changelog-archive.md)
-- 原理：[架构](docs/architecture.md) · [架构决策](docs/adr/) · [宿主契约](docs/dsh-host-contract.md) · [功能地图](docs/feature-map.md) · [插件详情](docs/DETAIL.md) · [插件详情（英文）](docs/DETAIL.en.md)
+- 使用：[配置参考](docs/configuration.md) · [版本日志](CHANGELOG.md)
+- 原理：[架构](docs/architecture.md) · [决策记录](docs/decisions.md) · [宿主契约](docs/dsh-host-contract.md) · [功能地图](docs/feature-map.md) · [插件详情](docs/DETAIL.md) · [插件详情（英文）](docs/DETAIL.en.md)
 - 开发：[开发指南](docs/development.md) · [测试策略](docs/testing.md) · [新增 Provider](docs/cookbook/adding-a-provider.md) · [提高摘要上限](docs/cookbook/raising-summary-cap.md)
-- 深入：[子系统参考](docs/subsystems/README.md) · [Review 规则](docs/defensive-patterns.md) · [代理领域文档](docs/agents/domain.md) · [术语表](GLOSSARY.md)
-- 治理：[文档标准](docs/AGENTS.md) · [文档清单](docs/schema-inventory.md) · [文档同步映射](docs/schema-sync-map.md) · [安全策略](SECURITY.zh.md) · [商标](TRADEMARKS.zh.md)
+- 深入：[DSH 宿主集成](docs/subsystems/dsh-host.md) · [配置系统](docs/subsystems/settings.md) · [Review 规则](docs/defensive-patterns.md) · [术语表](GLOSSARY.md)
+- 政策：[安全策略](SECURITY.zh.md) · [商标](TRADEMARKS.zh.md)
 
 ## 升级与更多
 

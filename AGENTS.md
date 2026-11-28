@@ -10,7 +10,7 @@
 - 不新增 MCP server 或 `@modelcontextprotocol/*` 依赖。
 - 不提交真实密钥或 `.credentials.yaml`；key 只从环境变量或 gitignored `.env` 读，不写进 shell 命令。
 
-实现与评审标准见 [CODING_STANDARDS.md](CODING_STANDARDS.md)，安全边界与风险模型见 [SAFETY.zh.md](SAFETY.zh.md)，文档标准与目录见 [docs/AGENTS.md](docs/AGENTS.md)，领域文档阅读顺序见 [docs/agents/domain.md](docs/agents/domain.md)。
+实现与评审标准见 [CODING_STANDARDS.md](CODING_STANDARDS.md)，安全边界与风险模型见 [SAFETY.zh.md](SAFETY.zh.md)，决策记录见 [docs/decisions.md](docs/decisions.md)。
 
 ## 协作
 

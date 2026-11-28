@@ -1,6 +1,6 @@
 # 开发指南
 
-面向贡献者的安装、日常命令、CI 和排错。实现规则见 [CODING_STANDARDS](../CODING_STANDARDS.md)，文档规则见 [docs/AGENTS.md](AGENTS.md)，架构地图见 [docs/architecture.md](architecture.md)。
+面向贡献者的安装、日常命令、CI 和排错。实现规则见 [CODING_STANDARDS](../CODING_STANDARDS.md)，架构地图见 [docs/architecture.md](architecture.md)。
 
 ## 查证顺序
 
@@ -21,21 +21,17 @@
 
 ```sh
 pnpm install
-pnpm docs:check
 pnpm check
 ```
 
-`pnpm check` 依次运行全部八段门禁（见下表）；全量门禁由 CI 在推送后执行。
-
-各双语对同步编辑后，运行 `node scripts/translation-pairing.mjs --record` 重建配对基线；只改一侧会让 `pnpm check` 失败。
+`pnpm check` 依次运行全部四段门禁（见下表）；全量门禁由 CI 在推送后执行。
 
 ## 日常命令
 
 | 命令 | 用途 |
 |---|---|
 | `pnpm test` | 只跑 `node --test` |
-| `pnpm check` | 语法检查 + 架构检查 + order-doc 同步 + 文档代码块 + 翻译配对门禁 + `docs:check` + 文档引用存活 + 单测，提交前门禁 |
-| `pnpm docs:check` | 只跑文档层级、链接、配置覆盖和预算检查 |
+| `pnpm check` | 语法检查 + 架构检查 + order-doc 同步 + 单测，提交前门禁 |
 | `node --test --test-isolation=none test/<name>.test.js` | 跑单个测试文件 |
 | `dsh plugin --profile desktop add "<仓库路径>"` | 安装到本机 DSH，安装后重启 DSH |
 
@@ -44,10 +40,10 @@ pnpm check
 DSH 沙箱会拦截 Node 测试运行器的子进程，`node --test` 可能报 `spawn EPERM`。这时改用：
 
 ```sh
-node scripts/check-syntax.mjs && node scripts/check-architecture.mjs && node scripts/check-order-sync.mjs && node scripts/check-doc-code.mjs && node scripts/translation-pairing.mjs && node scripts/verify-docs.mjs && node scripts/check-doc-refs.mjs && node --test --test-isolation=none
+node scripts/check-syntax.mjs && node scripts/check-architecture.mjs && node scripts/check-order-sync.mjs && node --test --test-isolation=none
 ```
 
-单文件同理：`node --test --test-isolation=none test/<name>.test.js`。`pnpm docs:check` 不启动子进程，可以直接运行。
+单文件同理：`node --test --test-isolation=none test/<name>.test.js`。
 
 ## CI
 
@@ -62,13 +58,11 @@ node scripts/check-syntax.mjs && node scripts/check-architecture.mjs && node scr
 ## 常见问题
 
 - **测试报 `spawn EPERM`**：这是 DSH 沙箱限制，不是测试失败；按上面的单进程命令重跑。
-- **文档检查失败**：看 `pnpm docs:check` 的 `- <file>: ...` 行；常见原因是相对链接失效、README 配置字段缺失、预算超标或 Agent Note 缺章节。
-- **文档代码块检查失败**：看 `doc code-block check failed:` 之后的 `- <file> (<lang> block #<N>)` 行；示例不可解析时修文档；`checker ... unavailable` 是本机缺 node/bash，不是文档问题。
 - **Provider 未就绪**：Tavily、Firecrawl 或知乎缺少对应 Key 时会被路由器跳过；这不是代码错误。
 
 ## 相关文档
 
 - [架构](architecture.md)
-- [文档标准](AGENTS.md)
+- [项目约定](../AGENTS.md)
 - [测试策略](testing.md)
 - [实现标准](../CODING_STANDARDS.md)

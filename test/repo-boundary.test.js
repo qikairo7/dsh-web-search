@@ -44,7 +44,7 @@ const SHIP_TOP_LEVEL = new Set([
   'SAFETY.md', 'SAFETY.zh.md', 'SECURITY.md', 'SECURITY.zh.md', 'TRADEMARKS.md', 'TRADEMARKS.zh.md',
 ]);
 const SHIP_DIRS = new Set(['lib', 'locale', 'LICENSES', 'docs']);
-const SHIP_DOCS = new Set(['docs/DETAIL.md', 'docs/DETAIL.en.md', 'docs/preview.svg', 'docs/changelog-archive.md']);
+const SHIP_DOCS = new Set(['docs/DETAIL.md', 'docs/DETAIL.en.md', 'docs/preview.svg']);
 
 const MUST_SHIP = [
   'LICENSE',
@@ -125,7 +125,7 @@ test('the package carries every licence and legal file it redistributes under', 
   assert.deepEqual(missing, []);
 });
 
-test('the doc set equals the agreed target list', { skip: process.env.BOUNDARY_DOCS === '1' ? false : 'opens once the doc removal in phase 2 lands' }, async () => {
+test('the doc set equals the agreed target list', async () => {
   const target = (await readFile(new URL('./doc-target.txt', import.meta.url), 'utf8')).split(/\r?\n/).filter((line) => line && !line.startsWith('#'));
   const actual = (await tracked()).filter((file) => file.endsWith('.md')).sort();
   assert.deepEqual(actual, target.sort());

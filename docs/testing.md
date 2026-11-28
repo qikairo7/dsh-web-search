@@ -7,7 +7,6 @@
 | 层级 | 内容 | 何时运行 |
 |---|---|---|
 | 单元测试 | `test/*.test.js` 使用 `node:test` 和 `node:assert/strict`，按 lib 模块对应，不访问网络 | 每次代码改动 |
-| 文档门禁 | `pnpm docs:check` 检查文档层级、链接、配置覆盖和默认值 | 每次文档改动；`pnpm check` 自动运行 |
 | 手动冒烟 | 安装到 DSH，重启后验证设置页、`web_search`（中英文）和 `web_fetch` | 改 Provider 注册、配置或默认行为 |
 
 仓库没有覆盖率门禁，也不把 live API 调用放进单元测试。
@@ -24,7 +23,6 @@
 
 1. 单文件：`node --test --test-isolation=none test/<name>.test.js`。
 2. 全量：`node --check lib/index.js && node --test --test-isolation=none`（DSH 沙箱）；CI 用 `pnpm check`。
-3. 文档改动：`pnpm docs:check`，不需要跑测试。
 
 ## 相关文档
 
