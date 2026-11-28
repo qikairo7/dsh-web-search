@@ -41,8 +41,8 @@
 
 ## 文档
 
-- 遵守 [docs/AGENTS.md](AGENTS.md)：一个事实一个家、当前状态、篇幅预算、相对链接、中文文风。
-- 改 README 时两份同步；改契约先写 ADR；改实现规则更新 `CODING_STANDARDS.md`。
+- 一个事实一个家、写当前状态、相对链接指向真实文件。
+- 改 README 时两份同步；改契约先写进 `docs/decisions.md`；改实现规则更新 `CODING_STANDARDS.md`。
 
 ## 测试
 

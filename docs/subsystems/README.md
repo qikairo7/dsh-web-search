@@ -6,7 +6,6 @@
 
 | 页面 | 范围 |
 |---|---|
-| [providers](providers.md) | provider 层：三段式契约、调用骨架、catalog 与回退 |
 | [dsh-host](dsh-host.md) | 宿主集成：装载组合、`apply()`、patch 与 tool-web |
 | [settings](settings.md) | 配置：`SETTINGS_SPEC`、默认值与解析 |
 
@@ -21,7 +20,6 @@
 
 改动这些符号的行为或签名时，同一个 PR 更新对应页；纯内部重构可不动：
 
-- providers：`PROVIDER_CATALOG`、`providerOperation()`、`ProviderRunner`。
 - dsh-host：`apply()`、`createProviders()`、cordis.patch.yml。
 - settings：`SETTINGS_SPEC`、`DEFAULT_SETTINGS`、`resolveSettings()`。
 

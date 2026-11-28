@@ -46,7 +46,7 @@
 - AnySearch 工具每次经 `getClient()` 新建客户端。
 - 超时取 `max(requestTimeoutMs, ANYSEARCH_HTTP_TIMEOUT_MS)`，开关读 `anysearch.enabled`。
 - Tavily / AIHOT 工具复用已构造的 provider 实例。
-- 走 `tools` seam，是 `ctx.web` 之外的唯一注册例外（ADR-0004 / 0005 / 0006）。
+- 走 `tools` seam，是 `ctx.web` 之外的唯一注册例外。
 
 ### 缺 tool-web 的告警
 
@@ -58,7 +58,7 @@
 ## 约束与失败行为
 
 - 本插件只拥有 provider。
-- schema、展示与渲染归 `dsh-tool-web`（ADR-0001 / 0004）。
+- schema、展示与渲染归 `dsh-tool-web`。
 - summary 上限归 `searchSummaryMaxChars`，patch 覆盖不了 preset 行。
 - provider id 是标准后端名，替换付费官方 provider。
 - profile 不得再挂同名 id 插件。

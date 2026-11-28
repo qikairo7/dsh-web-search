@@ -287,7 +287,7 @@ test('GithubProvider.search maps a 403 to a recoverable rate-limited error', asy
         return true;
       });
       // Retry-After: 60 must put the provider into roughly a 60s cooldown, so the
-      // chain skips it instead of calling again (ADR-0012).
+      // chain skips it instead of calling again.
       assert.equal(provider.available(), false);
       const remaining = provider.cooldownUntil - Date.now();
       assert.ok(remaining > 55_000 && remaining <= 60_000, `cooldown ${remaining}ms`);
@@ -309,7 +309,7 @@ test('GithubProvider.search caps a day-long Retry-After at the breaker cooldown 
         return true;
       });
       // A day-long Retry-After must not outlive the breaker cooldown the rest of
-      // the router honors (ADR-0012), or GitHub goes silently missing for the day.
+      // the router honors it, or GitHub goes silently missing for the day.
       const remaining = provider.cooldownUntil - Date.now();
       assert.ok(remaining <= breakerCooldownMs, `cooldown ${remaining}ms must be capped at ${breakerCooldownMs}ms`);
       assert.equal(provider.available(), false);

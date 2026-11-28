@@ -1778,7 +1778,7 @@ window.__ModuleLoader__.load({
         const style = document.createElement('style');
         style.id = 'dsh-web-search-focus-style';
         style.textContent = [
-          // ADR-0016: dsw2 design tokens carry the settings-page visual layer;
+          // dsw2 design tokens carry the settings-page visual layer;
           // the dsw aliases below stay as a host-compatibility shim.
           ':root, body[data-ds-dark-theme] {',
           '  --dsw2-font-display: \'Waldenburg\', \'Inter\', system-ui, -apple-system, \'Segoe UI\', sans-serif;',
@@ -1819,7 +1819,7 @@ window.__ModuleLoader__.load({
           // cascade over any :root value. Dark needs no separate block because
           // these aliases all point at dsw2 vars, which re-resolve per theme.
           // Waldenburg / Inter / Geist Mono are bundled next to the plugin and
-          // served same-origin from /dsh-web-search/fonts (ADR-0016); the stack
+          // served same-origin from /dsh-web-search/fonts; the stack
           // falls back to system-ui while Chinese text uses the system voice.
           '@font-face { font-family: \'Waldenburg\'; src: url("/dsh-web-search/fonts/inter-300-latin.woff2") format("woff2"); font-weight: 300; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+2000-206F; }',
           '@font-face { font-family: \'Inter\'; src: url("/dsh-web-search/fonts/inter-300-latin.woff2") format("woff2"); font-weight: 300; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+2000-206F; }',

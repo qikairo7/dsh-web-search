@@ -36,9 +36,9 @@ It needs DeepSeek Harness `0.2.2-rc.5` (verified), Node.js `22.19+` or `24+`, an
 
 ## Why
 
-- Free-tier-first backend pool with automatic failover and a keyless Bing floor (ADR-0011); paid backends only when free quota is gone. → [Architecture](docs/architecture.md) · [Configuration](docs/configuration.md)
+- Free-tier-first backend pool with automatic failover and a keyless Bing floor; paid backends only when free quota is gone. → [Architecture](docs/architecture.md) · [Configuration](docs/configuration.md)
 - Quality pipeline: URL dedupe, BGE rerank with a domain-authority prior, evidence enrichment on the top 5. → [Architecture](docs/architecture.md)
-- Failure-class fallback gating: `fallbackFailureClasses` decides which failures may move to the next provider; fast mode also retries one more free backend on an empty result (ADR-0015). → [Configuration](docs/configuration.md) · [Architecture decisions](docs/adr/)
+- Failure-class fallback gating: `fallbackFailureClasses` decides which failures may move to the next provider; fast mode also retries one more free backend on an empty result. → [Configuration](docs/configuration.md)
 - Optional backends: [AnySearch](https://anysearch.com), [Tavily](https://tavily.com), [AIHOT](https://aihot.news), and others, plus the [GitHub](https://github.com) official API. A read-only X search tool, `x_search`, uses cookie auth (scraping gray area in [Security policy](SAFETY.md)). Weather and FX come from direct real-time APIs; [SiliconFlow](https://cloud.siliconflow.cn/i/E3nhNFP4) provides rerank and semantic dedupe. All backends and free allowances: [Configuration](docs/configuration.md).
 
 ## Quick start
@@ -57,11 +57,11 @@ API keys come from the DeepSeek Harness credentials service; prefer the provider
 
 ## Documentation index
 
-- Usage: [Configuration](docs/configuration.md) · [Changelog](CHANGELOG.md) · [Changelog archive](docs/changelog-archive.md)
-- How it works: [Architecture](docs/architecture.md) · [Architecture decisions](docs/adr/) · [Host contract](docs/dsh-host-contract.md) · [Feature map](docs/feature-map.md) · [Plugin details](docs/DETAIL.md) · [Plugin details (EN)](docs/DETAIL.en.md)
+- Usage: [Configuration](docs/configuration.md) · [Changelog](CHANGELOG.md)
+- How it works: [Architecture](docs/architecture.md) · [Decisions](docs/decisions.md) · [Host contract](docs/dsh-host-contract.md) · [Feature map](docs/feature-map.md) · [Plugin details](docs/DETAIL.md) · [Plugin details (EN)](docs/DETAIL.en.md)
 - Development: [Development guide](docs/development.md) · [Testing strategy](docs/testing.md) · [Adding a provider](docs/cookbook/adding-a-provider.md) · [Raising the summary cap](docs/cookbook/raising-summary-cap.md)
-- Deep dive: [Subsystem reference](docs/subsystems/README.md) · [Review rules](docs/defensive-patterns.md) · [Agent domain docs](docs/agents/domain.md) · [Glossary](GLOSSARY.md)
-- Governance: [Documentation standard](docs/AGENTS.md) · [Document inventory](docs/schema-inventory.md) · [Documentation sync map](docs/schema-sync-map.md) · [Security policy](SECURITY.md) · [Trademarks](TRADEMARKS.md)
+- Deep dive: [Subsystem reference](docs/subsystems/README.md) · [Review rules](docs/defensive-patterns.md) · [Glossary](GLOSSARY.md)
+- Policy: [Security policy](SECURITY.md) · [Trademarks](TRADEMARKS.md)
 
 ## Upgrade and more
 
