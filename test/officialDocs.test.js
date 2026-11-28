@@ -15,6 +15,14 @@ test('officialDomainsForQuery returns official docs domains', () => {
   assert.deepEqual(officialDomainsForQuery('go programming language tutorial'), ['go.dev']);
 });
 
+test('officialDomainsForQuery matches C# written with a hash', () => {
+  assert.deepEqual(officialDomainsForQuery('c# async'), ['learn.microsoft.com']);
+  assert.deepEqual(officialDomainsForQuery('c#'), ['learn.microsoft.com']);
+  assert.deepEqual(officialDomainsForQuery('c# 泛型'), ['learn.microsoft.com']);
+  assert.deepEqual(officialDomainsForQuery('csharp 泛型'), ['learn.microsoft.com']);
+  assert.deepEqual(officialDomainsForQuery('dotnet'), ['learn.microsoft.com']);
+});
+
 test('filters archived Node.js release docs', () => {
   assert.equal(isDeprecatedDocUrl('https://nodejs.org/download/release/v18.16.0/docs/api/globals.html'), true);
   assert.equal(isDeprecatedDocUrl('https://nodejs.org/en/blog/release/v18.13.0'), true);

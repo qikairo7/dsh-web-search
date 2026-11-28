@@ -2,10 +2,13 @@
 
 All notable changes are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow semver. 条目一律中文，按 zh-tech-writing 规范撰写；发版说明由发布流程自动取自对应版本节。
 
-## 0.0.0009 — 待发布
+## Unreleased
 
 ### 修复
 
+- 门禁顺序检查不再因未知后端 id 放行：权威长度的链先逐字比对顺序，未知 id 只影响违规文案是否附笔误提示（PR #74，修复 #25）。
+- 官方文档补充搜索对 `c#` 查询恢复生效：带 `c#` 的查询不再判不出官方文档意图，`c# async` 这类查询也能触发 `learn.microsoft.com` 的补充（PR #82，修复 #59）。
+- 中文新闻门户的子域名恢复新闻判定与加成：`news.qq.com` 这类子域名不再判不出中文新闻语言，也不再丢主流站点加成（PR #83，修复 #60）。
 - 直连抓取把内网地址校验的结果绑定到实际连接，校验期 DNS 失败一律按 `WEB_PRIVATE_URL` 拒绝；这条链不再经环境代理，依赖代理出网的机器会回退到 API provider（修复 #58）。
 
 ## 0.0.0008 — 2026-11-23

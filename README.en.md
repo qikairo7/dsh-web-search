@@ -59,12 +59,12 @@ API keys come from the DeepSeek Harness credentials service; prefer the provider
 
 - Usage: [Configuration](docs/configuration.md) · [Changelog](CHANGELOG.md) · [Changelog archive](docs/changelog-archive.md)
 - How it works: [Architecture](docs/architecture.md) · [Architecture decisions](docs/adr/) · [Host contract](docs/dsh-host-contract.md) · [Feature map](docs/feature-map.md) · [Plugin details](docs/DETAIL.md) · [Plugin details (EN)](docs/DETAIL.en.md)
-- Development: [Development guide](docs/development.md) · [Testing strategy](docs/testing.md) · [Adding a provider](docs/cookbook/adding-a-provider.md) · [Raising the summary cap](docs/cookbook/raising-summary-cap.md) · [Contributing](CONTRIBUTING.md)
+- Development: [Development guide](docs/development.md) · [Testing strategy](docs/testing.md) · [Adding a provider](docs/cookbook/adding-a-provider.md) · [Raising the summary cap](docs/cookbook/raising-summary-cap.md)
 - Deep dive: [Subsystem reference](docs/subsystems/README.md) · [Review rules](docs/defensive-patterns.md) · [Agent domain docs](docs/agents/domain.md) · [Benchmark entry](docs/benchmarks/BENCHMARK.md) · [Benchmark reports](docs/benchmarks/) · [Glossary](GLOSSARY.md)
 - Governance: [Documentation standard](docs/AGENTS.md) · [Document inventory](docs/schema-inventory.md) · [Documentation sync map](docs/schema-sync-map.md) · [Security policy](SECURITY.md) · [Trademarks](TRADEMARKS.md)
 
 ## Upgrade and more
 
 - Upgrading: run `git pull` to fetch updates, then `pnpm install`; the package is not published to npm, so there is no npm upgrade command.
-- Contribute via [CONTRIBUTING.md](CONTRIBUTING.md); report vulnerabilities privately via [SECURITY.md](SECURITY.md).
+- Report vulnerabilities privately via [SECURITY.md](SECURITY.md).
 - License: MIT; third-party notices in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

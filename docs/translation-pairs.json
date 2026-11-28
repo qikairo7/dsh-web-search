@@ -27,13 +27,13 @@
     },
     "5": {
       "heading": "Documentation index",
-      "en": "d0362eba530e8733",
-      "zh": "5fcf982618fa45b4"
+      "en": "8b57ead7a4fb0257",
+      "zh": "b5aa72503e058f52"
     },
     "6": {
       "heading": "Upgrade and more",
-      "en": "8be6b523d59a71ed",
-      "zh": "fd702a967451c4ff"
+      "en": "736be4ac4d2c97ea",
+      "zh": "b7319d8067a09e3d"
     }
   },
   "SAFETY.md": {
@@ -95,85 +95,6 @@
       "heading": "(preamble)",
       "en": "760899dda60ca999",
       "zh": "7195cea6ff64053b"
-    }
-  },
-  "CODE_OF_CONDUCT.md": {
-    "0": {
-      "heading": "(preamble)",
-      "en": "dfe91409ff1d1e68",
-      "zh": "9498e7c4c06c74d1"
-    },
-    "1": {
-      "heading": "Our Pledge",
-      "en": "7e7137bcdb070067",
-      "zh": "5fde1ed598a54bb4"
-    },
-    "2": {
-      "heading": "Our Standards",
-      "en": "8857c07081483199",
-      "zh": "41912f779bd69d6e"
-    },
-    "3": {
-      "heading": "Enforcement Responsibilities",
-      "en": "5cf2b7eefb0bb319",
-      "zh": "bcac37aa14082292"
-    },
-    "4": {
-      "heading": "Scope",
-      "en": "f5cbd2fd62c25a34",
-      "zh": "052bb4e094ab80c0"
-    },
-    "5": {
-      "heading": "Enforcement",
-      "en": "83f051938fbe1135",
-      "zh": "9d1b8f3892bc6a3d"
-    },
-    "6": {
-      "heading": "Enforcement Guidelines",
-      "en": "38c87d36acaa59d7",
-      "zh": "2542b3716951bdd9"
-    },
-    "7": {
-      "heading": "Attribution",
-      "en": "c87b7a8a818fa194",
-      "zh": "c9d8416eb706ad7c"
-    }
-  },
-  "CONTRIBUTING.md": {
-    "0": {
-      "heading": "(preamble)",
-      "en": "4d422db1979fe9f0",
-      "zh": "28e671f9040c14ea"
-    },
-    "1": {
-      "heading": "What we value",
-      "en": "d68db38ccb4f8707",
-      "zh": "bfd2e37a489f53f4"
-    },
-    "2": {
-      "heading": "Before you start",
-      "en": "68640a4d9b61025a",
-      "zh": "ad88d98a87ec8b8c"
-    },
-    "3": {
-      "heading": "Development docs",
-      "en": "28a0987315f671a2",
-      "zh": "8a7c3cd54218b30a"
-    },
-    "4": {
-      "heading": "Security boundary",
-      "en": "af82fe50942d1333",
-      "zh": "049c5b67efd17af6"
-    },
-    "5": {
-      "heading": "Commits and pull requests",
-      "en": "d193626307adf737",
-      "zh": "53aba8025d771284"
-    },
-    "6": {
-      "heading": "Validation",
-      "en": "43559d4e2bd1ac68",
-      "zh": "d7a781e11300aed7"
     }
   },
   "docs/DETAIL.en.md": {

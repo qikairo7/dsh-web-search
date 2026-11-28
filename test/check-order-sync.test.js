@@ -16,7 +16,7 @@ test('a drifted paste is reported', () => {
   assert.ok(violation.includes('matches none of'));
 });
 
-test('short or unknown sequences are ignored', () => {
+test('sequences shorter than every chain are ignored', () => {
   assert.equal(checkChain(['keenable', 'anysearch']), null);
   assert.equal(checkChain(['alpha', 'beta', 'gamma']), null);
 });
@@ -32,6 +32,30 @@ test('a typo id one edit from a known id is reported as drift', () => {
   assert.ok(violation.includes('matches none of'));
   assert.ok(violation.includes('"tavly"'));
   assert.ok(violation.includes('"tavily"'));
+});
+
+// #25: an authoritative-length chain that mixes in an unknown id is still judged
+// on order — a full-length chain must reproduce an authoritative chain verbatim.
+test('an authoritative-length chain with an unknown id is reported', () => {
+  const violation = checkChain(['keenable', 'anysearch', 'exa', 'bing', 'serper', 'firecrawl']);
+  assert.ok(violation.includes('matches none of'));
+  assert.ok(violation.includes('keenable → anysearch → exa → bing → serper → firecrawl'));
+});
+
+// #25: unknown id plus a reordered pair must not skip the order comparison.
+test('an authoritative-length chain with an unknown id and wrong order is reported', () => {
+  const violation = checkChain(['keenable', 'anysearch', 'bing', 'exa', 'serper', 'firecrawl']);
+  assert.ok(violation.includes('matches none of'));
+  assert.ok(violation.includes('keenable → anysearch → bing → exa → serper → firecrawl'));
+});
+
+// #25: docs/configuration.md prints a six-item failure-class taxonomy that is
+// the same length as defaultSearchOrder; it is not a provider paste.
+test('a same-length chain from another taxonomy stays silent', () => {
+  assert.equal(
+    checkChain(['quota', 'auth', 'bot-wall', 'transient', 'invalid-response', 'unknown']),
+    null,
+  );
 });
 
 // #56: unknown ids far from every known id stay silent (no false positives).

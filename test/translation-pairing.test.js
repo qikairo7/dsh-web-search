@@ -79,7 +79,7 @@ test('a missing pair file is skipped with a visible SKIP line', (t) => {
   runGate(dir, '--record');
   const r = runGate(dir);
   assert.equal(r.status, 0, r.stderr);
-  assert.match(r.stdout, /SKIP CONTRIBUTING\.md <-> CONTRIBUTING\.zh\.md: file missing/);
+  assert.match(r.stdout, /SKIP SAFETY\.md <-> SAFETY\.zh\.md: file missing/);
 });
 
 test('check fails when a pair lost its baseline key', (t) => {

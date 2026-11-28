@@ -10,8 +10,6 @@ export const MIRROR_PAIRS = [
   { en: 'SAFETY.md', zh: 'SAFETY.zh.md' },
   { en: 'SECURITY.md', zh: 'SECURITY.zh.md' },
   { en: 'TRADEMARKS.md', zh: 'TRADEMARKS.zh.md' },
-  { en: 'CODE_OF_CONDUCT.md', zh: 'CODE_OF_CONDUCT.zh.md' },
-  { en: 'CONTRIBUTING.md', zh: 'CONTRIBUTING.zh.md' },
   { en: 'docs/DETAIL.en.md', zh: 'docs/DETAIL.md' },
 ];
 

@@ -124,7 +124,7 @@ test('an enabled tool with a cookie returns a JSON-parseable tweet list', async 
   const settings = { requestTimeoutMs: 1_000, xTools: { enabled: true, cookieRef: 'X_COOKIE' } };
   registerXTool(ctx, { settings: () => settings, resolveKey: async () => COOKIE });
   const tool = definitions.find((definition) => definition.name === 'x_search');
-  const value = await withSender(async () => jsonResponse(FIXTURE), () => tool.execute({ query: 'ai framework' }, { signal: undefined }));
+  const value = await withSender(async () => jsonResponse(FIXTURE), () => tool.execute({ query: 'ai framework' }, { signal: new AbortController().signal }));
   const parsed = JSON.parse(JSON.stringify(value));
   assert.equal(parsed.query, 'ai framework');
   assert.equal(parsed.results.length, 2);
@@ -132,6 +132,46 @@ test('an enabled tool with a cookie returns a JSON-parseable tweet list', async 
   assert.equal(typeof parsed.results[0].author, 'object');
   assert.equal(typeof parsed.results[0].created_at, 'string');
   assert.equal(typeof parsed.results[0].stats, 'object');
+});
+
+test('an already-cancelled signal keeps the request off the wire', async () => {
+  const { definitions, ctx } = captureTool();
+  const settings = { requestTimeoutMs: 1_000, xTools: { enabled: true, cookieRef: 'X_COOKIE' } };
+  registerXTool(ctx, { settings: () => settings, resolveKey: async () => COOKIE });
+  const tool = definitions.find((definition) => definition.name === 'x_search');
+  const controller = new AbortController();
+  controller.abort();
+  let sent = 0;
+  await withSender(
+    async (_prepared, options) => {
+      if (options.signal?.aborted === true) throw options.signal.reason;
+      sent += 1;
+      return jsonResponse(FIXTURE);
+    },
+    async () => {
+      await assert.rejects(
+        () => tool.execute({ query: 'ai' }, { signal: controller.signal }),
+        (error) => error.code === 'WEB_ABORTED',
+      );
+    },
+  );
+  assert.equal(sent, 0);
+});
+
+test('the HTTP timeout never exceeds the tool budget', async () => {
+  const { definitions, ctx } = captureTool();
+  const settings = { requestTimeoutMs: 120_000, xTools: { enabled: true, cookieRef: 'X_COOKIE' } };
+  registerXTool(ctx, { settings: () => settings, resolveKey: async () => COOKIE });
+  const tool = definitions.find((definition) => definition.name === 'x_search');
+  let seen;
+  await withSender(
+    async (_prepared, options) => {
+      seen = options;
+      return jsonResponse(FIXTURE);
+    },
+    () => tool.execute({ query: 'ai' }, { signal: undefined }),
+  );
+  assert.ok(seen.timeoutMs <= 30_000, `timeoutMs ${seen.timeoutMs} exceeds the tool budget`);
 });
 
 test('verifyXTool rejects a disabled tool before any request', async () => {
