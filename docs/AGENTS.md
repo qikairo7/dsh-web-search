@@ -10,6 +10,9 @@
 | [docs/schema-sync-map.md](schema-sync-map.md) | 改代码时改哪份文档：映射表与开发顺序 |
 | [docs/postmortem/](postmortem/README.md) | 事故叙事层：incident-scoped reference，一条事故一份；记时间线、影响、根因、教训 |
 | [docs/writing-rules.md](writing-rules.md) | 写作判据：完整命题、覆盖分层、删字 vs 删事实 |
+| [docs/playbook-mapping.md](playbook-mapping.md) | playbook 点名的工具、执行者、模型换成本机什么 |
+| [docs/agents/comment-sicko.md](agents/comment-sicko.md) | poteto 子代理定义原文（comment-sicko），2026-11-26 取自 cursor/plugins |
+| [docs/agents/poteto-agent.md](agents/poteto-agent.md) | poteto 子代理定义原文（poteto-agent），同上 |
 
 ## 路由
 
@@ -38,7 +41,7 @@
 - 代码围栏命令必须可执行；占位符写 `<...>`，别伪装真实值。
 - 相对链接必须指向真实文件；不用提交号做当前引用。
 - 不写实现状态注记（「已实现」「未来会」）、测试走读、评审过程或赘述代码。
-- 技能分工：中文=zh-tech-writing、英文技术=google-dev-style；正文中文，代码与标识符原样；英文镜像 README.en.md、DETAIL.en.md、法律文件；历史记录不改写，新条目从中文开始。
+- 技能分工：文档不读口吻 DNA；中文=zh-tech-writing、英文技术=google-dev-style；lieflat 不用。正文中文，代码与标识符原样；英文镜像 README.en.md、DETAIL.en.md、法律文件；历史记录不改写，新条目从中文开始。
 - 两份 README 同步；契约变化先写 ADR。
 - 写作判据见 [写作判据](writing-rules.md)，ADR 写法见 [ADR 索引](adr/README.md)。
 

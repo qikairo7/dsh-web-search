@@ -59,12 +59,12 @@ API Key 经 DeepSeek Harness 凭据服务读取，优先在 Provider 卡片点 *
 
 - 使用：[配置参考](docs/configuration.md) · [版本日志](CHANGELOG.md) · [历史归档](docs/changelog-archive.md)
 - 原理：[架构](docs/architecture.md) · [架构决策](docs/adr/) · [宿主契约](docs/dsh-host-contract.md) · [功能地图](docs/feature-map.md) · [插件详情](docs/DETAIL.md) · [插件详情（英文）](docs/DETAIL.en.md)
-- 开发：[开发指南](docs/development.md) · [测试策略](docs/testing.md) · [新增 Provider](docs/cookbook/adding-a-provider.md) · [提高摘要上限](docs/cookbook/raising-summary-cap.md) · [贡献指南](CONTRIBUTING.zh.md)
+- 开发：[开发指南](docs/development.md) · [测试策略](docs/testing.md) · [新增 Provider](docs/cookbook/adding-a-provider.md) · [提高摘要上限](docs/cookbook/raising-summary-cap.md)
 - 深入：[子系统参考](docs/subsystems/README.md) · [Review 规则](docs/defensive-patterns.md) · [代理领域文档](docs/agents/domain.md) · [基准入口](docs/benchmarks/BENCHMARK.md) · [基准报告](docs/benchmarks/) · [术语表](GLOSSARY.md)
 - 治理：[文档标准](docs/AGENTS.md) · [文档清单](docs/schema-inventory.md) · [文档同步映射](docs/schema-sync-map.md) · [安全策略](SECURITY.zh.md) · [商标](TRADEMARKS.zh.md)
 
 ## 升级与更多
 
 - 升级：用 `git pull` 拉取更新后跑 `pnpm install`；包未发布到 npm，不提供 npm 升级命令。
-- 贡献见 [贡献指南](CONTRIBUTING.zh.md)，安全漏洞按 [SECURITY.zh.md](SECURITY.zh.md) 私下报告。
+- 安全漏洞按 [SECURITY.zh.md](SECURITY.zh.md) 私下报告。
 - 许可 MIT；第三方归属见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
