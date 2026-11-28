@@ -17,7 +17,6 @@ TRADEMARKS.md
 TRADEMARKS.zh.md
 docs/DETAIL.en.md
 docs/DETAIL.md
-docs/architecture.md
 docs/configuration.md
 docs/cookbook/adding-a-provider.md
 docs/cookbook/raising-summary-cap.md

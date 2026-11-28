@@ -1,6 +1,6 @@
 # 开发指南
 
-面向贡献者的安装、日常命令、CI 和排错。实现规则见 [CODING_STANDARDS](../CODING_STANDARDS.md)，架构地图见 [docs/architecture.md](architecture.md)。
+面向贡献者的安装、日常命令、CI 和排错。实现规则见 [CODING_STANDARDS](../CODING_STANDARDS.md)。
 
 ## 查证顺序
 
@@ -62,7 +62,6 @@ node scripts/check-syntax.mjs && node scripts/check-architecture.mjs && node scr
 
 ## 相关文档
 
-- [架构](architecture.md)
 - [项目约定](../AGENTS.md)
 - [测试策略](testing.md)
 - [实现标准](../CODING_STANDARDS.md)

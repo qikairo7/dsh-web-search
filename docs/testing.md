@@ -27,5 +27,4 @@
 ## 相关文档
 
 - [开发指南](development.md)
-- [架构](architecture.md)
 - [实现标准](../CODING_STANDARDS.md)

@@ -1,6 +1,6 @@
 # 新增 Provider
 
-本指南把一个搜索或抓取后端接入插件。开始前读 [架构地图](../architecture.md) 和 [Provider 契约](../../CODING_STANDARDS.md#3-provider-契约代码风格与实现模式)。
+本指南把一个搜索或抓取后端接入插件。开始前读 [Provider 契约](../../CODING_STANDARDS.md#3-provider-契约代码风格与实现模式)。
 
 ## 1. 确定能力与 id
 
@@ -30,7 +30,6 @@
 ## 4. 文档与默认值
 
 - 在 `README.md` 和 `README.en.md` 的 Providers 表、配置表、默认顺序中同步新增内容。
-- 在 `docs/architecture.md` 的模块地图和扩展点中补充新文件。
 - 默认值或配额变化时同步 `cordis.patch.yml`。
 
 ## 5. 测试

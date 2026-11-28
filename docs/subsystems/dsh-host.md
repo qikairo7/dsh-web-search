@@ -1,6 +1,6 @@
 # DSH 宿主集成
 
-本页写插件如何挂进 DSH：装载组合、入口装配、随包默认与第一方 tool 层。宿主行为见 [DSH 宿主契约](../dsh-host-contract.md)，模块地图见 [architecture](../architecture.md)。
+本页写插件如何挂进 DSH：装载组合、入口装配、随包默认与第一方 tool 层。宿主行为见 [DSH 宿主契约](../dsh-host-contract.md)。
 
 ## 职责与真源表
 

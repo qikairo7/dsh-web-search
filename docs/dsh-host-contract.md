@@ -1,6 +1,6 @@
 # DSH 宿主契约
 
-本文件记录插件开发时最容易误判的 DSH 宿主行为。这里只写与 `dsh-web-search` 集成有关的事实；实现规则见 [CODING_STANDARDS](../CODING_STANDARDS.md)，模块地图见 [architecture](architecture.md)。
+本文件记录插件开发时最容易误判的 DSH 宿主行为。这里只写与 `dsh-web-search` 集成有关的事实；实现规则见 [CODING_STANDARDS](../CODING_STANDARDS.md)。
 
 ## dsh-tool-web 的模型侧渲染
 
