@@ -37,13 +37,7 @@ pnpm check
 | `pnpm check` | 语法检查 + 架构检查 + order-doc 同步 + 文档代码块 + 翻译配对门禁 + `docs:check` + 文档引用存活 + 单测，提交前门禁 |
 | `pnpm docs:check` | 只跑文档层级、链接、配置覆盖和预算检查 |
 | `node --test --test-isolation=none test/<name>.test.js` | 跑单个测试文件 |
-| `pnpm benchmark:preflight` | 先验证凭据与各后端连通性 |
-| `pnpm benchmark` | live 基准；需要 `.env` 中的凭据（见环境变量） |
-| `pnpm benchmark:refresh` | 刷新基准 fixture |
-| `pnpm quality:probe` | 免费后端 14 条日常质量探针；结果写 `.research/quality-probe.json` |
 | `dsh plugin --profile desktop add "<仓库路径>"` | 安装到本机 DSH，安装后重启 DSH |
-
-`pnpm benchmark` 优先读 `scripts/fixtures/public-benchmark-sample.json`；`SAMPLE_SIZE` 控制每个基准的行数，默认 50；默认 search-only，`BENCHMARK_ENRICH=1` 启用 enrichment；结果写 `.research/public-benchmark.json`（gitignored）。真实 API 验收需要 `.env` 中的凭据；`pnpm benchmark:preflight` 会先检查全部后端。
 
 ## DSH 沙箱
 
@@ -63,7 +57,7 @@ node scripts/check-syntax.mjs && node scripts/check-architecture.mjs && node scr
 
 ## 环境变量
 
-插件通过 DSH 凭据服务读取 API Key，凭据放在 `~/.dsh/.credentials.yaml` 或启动环境变量。基准脚本使用 `AS_KEY`、`TV_KEY`、`FC_KEY`、`ZH_KEY`、`SF_KEY`、`DS_TOKEN`；推荐放在仓库根目录的 `.env`（gitignored，格式见 `.env.example`），不要写进 shell 命令。不要提交真实密钥或 `.credentials.yaml`。
+插件通过 DSH 凭据服务读取 API Key，凭据放在 `~/.dsh/.credentials.yaml` 或启动环境变量。不要写进 shell 命令。不要提交真实密钥或 `.credentials.yaml`。
 
 ## 常见问题
 
@@ -71,7 +65,6 @@ node scripts/check-syntax.mjs && node scripts/check-architecture.mjs && node scr
 - **文档检查失败**：看 `pnpm docs:check` 的 `- <file>: ...` 行；常见原因是相对链接失效、README 配置字段缺失、预算超标或 Agent Note 缺章节。
 - **文档代码块检查失败**：看 `doc code-block check failed:` 之后的 `- <file> (<lang> block #<N>)` 行；示例不可解析时修文档；`checker ... unavailable` 是本机缺 node/bash，不是文档问题。
 - **Provider 未就绪**：Tavily、Firecrawl 或知乎缺少对应 Key 时会被路由器跳过；这不是代码错误。
-- **基准没有网络**：fixture 优先；需要 live 数据时再设置 `.env` 和 `SAMPLE_SIZE`，先跑 `pnpm benchmark:preflight`。
 
 ## 相关文档
 

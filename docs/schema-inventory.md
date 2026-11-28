@@ -20,10 +20,8 @@
 | `docs/postmortem/` | 事故叙事唯一归属层：单次事故的时间线、影响、根因与教训 | 当前行为说明 |
 | `GLOSSARY.md` | 项目术语唯一写法 | 实现细节 |
 | `docs/agents/` | 领域文档阅读顺序 | 产品行为 |
-| `docs/benchmarks/` | 历史基准报告与复现命令；数字与日期不改写 | 当前配置默认值 |
 | `SAFETY.md` / `SECURITY.md` / `TRADEMARKS.md` / `THIRD_PARTY_NOTICES.md` | 风险模型、漏洞报告、项目身份与第三方归属 | 使用教程、实现规则 |
 | `CHANGELOG.md` | 面向用户的版本变化公告，每个已发版一条 | 实现细节、决策理由、未发版重构 |
-| `docs/benchmarks/BENCHMARK.md` | 基准入口、运行规则与指标说明 | 历史报告数据 |
 | `docs/AGENTS.md` | 文档体系 schema 主文件：概要、目录、写作规则、预算与检查 | 实现规则、明细表 |
 | `docs/schema-inventory.md` | 本表：文档层级明细 | 写作规则、实现规则 |
 | `docs/schema-sync-map.md` | 改代码时改哪份文档的映射与开发顺序 | 写作规则、实现规则 |

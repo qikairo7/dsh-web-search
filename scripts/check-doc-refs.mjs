@@ -21,10 +21,10 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-// Historical, no-rewrite zones (docs/AGENTS.md): lifecycle notes, ADRs, benchmark
-// reports and shipped changelog sections record past states and are never rewritten,
+// Historical, no-rewrite zones (docs/AGENTS.md): lifecycle notes, ADRs and
+// shipped changelog sections record past states and are never rewritten,
 // so an old path there is load-bearing history, not a live reference to fix.
-const SKIP_FILE = /^(?:(?:\.agents\/notes\/(?:implemented|proposed|rejected|archived)|docs\/(?:adr|benchmarks))\/|CHANGELOG\.md$|docs\/changelog-archive\.md$)/;
+const SKIP_FILE = /^(?:(?:\.agents\/notes\/(?:implemented|proposed|rejected|archived)|docs\/adr)\/|CHANGELOG\.md$|docs\/changelog-archive\.md$)/;
 // `lib/engines/*` are upstream repo files named in THIRD_PARTY_NOTICES, not ours.
 const SKIP_REF_PREFIX = 'lib/engines/';
 // Glob / placeholder marker: such a token is a shape, not a literal reference.

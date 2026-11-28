@@ -15,7 +15,6 @@
 | 契约级决策（provider id、能力缝、持久格式） | `docs/adr/` 新增 ADR，不改写已接受 ADR |
 | 需保留理由与被放弃方案 | 同上，写进该 ADR |
 | 术语 | `GLOSSARY.md` |
-| 基准结果 | `docs/benchmarks/`；保留原始数据与复现命令 |
 | 实现规则、Review 门禁 | `CODING_STANDARDS.md` |
 | 版本发布 | `CHANGELOG.md` 加对应版本段，写明用户可见影响 |
 

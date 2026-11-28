@@ -60,7 +60,7 @@ API keys come from the DeepSeek Harness credentials service; prefer the provider
 - Usage: [Configuration](docs/configuration.md) · [Changelog](CHANGELOG.md) · [Changelog archive](docs/changelog-archive.md)
 - How it works: [Architecture](docs/architecture.md) · [Architecture decisions](docs/adr/) · [Host contract](docs/dsh-host-contract.md) · [Feature map](docs/feature-map.md) · [Plugin details](docs/DETAIL.md) · [Plugin details (EN)](docs/DETAIL.en.md)
 - Development: [Development guide](docs/development.md) · [Testing strategy](docs/testing.md) · [Adding a provider](docs/cookbook/adding-a-provider.md) · [Raising the summary cap](docs/cookbook/raising-summary-cap.md)
-- Deep dive: [Subsystem reference](docs/subsystems/README.md) · [Review rules](docs/defensive-patterns.md) · [Agent domain docs](docs/agents/domain.md) · [Benchmark entry](docs/benchmarks/BENCHMARK.md) · [Benchmark reports](docs/benchmarks/) · [Glossary](GLOSSARY.md)
+- Deep dive: [Subsystem reference](docs/subsystems/README.md) · [Review rules](docs/defensive-patterns.md) · [Agent domain docs](docs/agents/domain.md) · [Glossary](GLOSSARY.md)
 - Governance: [Documentation standard](docs/AGENTS.md) · [Document inventory](docs/schema-inventory.md) · [Documentation sync map](docs/schema-sync-map.md) · [Security policy](SECURITY.md) · [Trademarks](TRADEMARKS.md)
 
 ## Upgrade and more

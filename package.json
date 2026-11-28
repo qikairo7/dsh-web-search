@@ -67,12 +67,7 @@
     "docs:check": "node scripts/verify-docs.mjs && node scripts/check-doc-freshness.mjs",
     "docs:gen": "node scripts/generate-provider-table.mjs",
     "check": "node scripts/check-syntax.mjs && node scripts/check-architecture.mjs && node scripts/check-order-sync.mjs && node scripts/check-doc-code.mjs && node scripts/translation-pairing.mjs && node scripts/verify-docs.mjs && node scripts/check-doc-freshness.mjs && node scripts/check-doc-refs.mjs && node --test",
-    "benchmark": "node --env-file-if-exists=.env scripts/public-benchmark.mjs",
-    "benchmark:refresh": "node scripts/refresh-benchmark-fixture.mjs",
-    "benchmark:preflight": "node --env-file-if-exists=.env scripts/public-benchmark.mjs --preflight",
-    "probe": "node --env-file-if-exists=.env scripts/daily-probe.mjs",
-    "check:syntax": "node scripts/check-syntax.mjs",
-    "quality:probe": "node --env-file-if-exists=.env scripts/quality-probe.mjs"
+    "check:syntax": "node scripts/check-syntax.mjs"
   },
   "dsh": {
     "engines": {

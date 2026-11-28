@@ -147,7 +147,6 @@ test('CLI skips historical no-rewrite files but still checks ordinary markdown',
   const repo = runCliInTmpRepo({
     'lib/real.js': '// real\n',
     'docs/adr/0010-x.md': broken,
-    'docs/benchmarks/report.md': broken,
     'CHANGELOG.md': broken,
     'docs/changelog-archive.md': broken,
   });
