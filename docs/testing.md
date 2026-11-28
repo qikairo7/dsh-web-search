@@ -10,7 +10,7 @@
 | 文档门禁 | `pnpm docs:check` 检查文档层级、链接、配置覆盖和默认值 | 每次文档改动；`pnpm check` 自动运行 |
 | 日常探针 | `pnpm probe`（`scripts/daily-probe.mjs`）跑 14 条固定查询 + 2 个抓取，分后端遥测、清单健康信号、滚动 7 天聚合、PASS/FAIL 判定 | 每日一次；怀疑后端漂移时 |
 | 基准 | `pnpm benchmark` 跑 FRAMES/WebWalkerQA，优先读 fixture，可选 live API | 改路由、摘要、Provider 行为或发布前 |
-| 手动冒烟 | 安装到 DSH，重启后验证设置页、`web_search`（中英文）和 `web_fetch`；设置页管理路由（验证 / 拉模型 / 刷新额度）见维护者本地 verify skill 规程（见 [docs/AGENTS.md](AGENTS.md) 的「维护者本地文件」节）的「管理路由真机验证（web + ego）」节 | 改 Provider 注册、配置或默认行为 |
+| 手动冒烟 | 安装到 DSH，重启后验证设置页、`web_search`（中英文）和 `web_fetch` | 改 Provider 注册、配置或默认行为 |
 
 仓库没有覆盖率门禁，也不把 live API 调用放进单元测试。
 
