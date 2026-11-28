@@ -1316,7 +1316,7 @@ window.__ModuleLoader__.load({
     }
 
     return {
-      inject: ['slots', 'locale', 'remote', 'remote.settings', 'remote.credentials', 'configForms'],
+      inject: ['slots', 'locale', 'remote', 'remote.credentials', 'configForms'],
       apply(ctx) {
         ctx.effect(() => ctx.locale.register(NS, { en, zh }), 'dsh-web-search: settings locale');
         const t = ctx.locale.bind(NS);
